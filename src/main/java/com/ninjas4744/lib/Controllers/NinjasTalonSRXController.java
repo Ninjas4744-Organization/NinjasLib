@@ -1,20 +1,18 @@
-package com.ninjas4744.lib;
+package com.ninjas4744.lib.Controllers;
 
 import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.ninjas4744.lib.data.MainControllerConstants;
+import com.ninjas4744.lib.DataClasses.MainControllerConstants;
 
 public class NinjasTalonSRXController extends NinjasController {
-	private TalonSRX _main;
-	private TalonSRX[] _followers;
+	private final TalonSRX _main;
+	private final TalonSRX[] _followers;
 
 	public NinjasTalonSRXController(MainControllerConstants constants) {
 		super(constants);
 
 		_main = new TalonSRX(constants.main.id);
-
 		_main.configFactoryDefault();
-
 		_main.setInverted(constants.main.inverted);
 		_main.configPeakCurrentLimit((int) constants.currentLimit);
 
@@ -22,8 +20,13 @@ public class NinjasTalonSRXController extends NinjasController {
 		_main.config_kI(0, constants.PIDFConstants.kI);
 		_main.config_kD(0, constants.PIDFConstants.kD);
 		_main.config_kF(0, constants.PIDFConstants.kF);
-		_main.configMotionCruiseVelocity(constants.PIDFConstants.kCruiseVelocity / 10);
-		_main.configMotionAcceleration(constants.PIDFConstants.kAcceleration / 10);
+		_main.configMotionCruiseVelocity(constants.PIDFConstants.kCruiseVelocity * constants.encoderConversionFactor / 10);
+		_main.configMotionAcceleration(constants.PIDFConstants.kAcceleration * constants.encoderConversionFactor / 10);
+
+		_main.configForwardSoftLimitEnable(constants.isMaxSoftLimit);
+		_main.configReverseSoftLimitEnable(constants.isMinSoftLimit);
+		_main.configForwardSoftLimitThreshold(constants.maxSoftLimit);
+		_main.configReverseSoftLimitThreshold(constants.minSoftLimit);
 
 		_followers = new TalonSRX[constants.followers.length];
 		for (int i = 0; i < _followers.length; i++) {
@@ -68,7 +71,7 @@ public class NinjasTalonSRXController extends NinjasController {
 				throw new UnsupportedOperationException("PIDF control for velocity not supported on Talon SRX");
 
 			case PID_VELOCITY:
-				_main.set(TalonSRXControlMode.Velocity, (_constants.encoderConversionFactor / 60));
+				_main.set(TalonSRXControlMode.Velocity, _constants.encoderConversionFactor);
 				break;
 
 			case FF_VELOCITY:
@@ -83,7 +86,7 @@ public class NinjasTalonSRXController extends NinjasController {
 
 	@Override
 	public double getVelocity() {
-		return _main.getSelectedSensorVelocity() * _constants.encoderConversionFactor / 60;
+		return _main.getSelectedSensorVelocity() * _constants.encoderConversionFactor;
 	}
 
 	@Override
@@ -94,15 +97,5 @@ public class NinjasTalonSRXController extends NinjasController {
 	@Override
 	public void setEncoder(double position) {
 		_main.setSelectedSensorPosition(position / _constants.encoderConversionFactor);
-	}
-
-	@Override
-	public boolean atGoal() {
-		if (_controlState == ControlState.PIDF_POSITION)
-			return Math.abs(getGoal() - getPosition()) < _constants.positionGoalTolerance;
-		else if (_controlState == ControlState.PIDF_VELOCITY)
-			return Math.abs(getGoal() - getVelocity()) < _constants.velocityGoalTolerance;
-
-		return false;
 	}
 }

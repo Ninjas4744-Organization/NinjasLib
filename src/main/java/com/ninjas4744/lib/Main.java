@@ -5,6 +5,7 @@
 
 package com.ninjas4744.lib;
 
+import com.ninjas4744.lib.DataClasses.StateEndCondition;
 import edu.wpi.first.wpilibj.RobotBase;
 
 /**
@@ -22,6 +23,6 @@ public final class Main
     */
     public static void main(String... args)
     {
-        System.out.println("Hello Ninjas!");
+        System.out.println("Hello ningas");
     }
 }

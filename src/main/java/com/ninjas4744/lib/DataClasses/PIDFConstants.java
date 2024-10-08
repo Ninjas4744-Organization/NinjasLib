@@ -1,4 +1,4 @@
-package com.ninjas4744.lib.data;
+package com.ninjas4744.lib.DataClasses;
 
 /** Proportional Integral Derivative Feedforward, constants for combining PID and Feedforward */
 public class PIDFConstants {

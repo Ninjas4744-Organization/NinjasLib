@@ -1,5 +1,4 @@
-package com.ninjas4744.lib.data;
-
+package com.ninjas4744.lib.DataClasses;
 
 import java.util.function.BooleanSupplier;
 

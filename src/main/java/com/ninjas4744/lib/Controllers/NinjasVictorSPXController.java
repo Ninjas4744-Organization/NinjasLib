@@ -1,20 +1,18 @@
-package com.ninjas4744.lib;
+package com.ninjas4744.lib.Controllers;
 
 import com.ctre.phoenix.motorcontrol.VictorSPXControlMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
-import com.ninjas4744.lib.data.MainControllerConstants;
+import com.ninjas4744.lib.DataClasses.MainControllerConstants;
 
 public class NinjasVictorSPXController extends NinjasController {
-	private VictorSPX _main;
-	private VictorSPX[] _followers;
+	private final VictorSPX _main;
+	private final VictorSPX[] _followers;
 
 	public NinjasVictorSPXController(MainControllerConstants constants) {
 		super(constants);
 
 		_main = new VictorSPX(constants.main.id);
-
 		_main.configFactoryDefault();
-
 		_main.setInverted(constants.main.inverted);
 
 		_followers = new VictorSPX[constants.followers.length];

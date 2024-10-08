@@ -1,4 +1,4 @@
-package com.ninjas4744.lib.data;
+package com.ninjas4744.lib.DataClasses;
 
 public class MainControllerConstants {
 	/** Controller constants for the main controller in the subsystem */
@@ -30,7 +30,7 @@ public class MainControllerConstants {
 	public double encoderHomePosition = 0;
 
 	/**
-	 * The encoder value gets multiplied by this number, choose a number that will result the encoder
+	 * The controller works with amount of rotations according to the encoder, the rotations value gets multiplied by this number, choose a number that will result the encoder
 	 * to be in meters / degrees
 	 */
 	public double encoderConversionFactor = 1;
@@ -46,10 +46,4 @@ public class MainControllerConstants {
 
 	/** The up soft limit, makes the system unable to move above it */
 	public double maxSoftLimit = 0;
-
-	/**
-	 * Gear ratio between the motor output and the output after the gearbox, bigger values means
-	 * bigger reduction(1 / x)
-	 */
-	public double gearRatio = 1;
 }

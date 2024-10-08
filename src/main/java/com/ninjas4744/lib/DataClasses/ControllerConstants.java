@@ -1,4 +1,4 @@
-package com.ninjas4744.lib.data;
+package com.ninjas4744.lib.DataClasses;
 
 public class ControllerConstants {
 	/**

@@ -1,14 +1,14 @@
-package com.ninjas4744.lib;
+package com.ninjas4744.lib.Controllers;
 
 import com.ctre.phoenix6.configs.*;
 import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
-import com.ninjas4744.lib.data.MainControllerConstants;
+import com.ninjas4744.lib.DataClasses.MainControllerConstants;
 
 public class NinjasTalonFXController extends NinjasController {
-	private TalonFX _main;
-	private TalonFX[] _followers;
+	private final TalonFX _main;
+	private final TalonFX[] _followers;
 
 	public NinjasTalonFXController(MainControllerConstants constants) {
 		super(constants);
@@ -16,6 +16,11 @@ public class NinjasTalonFXController extends NinjasController {
 		_main = new TalonFX(constants.main.id);
 		_main.getConfigurator()
 				.apply(new TalonFXConfiguration()
+					.withSoftwareLimitSwitch(new SoftwareLimitSwitchConfigs()
+						.withForwardSoftLimitEnable(constants.isMaxSoftLimit)
+						.withReverseSoftLimitEnable(constants.isMinSoftLimit)
+						.withForwardSoftLimitThreshold(constants.maxSoftLimit)
+						.withReverseSoftLimitThreshold(constants.minSoftLimit))
 						.withAudio(new AudioConfigs().withBeepOnBoot(true))
 						.withMotorOutput(new MotorOutputConfigs()
 								.withInverted(
@@ -74,11 +79,11 @@ public class NinjasTalonFXController extends NinjasController {
 
 		switch (_controlState) {
 			case PIDF_VELOCITY:
-				_main.setControl(new MotionMagicVelocityVoltage(velocity / (_constants.encoderConversionFactor / 60)));
+				_main.setControl(new MotionMagicVelocityVoltage(velocity / _constants.encoderConversionFactor));
 				break;
 
 			case PID_VELOCITY:
-				_main.setControl(new VelocityVoltage(velocity / (_constants.encoderConversionFactor / 60)));
+				_main.setControl(new VelocityVoltage(velocity / _constants.encoderConversionFactor));
 				break;
 
 			case FF_VELOCITY:
@@ -93,7 +98,7 @@ public class NinjasTalonFXController extends NinjasController {
 
 	@Override
 	public double getVelocity() {
-		return _main.getVelocity().getValueAsDouble() * _constants.encoderConversionFactor / 60;
+		return _main.getVelocity().getValueAsDouble() * _constants.encoderConversionFactor;
 	}
 
 	@Override
@@ -104,15 +109,5 @@ public class NinjasTalonFXController extends NinjasController {
 	@Override
 	public void setEncoder(double position) {
 		_main.setPosition(position / _constants.encoderConversionFactor);
-	}
-
-	@Override
-	public boolean atGoal() {
-		if (_controlState == ControlState.PIDF_POSITION)
-			return Math.abs(getGoal() - getPosition()) < _constants.positionGoalTolerance;
-		else if (_controlState == ControlState.PIDF_VELOCITY)
-			return Math.abs(getGoal() - getVelocity()) < _constants.velocityGoalTolerance;
-
-		return false;
 	}
 }
