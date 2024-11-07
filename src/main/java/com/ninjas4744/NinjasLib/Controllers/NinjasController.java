@@ -1,7 +1,7 @@
-package com.ninjas4744.lib.Controllers;
+package com.ninjas4744.NinjasLib.Controllers;
 
+import com.ninjas4744.NinjasLib.DataClasses.MainControllerConstants;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import com.ninjas4744.lib.DataClasses.MainControllerConstants;
 
 import java.util.Map;
 
@@ -30,38 +30,38 @@ public abstract class NinjasController {
 		_constants = constants;
 
 		Shuffleboard.getTab(constants.subsystemName)
-			.addDouble("Position", this::getPosition)
-			.withWidget("Graph")
-			.withSize(shuffleboardEnteriesSize, shuffleboardEnteriesSize)
-			.withPosition(shuffleboardEnteriesSize, 0)
-			.withProperties(Map.of("Automatic bounds", false, "Upper bound", 100, "Lower bound", -100));
+				.addDouble("Position", this::getPosition)
+				.withWidget("Graph")
+				.withSize(shuffleboardEnteriesSize, shuffleboardEnteriesSize)
+				.withPosition(shuffleboardEnteriesSize, 0)
+				.withProperties(Map.of("Automatic bounds", false, "Upper bound", 100, "Lower bound", -100));
 
 		Shuffleboard.getTab(constants.subsystemName)
-			.addDouble("Velocity", this::getVelocity)
-			.withWidget("Graph")
-			.withSize(shuffleboardEnteriesSize, shuffleboardEnteriesSize)
-			.withPosition(shuffleboardEnteriesSize * 2, 0)
-			.withProperties(Map.of("Automatic bounds", false, "Upper bound", 100, "Lower bound", -100));
+				.addDouble("Velocity", this::getVelocity)
+				.withWidget("Graph")
+				.withSize(shuffleboardEnteriesSize, shuffleboardEnteriesSize)
+				.withPosition(shuffleboardEnteriesSize * 2, 0)
+				.withProperties(Map.of("Automatic bounds", false, "Upper bound", 100, "Lower bound", -100));
 
 		Shuffleboard.getTab(constants.subsystemName)
-			.addDouble("Output", this::getOutput)
-			.withWidget("Graph")
-			.withSize(shuffleboardEnteriesSize, shuffleboardEnteriesSize)
-			.withPosition(0, 0)
-			.withProperties(Map.of("Automatic bounds", false, "Upper bound", 1, "Lower bound", -1));
+				.addDouble("Output", this::getOutput)
+				.withWidget("Graph")
+				.withSize(shuffleboardEnteriesSize, shuffleboardEnteriesSize)
+				.withPosition(0, 0)
+				.withProperties(Map.of("Automatic bounds", false, "Upper bound", 1, "Lower bound", -1));
 
 		Shuffleboard.getTab(constants.subsystemName)
-			.addDouble("Goal", this::getGoal)
-			.withWidget("Number Bar")
-			.withSize(shuffleboardEnteriesSize / 2, shuffleboardEnteriesSize)
-			.withPosition(shuffleboardEnteriesSize * 3 + 1, 0)
-			.withProperties(Map.of("Min", -100, "Max", 100, "Orientation", "VERTICAL"));
+				.addDouble("Goal", this::getGoal)
+				.withWidget("Number Bar")
+				.withSize(shuffleboardEnteriesSize / 2, shuffleboardEnteriesSize)
+				.withPosition(shuffleboardEnteriesSize * 3 + 1, 0)
+				.withProperties(Map.of("Min", -100, "Max", 100, "Orientation", "VERTICAL"));
 
 		Shuffleboard.getTab(constants.subsystemName)
-			.addString("Control State", () -> _controlState.toString())
-			.withWidget("Text View")
-			.withSize(shuffleboardEnteriesSize, shuffleboardEnteriesSize / 2)
-			.withPosition(shuffleboardEnteriesSize, shuffleboardEnteriesSize + 1);
+				.addString("Control State", () -> _controlState.toString())
+				.withWidget("Text View")
+				.withSize(shuffleboardEnteriesSize, shuffleboardEnteriesSize / 2)
+				.withPosition(shuffleboardEnteriesSize, shuffleboardEnteriesSize + 1);
 	}
 
 	/**
@@ -74,6 +74,7 @@ public abstract class NinjasController {
 	 */
 	public void setPercent(double percent) {
 		_controlState = ControlState.PERCENT_OUTPUT;
+		_goal = percent;
 	}
 
 	/**
@@ -167,7 +168,7 @@ public abstract class NinjasController {
 	 * @see #resetEncoder
 	 */
 	public boolean isHomed() {
-		return getPosition() == _constants.encoderHomePosition;
+		return Math.abs(_constants.encoderHomePosition - getPosition()) < _constants.positionGoalTolerance;
 	}
 
 	/**
@@ -183,16 +184,18 @@ public abstract class NinjasController {
 	 *     Will return false if not in position or velocity control
 	 */
 	public boolean atGoal() {
-		if (_controlState == ControlState.PIDF_POSITION || _controlState == ControlState.PID_POSITION || _controlState == ControlState.FF_POSITION)
+		if (_controlState == ControlState.PIDF_POSITION
+				|| _controlState == ControlState.PID_POSITION
+				|| _controlState == ControlState.FF_POSITION)
 			return Math.abs(getGoal() - getPosition()) < _constants.positionGoalTolerance;
-		else if (_controlState == ControlState.PIDF_VELOCITY || _controlState == ControlState.PID_VELOCITY || _controlState == ControlState.FF_VELOCITY)
+		else if (_controlState == ControlState.PIDF_VELOCITY
+				|| _controlState == ControlState.PID_VELOCITY
+				|| _controlState == ControlState.FF_VELOCITY)
 			return Math.abs(getGoal() - getVelocity()) < _constants.velocityGoalTolerance;
 
 		return false;
 	}
 
 	/** Runs controller periodic tasks, run it on the subsystem periodic */
-	public void periodic() {
-
-	}
+	public void periodic() {}
 }

@@ -1,4 +1,4 @@
-package com.ninjas4744.lib.DataClasses;
+package com.ninjas4744.NinjasLib.DataClasses;
 
 public class MainControllerConstants {
 	/** Controller constants for the main controller in the subsystem */
@@ -15,6 +15,11 @@ public class MainControllerConstants {
 
 	/** PIDF constants */
 	public PIDFConstants PIDFConstants = new PIDFConstants();
+
+	/**
+	 * Whether this controller will use dynamic profiling - when you use PIDF and the target changes while following.
+	 */
+	public boolean dynamicProfiling = false;
 
 	/* The error which is considered atGoal(). if the PIDF error is smaller than this value it will be considered atGoal() */
 	/** The position error which is considered atGoal() */

@@ -1,4 +1,4 @@
-package com.ninjas4744.lib.DataClasses;
+package com.ninjas4744.NinjasLib.DataClasses;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 

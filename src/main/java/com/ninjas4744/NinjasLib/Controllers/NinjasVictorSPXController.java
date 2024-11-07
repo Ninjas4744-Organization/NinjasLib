@@ -1,8 +1,8 @@
-package com.ninjas4744.lib.Controllers;
+package com.ninjas4744.NinjasLib.Controllers;
 
 import com.ctre.phoenix.motorcontrol.VictorSPXControlMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
-import com.ninjas4744.lib.DataClasses.MainControllerConstants;
+import com.ninjas4744.NinjasLib.DataClasses.MainControllerConstants;
 
 public class NinjasVictorSPXController extends NinjasController {
 	private final VictorSPX _main;

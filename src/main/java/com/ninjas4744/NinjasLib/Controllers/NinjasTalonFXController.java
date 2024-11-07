@@ -1,10 +1,10 @@
-package com.ninjas4744.lib.Controllers;
+package com.ninjas4744.NinjasLib.Controllers;
 
 import com.ctre.phoenix6.configs.*;
 import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
-import com.ninjas4744.lib.DataClasses.MainControllerConstants;
+import com.ninjas4744.NinjasLib.DataClasses.MainControllerConstants;
 
 public class NinjasTalonFXController extends NinjasController {
 	private final TalonFX _main;
@@ -16,11 +16,11 @@ public class NinjasTalonFXController extends NinjasController {
 		_main = new TalonFX(constants.main.id);
 		_main.getConfigurator()
 				.apply(new TalonFXConfiguration()
-					.withSoftwareLimitSwitch(new SoftwareLimitSwitchConfigs()
-						.withForwardSoftLimitEnable(constants.isMaxSoftLimit)
-						.withReverseSoftLimitEnable(constants.isMinSoftLimit)
-						.withForwardSoftLimitThreshold(constants.maxSoftLimit)
-						.withReverseSoftLimitThreshold(constants.minSoftLimit))
+						.withSoftwareLimitSwitch(new SoftwareLimitSwitchConfigs()
+								.withForwardSoftLimitEnable(constants.isMaxSoftLimit)
+								.withReverseSoftLimitEnable(constants.isMinSoftLimit)
+								.withForwardSoftLimitThreshold(constants.maxSoftLimit)
+								.withReverseSoftLimitThreshold(constants.minSoftLimit))
 						.withAudio(new AudioConfigs().withBeepOnBoot(true))
 						.withMotorOutput(new MotorOutputConfigs()
 								.withInverted(
@@ -38,7 +38,9 @@ public class NinjasTalonFXController extends NinjasController {
 						.withSlot0(new Slot0Configs()
 								.withKP(constants.PIDFConstants.kP)
 								.withKI(constants.PIDFConstants.kI)
-								.withKD(constants.PIDFConstants.kD)));
+								.withKD(constants.PIDFConstants.kD)
+								.withKS(constants.PIDFConstants.kS)
+								.withKV(constants.PIDFConstants.kV)));
 
 		_followers = new TalonFX[constants.followers.length];
 		for (int i = 0; i < _followers.length; i++) {
@@ -60,16 +62,13 @@ public class NinjasTalonFXController extends NinjasController {
 		super.setPosition(position);
 
 		switch (_controlState) {
-			case PIDF_POSITION:
+			case PIDF_POSITION, FF_POSITION:
 				_main.setControl(new MotionMagicVoltage(position / _constants.encoderConversionFactor));
 				break;
 
 			case PID_POSITION:
 				_main.setControl(new PositionVoltage(position / _constants.encoderConversionFactor));
 				break;
-
-			case FF_POSITION:
-				throw new UnsupportedOperationException("Feedforward control not supported on Talon FX");
 		}
 	}
 
@@ -78,16 +77,13 @@ public class NinjasTalonFXController extends NinjasController {
 		super.setVelocity(velocity);
 
 		switch (_controlState) {
-			case PIDF_VELOCITY:
+			case PIDF_VELOCITY, FF_VELOCITY:
 				_main.setControl(new MotionMagicVelocityVoltage(velocity / _constants.encoderConversionFactor));
 				break;
 
 			case PID_VELOCITY:
 				_main.setControl(new VelocityVoltage(velocity / _constants.encoderConversionFactor));
 				break;
-
-			case FF_VELOCITY:
-				throw new UnsupportedOperationException("Feedforward control not supported on Talon FX");
 		}
 	}
 

@@ -1,8 +1,7 @@
-package com.ninjas4744.lib.DataClasses;
+package com.ninjas4744.NinjasLib.DataClasses;
 
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 
 public class VisionOutput {
 	/** The pose of the robot */
@@ -18,7 +17,7 @@ public class VisionOutput {
 	public AprilTag farthestTag;
 
 	/** The tag which was detected the closest */
-	public AprilTag closestTag = new AprilTag(1, new Pose3d());
+	public AprilTag closestTag;
 
 	/** The ambiguity of the tag which was detected most ambiguously */
 	public double maxAmbiguity;
@@ -27,7 +26,7 @@ public class VisionOutput {
 	public double farthestTagDist;
 
 	/** The distance from the camera of the tag which was detected the closest */
-	public double closestTagDist = -1;
+	public double closestTagDist;
 
 	/** Whether the camera detected any tags */
 	public boolean hasTargets = false;

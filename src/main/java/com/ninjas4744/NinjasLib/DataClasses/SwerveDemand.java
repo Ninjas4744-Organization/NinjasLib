@@ -1,4 +1,4 @@
-package com.ninjas4744.lib.DataClasses;
+package com.ninjas4744.NinjasLib.DataClasses;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -7,11 +7,13 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 public class SwerveDemand {
 	public enum SwerveState {
 		DEFAULT,
-		POSITION,
 		VELOCITY,
 		LOCKED_AXIS,
 		LOOK_AT_TARGET,
-        PATHFINDING, DRIVE_ASSIST, FOLLOW_PATH
+		PATHFINDING,
+		DRIVE_ASSIST,
+    FOLLOW_PATH,
+    AUTONOMY
 	}
 
 	public ChassisSpeeds driverInput = new ChassisSpeeds(0, 0, 0);

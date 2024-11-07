@@ -1,12 +1,13 @@
-package com.ninjas4744.lib.Controllers;
+package com.ninjas4744.NinjasLib.Controllers;
 
+import com.ninjas4744.NinjasLib.DataClasses.MainControllerConstants;
 import com.revrobotics.CANSparkBase;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkMax;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.wpilibj.Timer;
-import com.ninjas4744.lib.DataClasses.MainControllerConstants;
 
 public class NinjasSparkMaxController extends NinjasController {
 	private final CANSparkMax _main;
@@ -14,6 +15,9 @@ public class NinjasSparkMaxController extends NinjasController {
 
 	private final TrapezoidProfile _profile;
 	private final Timer _profileTimer = new Timer();
+	private State _initialProfileState;
+	private ProfiledPIDController _PIDFController;
+	private boolean isCurrentlyPiding = false;
 
 	public NinjasSparkMaxController(MainControllerConstants constants) {
 		super(constants);
@@ -29,15 +33,14 @@ public class NinjasSparkMaxController extends NinjasController {
 		_main.getPIDController().setI(constants.PIDFConstants.kI);
 		_main.getPIDController().setD(constants.PIDFConstants.kD);
 		_main.getPIDController().setIZone(constants.PIDFConstants.kIZone);
-		_main.getPIDController().setFF(constants.PIDFConstants.kF);
 
 		_main.getEncoder().setPositionConversionFactor(constants.encoderConversionFactor);
-		_main.getEncoder().setVelocityConversionFactor(constants.encoderConversionFactor);
+		_main.getEncoder().setVelocityConversionFactor(constants.encoderConversionFactor / 60);
 
 		_main.enableSoftLimit(CANSparkBase.SoftLimitDirection.kForward, constants.isMaxSoftLimit);
 		_main.enableSoftLimit(CANSparkBase.SoftLimitDirection.kReverse, constants.isMinSoftLimit);
 		_main.setSoftLimit(CANSparkBase.SoftLimitDirection.kForward, (float) constants.maxSoftLimit);
-		_main.setSoftLimit(CANSparkBase.SoftLimitDirection.kForward, (float) constants.minSoftLimit);
+		_main.setSoftLimit(CANSparkBase.SoftLimitDirection.kReverse, (float) constants.minSoftLimit);
 
 		_main.burnFlash();
 
@@ -51,6 +54,13 @@ public class NinjasSparkMaxController extends NinjasController {
 
 		_profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(
 				constants.PIDFConstants.kCruiseVelocity, constants.PIDFConstants.kAcceleration));
+
+		_PIDFController = new ProfiledPIDController(
+				constants.PIDFConstants.kP,
+				constants.PIDFConstants.kI,
+				constants.PIDFConstants.kD,
+				new TrapezoidProfile.Constraints(
+						constants.PIDFConstants.kCruiseVelocity, constants.PIDFConstants.kAcceleration));
 	}
 
 	@Override
@@ -68,6 +78,8 @@ public class NinjasSparkMaxController extends NinjasController {
 			_main.getPIDController().setReference(getGoal(), ControlType.kPosition);
 
 		_profileTimer.restart();
+		_initialProfileState = new State(getPosition(), getVelocity());
+		_PIDFController.setGoal(position);
 	}
 
 	@Override
@@ -78,6 +90,8 @@ public class NinjasSparkMaxController extends NinjasController {
 			_main.getPIDController().setReference(getGoal(), ControlType.kVelocity);
 
 		_profileTimer.restart();
+		_initialProfileState = new State(getVelocity(), 0);
+		_PIDFController.setGoal(getVelocity());
 	}
 
 	@Override
@@ -104,49 +118,52 @@ public class NinjasSparkMaxController extends NinjasController {
 	public void periodic() {
 		super.periodic();
 
-		if (atGoal() || _profileTimer.get() > _profile.totalTime()) return;
-
 		switch (_controlState) {
 			case PIDF_POSITION:
-				_main.getPIDController()
-						.setReference(
-								_profile.calculate(
-									_profileTimer.get(),
-									new State(getPosition(), getVelocity()),
-												new State(getGoal(), 0))
-										.position,
-								ControlType.kPosition);
+				isCurrentlyPiding = true;
+				_main.set(_PIDFController.calculate(getPosition()));
 				break;
 
 			case PIDF_VELOCITY:
-				_main.getPIDController()
-						.setReference(
-								_profile.calculate(
-									_profileTimer.get(),
-									new State(getVelocity(), 0),
-									new State(getGoal(), 0))
-									.position,
-								ControlType.kVelocity);
+				isCurrentlyPiding = true;
+				_main.set(_PIDFController.calculate(getVelocity()));
 				break;
 
 			case FF_POSITION:
 				_main.set(_profile.calculate(
-					_profileTimer.get(),
-										new State(getPosition(), getVelocity()),
+										_profileTimer.get() + (_constants.dynamicProfiling ? 0.1 : 0),
+										_initialProfileState,
 										new State(getGoal(), 0))
 								.velocity
-						/ _constants.PIDFConstants.kMaxVelocity);
+						* _constants.PIDFConstants.kV
+						/ 12);
 				break;
 
 			case FF_VELOCITY:
-				_main.set(
-					_profile.calculate(_profileTimer.get(), new State(getVelocity(), 0), new State(getGoal(), 0))
-										.velocity
-								/ _constants.PIDFConstants.kMaxVelocity);
+				_main.set(_profile.calculate(
+										_profileTimer.get() + (_constants.dynamicProfiling ? 0.1 : 0),
+										_initialProfileState,
+										new State(getPosition(), getGoal()))
+								.velocity
+						* _constants.PIDFConstants.kV
+						/ 12);
 				break;
 
 			default:
 				break;
 		}
+
+		if (!isCurrentlyPiding) {
+			switch (_controlState) {
+				case PIDF_POSITION:
+					_PIDFController.reset(new State(getPosition(), getVelocity()));
+					break;
+
+				case PIDF_VELOCITY:
+					_PIDFController.reset(new State(getVelocity(), 0));
+					break;
+			}
+		}
+		isCurrentlyPiding = false;
 	}
 }

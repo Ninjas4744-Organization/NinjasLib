@@ -1,11 +1,11 @@
-package com.ninjas4744.lib.Vision;
+package com.ninjas4744.NinjasLib.Vision;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import com.ninjas4744.NinjasLib.DataClasses.VisionConstants;
+import com.ninjas4744.NinjasLib.DataClasses.VisionOutput;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import com.ninjas4744.lib.DataClasses.VisionOutput;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -15,7 +15,6 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
 public class VisionCamera {
 	private final PhotonCamera _camera;
@@ -23,23 +22,20 @@ public class VisionCamera {
 	private List<PhotonTrackedTarget> _targets;
 	private final VisionOutput _output;
 	private final List<Integer> _ignoredTags;
-
-	private final Function<Optional<List<Integer>>, AprilTagFieldLayout> _getFieldLayout;
-	private final double _maxAmbiguity;
+	private final VisionConstants _constants;
 
 	/**
 	 * @param name Name of the camera.
 	 * @param cameraPose Location of the camera on the robot (from center, positive x forward,
 	 *     positive y left, and positive angle is counterclockwise).
 	 */
-	public VisionCamera(String name, Transform3d cameraPose, Function<Optional<List<Integer>>, AprilTagFieldLayout> getFieldLayout, double maxAmbiguity) {
-		_getFieldLayout = getFieldLayout;
-		_maxAmbiguity = maxAmbiguity;
+	public VisionCamera(String name, Transform3d cameraPose, VisionConstants constants) {
+		_constants = constants;
 
 		_camera = new PhotonCamera(name);
 
 		_estimator = new PhotonPoseEstimator(
-				_getFieldLayout.apply(Optional.empty()),
+			_constants.fieldLayoutGetter.getFieldLayout(List.of()),
 				PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
 				_camera,
 				cameraPose);
@@ -55,18 +51,27 @@ public class VisionCamera {
 	 * @return The vision output of this camera
 	 */
 	public VisionOutput Update() {
-		PhotonPipelineResult result = _camera.getLatestResult();
-		_estimator.setFieldTags(_getFieldLayout.apply(Optional.of(_ignoredTags)));
+    PhotonPipelineResult result;
+    try {
+      result = _camera.getLatestResult();
+    } catch (Exception e) {
+      System.out.println("Camera " + getName() + "disconnected");
+      _output.hasTargets = false;
+      return _output;
+    }
+
+		_estimator.setFieldTags(_constants.fieldLayoutGetter.getFieldLayout(_ignoredTags));
 		Optional<EstimatedRobotPose> currentPose = _estimator.update(result);
 
 		_output.hasTargets = result.hasTargets();
-		SmartDashboard.putBoolean("Vision Has Targets", _output.hasTargets);
 		if (currentPose.isEmpty()) return _output;
+
+		SmartDashboard.putNumber("Dist To Target", result.getBestTarget().getBestCameraToTarget().getTranslation().getNorm());
 
 		_targets = currentPose.get().targetsUsed;
 		findMinMax(_output);
 
-		if (_output.maxAmbiguity < _maxAmbiguity) {
+		if (_output.maxAmbiguity < _constants.maxAmbiguity || _output.closestTagDist < _constants.maxDistance) {
 			_output.timestamp = currentPose.get().timestampSeconds;
 
 			_output.robotPose = new Pose2d(
@@ -74,7 +79,8 @@ public class VisionCamera {
 					currentPose.get().estimatedPose.getY(),
 					Rotation2d.fromRadians(
 							currentPose.get().estimatedPose.getRotation().getZ()));
-		}
+		} else
+      		_output.hasTargets = false;
 
 		return _output;
 	}
@@ -90,17 +96,20 @@ public class VisionCamera {
 
 			if (distance < output.closestTagDist) {
 				output.closestTagDist = distance;
-				output.closestTag = _getFieldLayout.apply(Optional.empty()).getTags().get(target.getFiducialId() - 1);
+				output.closestTag =
+					_constants.fieldLayoutGetter.getFieldLayout(List.of()).getTags().get(target.getFiducialId() - 1);
 			}
 
 			if (distance > output.farthestTagDist) {
 				output.farthestTagDist = distance;
-				output.farthestTag = _getFieldLayout.apply(Optional.empty()).getTags().get(target.getFiducialId() - 1);
+				output.farthestTag =
+					_constants.fieldLayoutGetter.getFieldLayout(List.of()).getTags().get(target.getFiducialId() - 1);
 			}
 
 			if (ambiguity > output.maxAmbiguity) {
 				output.maxAmbiguity = ambiguity;
-				output.maxAmbiguityTag = _getFieldLayout.apply(Optional.empty()).getTags().get(target.getFiducialId() - 1);
+				output.maxAmbiguityTag =
+					_constants.fieldLayoutGetter.getFieldLayout(List.of()).getTags().get(target.getFiducialId() - 1);
 			}
 		}
 	}
