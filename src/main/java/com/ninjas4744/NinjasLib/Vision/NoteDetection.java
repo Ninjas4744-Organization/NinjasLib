@@ -1,14 +1,12 @@
 package com.ninjas4744.NinjasLib.Vision;
 
 import com.ninjas4744.NinjasLib.DataClasses.VisionConstants;
-import com.ninjas4744.NinjasLib.RobotStateIO;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class NoteDetection {
 	private static final StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault()
@@ -32,9 +30,6 @@ public class NoteDetection {
 		double ty = LimelightHelpers.getTY(_constants.limelightName);
 
 		Translation2d translation = convertMeasurement(tx, ty);
-
-		SmartDashboard.putNumber("Note Dist X", translation.getX());
-		SmartDashboard.putNumber("Note Dist Y", translation.getY());
 
 		Transform2d noteTransform =
 				new Transform2d(new Translation2d(translation.getY(), -translation.getX()), new Rotation2d());
@@ -65,7 +60,6 @@ public class NoteDetection {
 		if(_constants == null)
 			throw new RuntimeException("Note detection constants not set. Please set them with setConstants(NoteDetectionConstants)");
 
-		SmartDashboard.putBoolean("Limelight detected", LimelightHelpers.getTA(_constants.limelightName) > 0.5);
 		return LimelightHelpers.getTA(_constants.limelightName) > 0.5;
 	}
 }

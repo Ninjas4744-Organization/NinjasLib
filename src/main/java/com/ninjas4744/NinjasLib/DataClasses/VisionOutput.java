@@ -29,5 +29,8 @@ public class VisionOutput {
 	public double closestTagDist;
 
 	/** Whether the camera detected any tags */
-	public boolean hasTargets = false;
+	public boolean hasTargets;
+
+	/** How many targets the camera detected */
+	public int amountOfTargets;
 }

@@ -2,10 +2,7 @@ package com.ninjas4744.NinjasLib.Vision;
 
 import com.ninjas4744.NinjasLib.DataClasses.VisionConstants;
 import com.ninjas4744.NinjasLib.DataClasses.VisionOutput;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -57,6 +54,7 @@ public class VisionCamera {
     } catch (Exception e) {
       System.out.println("Camera " + getName() + "disconnected");
       _output.hasTargets = false;
+			_output.amountOfTargets = 0;
       return _output;
     }
 
@@ -64,23 +62,19 @@ public class VisionCamera {
 		Optional<EstimatedRobotPose> currentPose = _estimator.update(result);
 
 		_output.hasTargets = result.hasTargets();
+		_output.amountOfTargets = result.getTargets().size();
 		if (currentPose.isEmpty()) return _output;
-
-		SmartDashboard.putNumber("Dist To Target", result.getBestTarget().getBestCameraToTarget().getTranslation().getNorm());
 
 		_targets = currentPose.get().targetsUsed;
 		findMinMax(_output);
 
 		if (_output.maxAmbiguity < _constants.maxAmbiguity || _output.closestTagDist < _constants.maxDistance) {
 			_output.timestamp = currentPose.get().timestampSeconds;
-
-			_output.robotPose = new Pose2d(
-					currentPose.get().estimatedPose.getX(),
-					currentPose.get().estimatedPose.getY(),
-					Rotation2d.fromRadians(
-							currentPose.get().estimatedPose.getRotation().getZ()));
-		} else
-      		_output.hasTargets = false;
+			_output.robotPose = currentPose.get().estimatedPose.toPose2d();
+		} else{
+			_output.hasTargets = false;
+			_output.amountOfTargets = 0;
+		}
 
 		return _output;
 	}
@@ -97,19 +91,19 @@ public class VisionCamera {
 			if (distance < output.closestTagDist) {
 				output.closestTagDist = distance;
 				output.closestTag =
-					_constants.fieldLayoutGetter.getFieldLayout(List.of()).getTags().get(target.getFiducialId() - 1);
+					_constants.fieldLayoutGetter.getFieldLayout(_ignoredTags).getTags().get(target.getFiducialId() - 1);
 			}
 
 			if (distance > output.farthestTagDist) {
 				output.farthestTagDist = distance;
 				output.farthestTag =
-					_constants.fieldLayoutGetter.getFieldLayout(List.of()).getTags().get(target.getFiducialId() - 1);
+					_constants.fieldLayoutGetter.getFieldLayout(_ignoredTags).getTags().get(target.getFiducialId() - 1);
 			}
 
 			if (ambiguity > output.maxAmbiguity) {
 				output.maxAmbiguity = ambiguity;
 				output.maxAmbiguityTag =
-					_constants.fieldLayoutGetter.getFieldLayout(List.of()).getTags().get(target.getFiducialId() - 1);
+					_constants.fieldLayoutGetter.getFieldLayout(_ignoredTags).getTags().get(target.getFiducialId() - 1);
 			}
 		}
 	}
@@ -128,6 +122,10 @@ public class VisionCamera {
 		return _camera.getName();
 	}
 
+	/**
+	 * Adds an apriltag to the ignored apriltags list. If the camera sees a tag in the ignored list, it ignores it.
+	 * @param id the id of the apriltag to ignore
+	 */
 	public void ignoreTag(int id) {
 		_ignoredTags.add(id);
 	}
