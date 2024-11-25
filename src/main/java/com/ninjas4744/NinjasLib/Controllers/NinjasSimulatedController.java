@@ -77,7 +77,7 @@ public class NinjasSimulatedController extends NinjasController {
 	public void setPercent(double percent) {
 		super.setPercent(percent);
 
-		for (int i = 0; i < _constants.followers.length + 1; i++) _main.setInput(i, percent);
+		_main.setInput(0, percent);
 	}
 
 	@Override
@@ -117,39 +117,37 @@ public class NinjasSimulatedController extends NinjasController {
 	@Override
 	public void periodic() {
 		super.periodic();
-		
-		for (int i = 0; i < _constants.followers.length + 1; i++) {
-			switch (_controlState) {
-				case PIDF_POSITION:
-					isCurrentlyPiding = true;
-					_main.setInput(i, _PIDFController.calculate(getPosition()));
-					break;
 
-				case PIDF_VELOCITY:
-					isCurrentlyPiding = true;
-					_main.setInput(i, _PIDFController.calculate(getVelocity()));
-					break;
+		switch (_controlState) {
+			case PIDF_POSITION:
+				isCurrentlyPiding = true;
+				_main.setInput(0, _PIDFController.calculate(getPosition()));
+				break;
 
-				case FF_POSITION:
-					_main.setInput(i, _profile.calculate(
-						0.02,
-						new TrapezoidProfile.State(getPosition(), getVelocity()),
-						new TrapezoidProfile.State(getGoal(), 0))
-						.velocity
-						* _constants.PIDFConstants.kV
-						/ 12);
-					break;
+			case PIDF_VELOCITY:
+				isCurrentlyPiding = true;
+				_main.setInput(0, _PIDFController.calculate(getVelocity()));
+				break;
 
-				case FF_VELOCITY:
-					_main.setInput(i, _profile.calculate(
-						0.02,
-						new TrapezoidProfile.State(getPosition(), getVelocity()),
-						new TrapezoidProfile.State(getPosition(), getGoal()))
-						.velocity
-						* _constants.PIDFConstants.kV
-						/ 12);
-					break;
-			}
+			case FF_POSITION:
+				_main.setInput(0, _profile.calculate(
+					0.02,
+					new TrapezoidProfile.State(getPosition(), getVelocity()),
+					new TrapezoidProfile.State(getGoal(), 0))
+					.velocity
+					* _constants.PIDFConstants.kV
+					/ 12);
+				break;
+
+			case FF_VELOCITY:
+				_main.setInput(0, _profile.calculate(
+					0.02,
+					new TrapezoidProfile.State(getPosition(), getVelocity()),
+					new TrapezoidProfile.State(getPosition(), getGoal()))
+					.velocity
+					* _constants.PIDFConstants.kV
+					/ 12);
+				break;
 		}
 
 		if (!isCurrentlyPiding) {
