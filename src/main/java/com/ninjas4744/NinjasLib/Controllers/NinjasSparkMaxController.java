@@ -7,15 +7,12 @@ import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
-import edu.wpi.first.wpilibj.Timer;
 
 public class NinjasSparkMaxController extends NinjasController {
 	private final CANSparkMax _main;
 	private final CANSparkMax[] _followers;
 
 	private final TrapezoidProfile _profile;
-	private final Timer _profileTimer = new Timer();
-	private State _initialProfileState;
 	private ProfiledPIDController _PIDFController;
 	private boolean isCurrentlyPiding = false;
 
@@ -77,8 +74,6 @@ public class NinjasSparkMaxController extends NinjasController {
 		if (_controlState == ControlState.PID_POSITION)
 			_main.getPIDController().setReference(getGoal(), ControlType.kPosition);
 
-		_profileTimer.restart();
-		_initialProfileState = new State(getPosition(), getVelocity());
 		_PIDFController.setGoal(position);
 	}
 
@@ -89,9 +84,7 @@ public class NinjasSparkMaxController extends NinjasController {
 		if (_controlState == ControlState.PID_VELOCITY)
 			_main.getPIDController().setReference(getGoal(), ControlType.kVelocity);
 
-		_profileTimer.restart();
-		_initialProfileState = new State(getVelocity(), 0);
-		_PIDFController.setGoal(getVelocity());
+		_PIDFController.setGoal(velocity);
 	}
 
 	@Override
@@ -131,9 +124,9 @@ public class NinjasSparkMaxController extends NinjasController {
 
 			case FF_POSITION:
 				_main.set(_profile.calculate(
-										_profileTimer.get() + (_constants.dynamicProfiling ? 0.1 : 0),
-										_initialProfileState,
-										new State(getGoal(), 0))
+								0.02,
+								new State(getPosition(), getVelocity()),
+								new State(getGoal(), 0))
 								.velocity
 						* _constants.PIDFConstants.kV
 						/ 12);
@@ -141,15 +134,12 @@ public class NinjasSparkMaxController extends NinjasController {
 
 			case FF_VELOCITY:
 				_main.set(_profile.calculate(
-										_profileTimer.get() + (_constants.dynamicProfiling ? 0.1 : 0),
-										_initialProfileState,
-										new State(getPosition(), getGoal()))
+								0.02,
+								new State(getPosition(), getVelocity()),
+								new State(getPosition(), getGoal()))
 								.velocity
 						* _constants.PIDFConstants.kV
 						/ 12);
-				break;
-
-			default:
 				break;
 		}
 

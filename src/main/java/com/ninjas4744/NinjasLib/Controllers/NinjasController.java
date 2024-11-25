@@ -29,39 +29,44 @@ public abstract class NinjasController {
 	public NinjasController(MainControllerConstants constants) {
 		_constants = constants;
 
-		Shuffleboard.getTab(constants.subsystemName)
+		try {
+			Shuffleboard.getTab(constants.subsystemName)
 				.addDouble("Position", this::getPosition)
 				.withWidget("Graph")
 				.withSize(shuffleboardEnteriesSize, shuffleboardEnteriesSize)
 				.withPosition(shuffleboardEnteriesSize, 0)
 				.withProperties(Map.of("Automatic bounds", false, "Upper bound", 100, "Lower bound", -100));
 
-		Shuffleboard.getTab(constants.subsystemName)
+			Shuffleboard.getTab(constants.subsystemName)
 				.addDouble("Velocity", this::getVelocity)
 				.withWidget("Graph")
 				.withSize(shuffleboardEnteriesSize, shuffleboardEnteriesSize)
 				.withPosition(shuffleboardEnteriesSize * 2, 0)
 				.withProperties(Map.of("Automatic bounds", false, "Upper bound", 100, "Lower bound", -100));
 
-		Shuffleboard.getTab(constants.subsystemName)
+			Shuffleboard.getTab(constants.subsystemName)
 				.addDouble("Output", this::getOutput)
 				.withWidget("Graph")
 				.withSize(shuffleboardEnteriesSize, shuffleboardEnteriesSize)
 				.withPosition(0, 0)
 				.withProperties(Map.of("Automatic bounds", false, "Upper bound", 1, "Lower bound", -1));
 
-		Shuffleboard.getTab(constants.subsystemName)
+			Shuffleboard.getTab(constants.subsystemName)
 				.addDouble("Goal", this::getGoal)
 				.withWidget("Number Bar")
 				.withSize(shuffleboardEnteriesSize / 2, shuffleboardEnteriesSize)
 				.withPosition(shuffleboardEnteriesSize * 3 + 1, 0)
 				.withProperties(Map.of("Min", -100, "Max", 100, "Orientation", "VERTICAL"));
 
-		Shuffleboard.getTab(constants.subsystemName)
+			Shuffleboard.getTab(constants.subsystemName)
 				.addString("Control State", () -> _controlState.toString())
 				.withWidget("Text View")
 				.withSize(shuffleboardEnteriesSize, shuffleboardEnteriesSize / 2)
 				.withPosition(shuffleboardEnteriesSize, shuffleboardEnteriesSize + 1);
+		} catch (Exception e) {
+			System.err.println("Shuffleboard error occurred while creating " + constants.subsystemName + " controller.");
+			System.err.println("Make sure if this controller's subsystem name is unique.");
+		}
 	}
 
 	/**

@@ -6,10 +6,12 @@ public class SimulatedControllerConstants {
 
 	public enum MotorType {
 		KRAKEN,
+		KRAKEN_FOC,
 		FALCON,
-		VORTEX,
+		FALCON_FOC,
 		NEO,
-		NEO550
+		NEO550,
+		CIM
 	}
 
 	/**
