@@ -13,7 +13,7 @@ public class NinjasSparkMaxController extends NinjasController {
 	private final CANSparkMax[] _followers;
 
 	private final TrapezoidProfile _profile;
-	private ProfiledPIDController _PIDFController;
+	private final ProfiledPIDController _PIDFController;
 	private boolean isCurrentlyPiding = false;
 
 	public NinjasSparkMaxController(MainControllerConstants constants) {
@@ -145,12 +145,8 @@ public class NinjasSparkMaxController extends NinjasController {
 
 		if (!isCurrentlyPiding) {
 			switch (_controlState) {
-				case PIDF_POSITION:
+				case PIDF_POSITION, PIDF_VELOCITY:
 					_PIDFController.reset(new State(getPosition(), getVelocity()));
-					break;
-
-				case PIDF_VELOCITY:
-					_PIDFController.reset(new State(getVelocity(), 0));
 					break;
 			}
 		}

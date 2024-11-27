@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class StateMachineSubsystem<StateEnum> extends SubsystemBase {
-	private Map<StateEnum, Runnable> _periodicFunctionMap;
-	private Map<StateEnum, Runnable> _onChangeFunctionMap;
+	private final Map<StateEnum, Runnable> _periodicFunctionMap;
+	private final Map<StateEnum, Runnable> _onChangeFunctionMap;
 	private StateEnum previousRobotState;
 
 	public StateMachineSubsystem() {

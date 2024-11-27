@@ -10,8 +10,9 @@ public class NinjasSimulatedController extends NinjasController {
 	private DCMotorSim _main;
 
 	private final TrapezoidProfile _profile;
-	private ProfiledPIDController _PIDFController;
+	private final ProfiledPIDController _PIDFController;
 	private boolean isCurrentlyPiding = false;
+	private double _output = 0;
 
 	public NinjasSimulatedController(SimulatedControllerConstants constants) {
 		super(constants.mainControllerConstants);
@@ -77,7 +78,8 @@ public class NinjasSimulatedController extends NinjasController {
 	public void setPercent(double percent) {
 		super.setPercent(percent);
 
-		_main.setInput(0, percent);
+		_main.setInputVoltage(12 * percent);
+		_output = percent;
 	}
 
 	@Override
@@ -106,12 +108,12 @@ public class NinjasSimulatedController extends NinjasController {
 
 	@Override
 	public double getOutput() {
-		return _main.getOutput(0);
+		return _output;
 	}
 
 	@Override
 	public void setEncoder(double position) {
-		_main.setState(position * Math.PI * 2, _main.getAngularVelocityRadPerSec());
+		_main.setState(position * Math.PI * 2 / _constants.encoderConversionFactor, _main.getAngularVelocityRadPerSec());
 	}
 
 	@Override
@@ -121,45 +123,41 @@ public class NinjasSimulatedController extends NinjasController {
 		switch (_controlState) {
 			case PIDF_POSITION:
 				isCurrentlyPiding = true;
-				_main.setInput(0, _PIDFController.calculate(getPosition()));
+				_output = _PIDFController.calculate(getPosition());
+				_main.setInputVoltage(12 * _output);
 				break;
 
 			case PIDF_VELOCITY:
 				isCurrentlyPiding = true;
-				_main.setInput(0, _PIDFController.calculate(getVelocity()));
+				_output = _PIDFController.calculate(getVelocity());
+				_main.setInputVoltage(12 * _output);
 				break;
 
 			case FF_POSITION:
-				_main.setInput(0, _profile.calculate(
+				_output = _profile.calculate(
 					0.02,
 					new TrapezoidProfile.State(getPosition(), getVelocity()),
 					new TrapezoidProfile.State(getGoal(), 0))
-					.velocity
-					* _constants.PIDFConstants.kV
-					/ 12);
+					.velocity;
+				_main.setInputVoltage(_output * _constants.PIDFConstants.kV);
 				break;
 
 			case FF_VELOCITY:
-				_main.setInput(0, _profile.calculate(
+				_output = _profile.calculate(
 					0.02,
 					new TrapezoidProfile.State(getPosition(), getVelocity()),
-					new TrapezoidProfile.State(getPosition(), getGoal()))
-					.velocity
-					* _constants.PIDFConstants.kV
-					/ 12);
+					new TrapezoidProfile.State(getPosition(), getVelocity()))
+					.velocity;
+				_main.setInputVoltage(_output * _constants.PIDFConstants.kV);
 				break;
 		}
 
 		if (!isCurrentlyPiding) {
 			switch (_controlState) {
-				case PIDF_POSITION:
+				case PIDF_POSITION, PIDF_VELOCITY:
 					_PIDFController.reset(new TrapezoidProfile.State(getPosition(), getVelocity()));
 					break;
-
-				case PIDF_VELOCITY:
-					_PIDFController.reset(new TrapezoidProfile.State(getVelocity(), 0));
-					break;
-			}
+            }
 		}
 		isCurrentlyPiding = false;
 
