@@ -32,7 +32,19 @@ public class SwerveController {
     private SwerveDemand.SwerveState _state;
     private SwerveDemand.SwerveState _previousState;
 
-    public SwerveController(SwerveControllerConstants constants, SwerveIO swerve) {
+    private static SwerveController _instance = null;
+
+    public static void setConstants(SwerveControllerConstants constants, SwerveIO swerve) {
+        _instance = new SwerveController(constants, swerve);
+    }
+
+    public static SwerveController getInstance() {
+        if(_instance == null)
+            throw new RuntimeException("SwerveController constants not given. Initialize SwerveController by setConstants(SwerveControllerConstants, SwerveIO) first.");
+        return _instance;
+    }
+
+    private SwerveController(SwerveControllerConstants constants, SwerveIO swerve) {
         _constants = constants;
         _swerve = swerve;
 
@@ -41,25 +53,23 @@ public class SwerveController {
         _demand = new SwerveDemand();
 
         _anglePID = new PIDController(
-            constants.kPTheta,
-            constants.kITheta,
-            constants.kDTheta
+            constants.swerveAnglePIDConstants.P,
+            constants.swerveAnglePIDConstants.I,
+            constants.swerveAnglePIDConstants.D
         );
-        _anglePID.setIZone(constants.kIZoneTheta);
+        _anglePID.setIZone(constants.swerveAnglePIDConstants.IZone);
         _anglePID.enableContinuousInput(-180, 180);
 
         _axisPID = new PIDController(
-            constants.kPAxis,
-            constants.kIAxis,
-            constants.kDAxis);
-        _axisPID.setIZone(constants.kIZoneAxis);
+            constants.swerveAxisPIDConstants.P,
+            constants.swerveAxisPIDConstants.I,
+            constants.swerveAxisPIDConstants.D);
+        _axisPID.setIZone(constants.swerveAxisPIDConstants.IZone);
 
-        _xPID = new PIDController(
-            constants.kP, constants.kI, constants.kD);
-        _xPID.setIZone(constants.kIZone);
-        _yPID = new PIDController(
-            constants.kP, constants.kI, constants.kD);
-        _yPID.setIZone(constants.kIZone);
+        _xPID = new PIDController(constants.swerveDrivePIDConstants.P, constants.swerveDrivePIDConstants.I, constants.swerveDrivePIDConstants.D);
+        _xPID.setIZone(constants.swerveDrivePIDConstants.IZone);
+        _yPID = new PIDController(constants.swerveDrivePIDConstants.P, constants.swerveDrivePIDConstants.I, constants.swerveDrivePIDConstants.D);
+        _yPID.setIZone(constants.swerveDrivePIDConstants.IZone);
 
         Shuffleboard.getTab("Swerve").addBoolean("Path Following Finished", this::isPathFollowingFinished);
         Shuffleboard.getTab("Swerve").addNumber("Driver Input X", () -> _demand.driverInput.vxMetersPerSecond);
@@ -112,15 +122,6 @@ public class SwerveController {
         return lookAt(invert ? lookAtTranslation.rotateBy(Rotation2d.fromDegrees(180)) : lookAtTranslation, 1);
     }
 
-    public ChassisSpeeds fromPercent(ChassisSpeeds percent) {
-        return new ChassisSpeeds(
-            percent.vxMetersPerSecond * _constants.maxSpeed * _constants.kSpeedFactor,
-            percent.vyMetersPerSecond * _constants.maxSpeed * _constants.kSpeedFactor,
-            percent.omegaRadiansPerSecond
-                * _constants.maxAngularVelocity
-                * _constants.kRotationSpeedFactor);
-    }
-
     public Translation2d pidTo(Translation2d target) {
         return new Translation2d(
             _xPID.calculate(RobotStateIO.getInstance().getRobotPose().getX(), target.getX()),
@@ -153,13 +154,6 @@ public class SwerveController {
 
         Translation2d pid = pidTo(trajectory.sample(pathfindingTimer.get()).positionMeters);
 
-        driverInput = new ChassisSpeeds(
-            driverInput.vxMetersPerSecond * _constants.kSpeedFactor * _constants.maxSpeed,
-            driverInput.vyMetersPerSecond * _constants.kSpeedFactor * _constants.maxSpeed,
-            driverInput.omegaRadiansPerSecond
-                * _constants.kRotationSpeedFactor
-                * _constants.maxAngularVelocity);
-
         return new ChassisSpeeds(
                 1 * feedforwardX + 0 * pid.getX() + driverInput.vxMetersPerSecond,
                 1 * feedforwardY + 0 * pid.getY() + driverInput.vyMetersPerSecond,
@@ -184,12 +178,6 @@ public class SwerveController {
         double c = -phase * Math.sqrt(a * a + b * b);
         double error = -(a * robotPose.getX() + b * robotPose.getY() + c) / Math.sqrt(a * a + b * b);
         Translation2d pid = perpendicularAxis.times(_axisPID.calculate(-error));
-
-        Shuffleboard.getTab("Swerve").add("Lock Axis Angle", angle);
-        Shuffleboard.getTab("Swerve").add("Lock Axis Phase", phase);
-        Shuffleboard.getTab("Swerve").add("Lock Axis Error", error);
-        Shuffleboard.getTab("Swerve").add("Lock Axis PID X", pid.getX());
-        Shuffleboard.getTab("Swerve").add("Lock Axis PID Y", pid.getY());
 
         Translation2d driver =
             axis.times(isXDriverInput ? -driverInput.vyMetersPerSecond : -driverInput.vxMetersPerSecond);
@@ -242,7 +230,7 @@ public class SwerveController {
 
         _driveAssistTrajectory = new PathPlannerTrajectory(
             _path,
-            frc.robot.Swerve.SwerveIO.getInstance().getChassisSpeeds(true),
+            _swerve.getChassisSpeeds(true),
             RobotStateIO.getInstance().getRobotPose().getRotation());
 
         _driveAssistTimer.restart();
@@ -292,40 +280,31 @@ public class SwerveController {
     }
 
     public void periodic() {
+        ChassisSpeeds driverInput = _swerve.fromPercent(_demand.driverInput);
+
         switch (_state) {
             case DEFAULT:
-                _swerve.drive(
-                    new ChassisSpeeds(
-                        fromPercent(_demand.driverInput).vxMetersPerSecond,
-                        fromPercent(_demand.driverInput).vyMetersPerSecond,
-                        _demand.driverInput.omegaRadiansPerSecond),
-                    _constants.kFieldRelative);
+                _swerve.drive(driverInput, _constants.driverFieldRelative);
                 break;
 
             case DRIVE_ASSIST:
                 Pose2d target = new Pose2d(
                     _demand.targetPose.getX(),
                     _demand.targetPose.getY(),
-                    _demand.targetPose.getRotation().rotateBy(new Rotation2d(Math.PI)));
+                    _demand.targetPose.getRotation());
                 _swerve.drive(driveAssist(target), true);
                 break;
 
             case LOOK_AT_TARGET:
-                _demand.driverInput = fromPercent(_demand.driverInput);
-
                 _swerve.drive(
                     new ChassisSpeeds(
-                        _demand.driverInput.vxMetersPerSecond,
-                        _demand.driverInput.vyMetersPerSecond,
-                        lookAtTarget(
-                            _demand.targetPose,
-                            false,
-                            _constants.kShootingAngleError.unaryMinus())),
-                    _constants.kFieldRelative);
+                        driverInput.vxMetersPerSecond,
+                        driverInput.vyMetersPerSecond,
+                        lookAtTarget(_demand.targetPose, false, _demand.sheer)), _constants.driverFieldRelative);
                 break;
 
             case PATHFINDING:
-                _swerve.drive(pathfindTo(_demand.targetPose, _demand.driverInput), true);
+                _swerve.drive(pathfindTo(_demand.targetPose, driverInput), true);
                 break;
 
             case VELOCITY:
@@ -333,7 +312,7 @@ public class SwerveController {
                 break;
 
             case LOCKED_AXIS:
-                _swerve.drive(lockAxis(_demand.angle, _demand.phase, fromPercent(_demand.driverInput), _demand.isXDriverInput), true);
+                _swerve.drive(lockAxis(_demand.angle, _demand.phase, driverInput, _demand.isXDriverInput), true);
                 break;
         }
     }

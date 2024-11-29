@@ -28,19 +28,19 @@ public class NinjasTalonFXController extends NinjasController {
 												? InvertedValue.CounterClockwise_Positive
 												: InvertedValue.Clockwise_Positive))
 						.withMotionMagic(new MotionMagicConfigs()
-								.withMotionMagicAcceleration(constants.PIDFConstants.kAcceleration)
-								.withMotionMagicCruiseVelocity(constants.PIDFConstants.kCruiseVelocity))
+								.withMotionMagicAcceleration(constants.PIDFConstants.Acceleration)
+								.withMotionMagicCruiseVelocity(constants.PIDFConstants.CruiseVelocity))
 						.withCurrentLimits(new CurrentLimitsConfigs()
 								.withStatorCurrentLimit(constants.currentLimit)
 								.withStatorCurrentLimitEnable(true)
 								.withSupplyCurrentLimit(constants.currentLimit)
 								.withSupplyCurrentLimitEnable(true))
 						.withSlot0(new Slot0Configs()
-								.withKP(constants.PIDFConstants.kP)
-								.withKI(constants.PIDFConstants.kI)
-								.withKD(constants.PIDFConstants.kD)
-								.withKS(constants.PIDFConstants.kS)
-								.withKV(constants.PIDFConstants.kV)));
+								.withKP(constants.PIDFConstants.P)
+								.withKI(constants.PIDFConstants.I)
+								.withKD(constants.PIDFConstants.D)
+								.withKS(constants.PIDFConstants.S)
+								.withKV(constants.PIDFConstants.V)));
 
 		_followers = new TalonFX[constants.followers.length];
 		for (int i = 0; i < _followers.length; i++) {

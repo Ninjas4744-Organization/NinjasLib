@@ -26,10 +26,10 @@ public class NinjasSparkMaxController extends NinjasController {
 		_main.setInverted(constants.main.inverted);
 		_main.setSmartCurrentLimit((int) constants.currentLimit);
 
-		_main.getPIDController().setP(constants.PIDFConstants.kP);
-		_main.getPIDController().setI(constants.PIDFConstants.kI);
-		_main.getPIDController().setD(constants.PIDFConstants.kD);
-		_main.getPIDController().setIZone(constants.PIDFConstants.kIZone);
+		_main.getPIDController().setP(constants.PIDFConstants.P);
+		_main.getPIDController().setI(constants.PIDFConstants.I);
+		_main.getPIDController().setD(constants.PIDFConstants.D);
+		_main.getPIDController().setIZone(constants.PIDFConstants.IZone);
 
 		_main.getEncoder().setPositionConversionFactor(constants.encoderConversionFactor);
 		_main.getEncoder().setVelocityConversionFactor(constants.encoderConversionFactor / 60);
@@ -50,14 +50,14 @@ public class NinjasSparkMaxController extends NinjasController {
 		}
 
 		_profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(
-				constants.PIDFConstants.kCruiseVelocity, constants.PIDFConstants.kAcceleration));
+				constants.PIDFConstants.CruiseVelocity, constants.PIDFConstants.Acceleration));
 
 		_PIDFController = new ProfiledPIDController(
-				constants.PIDFConstants.kP,
-				constants.PIDFConstants.kI,
-				constants.PIDFConstants.kD,
+				constants.PIDFConstants.P,
+				constants.PIDFConstants.I,
+				constants.PIDFConstants.D,
 				new TrapezoidProfile.Constraints(
-						constants.PIDFConstants.kCruiseVelocity, constants.PIDFConstants.kAcceleration));
+						constants.PIDFConstants.CruiseVelocity, constants.PIDFConstants.Acceleration));
 	}
 
 	@Override
@@ -128,7 +128,7 @@ public class NinjasSparkMaxController extends NinjasController {
 								new State(getPosition(), getVelocity()),
 								new State(getGoal(), 0))
 								.velocity
-						* _constants.PIDFConstants.kV
+						* _constants.PIDFConstants.V
 						/ 12);
 				break;
 
@@ -138,7 +138,7 @@ public class NinjasSparkMaxController extends NinjasController {
 								new State(getPosition(), getVelocity()),
 								new State(getPosition(), getGoal()))
 								.velocity
-						* _constants.PIDFConstants.kV
+						* _constants.PIDFConstants.V
 						/ 12);
 				break;
 		}

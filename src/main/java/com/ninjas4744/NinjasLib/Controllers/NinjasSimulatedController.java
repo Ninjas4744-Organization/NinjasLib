@@ -63,15 +63,15 @@ public class NinjasSimulatedController extends NinjasController {
 		}
 
 		_profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(
-				constants.mainControllerConstants.PIDFConstants.kCruiseVelocity,
-				constants.mainControllerConstants.PIDFConstants.kAcceleration));
+				constants.mainControllerConstants.PIDFConstants.CruiseVelocity,
+				constants.mainControllerConstants.PIDFConstants.Acceleration));
 
 		_PIDFController = new ProfiledPIDController(
-			constants.mainControllerConstants.PIDFConstants.kP,
-			constants.mainControllerConstants.PIDFConstants.kI,
-			constants.mainControllerConstants.PIDFConstants.kD,
+			constants.mainControllerConstants.PIDFConstants.P,
+			constants.mainControllerConstants.PIDFConstants.I,
+			constants.mainControllerConstants.PIDFConstants.D,
 			new TrapezoidProfile.Constraints(
-				constants.mainControllerConstants.PIDFConstants.kCruiseVelocity, constants.mainControllerConstants.PIDFConstants.kAcceleration));
+				constants.mainControllerConstants.PIDFConstants.CruiseVelocity, constants.mainControllerConstants.PIDFConstants.Acceleration));
 	}
 
 	@Override
@@ -139,7 +139,7 @@ public class NinjasSimulatedController extends NinjasController {
 					new TrapezoidProfile.State(getPosition(), getVelocity()),
 					new TrapezoidProfile.State(getGoal(), 0))
 					.velocity;
-				_main.setInputVoltage(_output * _constants.PIDFConstants.kV);
+				_main.setInputVoltage(_output * _constants.PIDFConstants.V);
 				break;
 
 			case FF_VELOCITY:
@@ -148,7 +148,7 @@ public class NinjasSimulatedController extends NinjasController {
 					new TrapezoidProfile.State(getPosition(), getVelocity()),
 					new TrapezoidProfile.State(getPosition(), getVelocity()))
 					.velocity;
-				_main.setInputVoltage(_output * _constants.PIDFConstants.kV);
+				_main.setInputVoltage(_output * _constants.PIDFConstants.V);
 				break;
 		}
 

@@ -4,6 +4,7 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ninjas4744.NinjasLib.Controllers.NinjasController;
 import com.ninjas4744.NinjasLib.Controllers.NinjasSparkMaxController;
 import com.ninjas4744.NinjasLib.DataClasses.MainControllerConstants;
+import com.ninjas4744.NinjasLib.DataClasses.SwerveModuleConstants;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -19,16 +20,13 @@ public class SwerveModule {
 	private final CANcoder canCoder;
 	private final double maxModuleSpeed;
 
-	public SwerveModule(int moduleNumber, MainControllerConstants driveConstants, MainControllerConstants angleConstants, int canCoderID, double maxModuleSpeed) {
-		this.moduleNumber = moduleNumber;
-
-		canCoder = new CANcoder(canCoderID);
-
-		angleMotor = new NinjasSparkMaxController(angleConstants);
-		driveMotor = new NinjasSparkMaxController(driveConstants);
-
+	public SwerveModule(SwerveModuleConstants constants) {
+		moduleNumber = constants.moduleNumber;
+		canCoder = new CANcoder(constants.canCoderID);
+		angleMotor = new NinjasSparkMaxController(constants.angleConstants);
+		driveMotor = new NinjasSparkMaxController(constants.driveConstants);
 		lastAngle = getState().angle;
-		this.maxModuleSpeed = maxModuleSpeed;
+		maxModuleSpeed = constants.maxModuleSpeed;
 
 		Shuffleboard.getTab("Swerve Mod " + moduleNumber).addNumber("Speed", () -> getState().speedMetersPerSecond);
 		Shuffleboard.getTab("Swerve Mod " + moduleNumber).addNumber("Angle", () -> getState().angle.getDegrees());

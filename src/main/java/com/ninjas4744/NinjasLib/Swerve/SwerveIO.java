@@ -11,8 +11,8 @@ public abstract class SwerveIO {
     /** Returns the swerve instance, simulated/real depends on if the code is simulated/real. */
     public static SwerveIO getInstance() {
         if (_instance == null) {
-            if (!RobotStateIO.getInstance().isSimulated()) _instance = new Swerve();
-            else _instance = new SwerveSimulated();
+            if (!RobotStateIO.getInstance().isSimulated()) _instance = new Swerve(_instance._constants);
+            else _instance = new SwerveSimulated(_instance._constants);
         }
         return _instance;
     }
@@ -34,6 +34,26 @@ public abstract class SwerveIO {
      * @return The velocities
      */
     public abstract ChassisSpeeds getChassisSpeeds(boolean fieldRelative);
+
+    /**
+     * Stops the swerve
+     */
+    public void stop(){
+        drive(new ChassisSpeeds(0, 0, 0), false);
+    }
+
+    /**
+     * Convert percent chassis speeds to m/s chassis speeds
+     * @param percent the percent chassis speeds to convert
+     * @return the m/s chassis speeds to give the swerve
+     */
+    public ChassisSpeeds fromPercent(ChassisSpeeds percent) {
+        return new ChassisSpeeds(
+            percent.vxMetersPerSecond * _constants.maxSpeed,
+            percent.vyMetersPerSecond * _constants.maxSpeed,
+            percent.omegaRadiansPerSecond * _constants.maxAngularVelocity
+        );
+    }
 
     public void periodic(){
 
