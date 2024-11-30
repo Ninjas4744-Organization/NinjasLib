@@ -22,11 +22,14 @@ public class SwerveModule {
 
 	public SwerveModule(SwerveModuleConstants constants) {
 		moduleNumber = constants.moduleNumber;
+		maxModuleSpeed = constants.maxModuleSpeed;
+		
 		canCoder = new CANcoder(constants.canCoderID);
 		angleMotor = new NinjasSparkMaxController(constants.angleConstants);
-		driveMotor = new NinjasSparkMaxController(constants.driveConstants);
+		resetToAbsolute();
 		lastAngle = getState().angle;
-		maxModuleSpeed = constants.maxModuleSpeed;
+		
+		driveMotor = new NinjasSparkMaxController(constants.driveConstants);
 
 		Shuffleboard.getTab("Swerve Mod " + moduleNumber).addNumber("Speed", () -> getState().speedMetersPerSecond);
 		Shuffleboard.getTab("Swerve Mod " + moduleNumber).addNumber("Angle", () -> getState().angle.getDegrees());
