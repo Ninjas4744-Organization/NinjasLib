@@ -1,5 +1,8 @@
 package com.ninjas4744.NinjasLib.DataClasses;
 
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+
 public class SwerveControllerConstants {
     /** Regular swerve constants */
     public SwerveConstants swerveConstants;

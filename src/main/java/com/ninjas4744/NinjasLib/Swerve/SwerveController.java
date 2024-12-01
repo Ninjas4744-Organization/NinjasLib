@@ -2,6 +2,10 @@ package com.ninjas4744.NinjasLib.Swerve;
 
 import com.ninjas4744.NinjasLib.DataClasses.SwerveControllerConstants;
 import com.ninjas4744.NinjasLib.DataClasses.SwerveDemand;
+import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.PathPlannerTrajectory;
+import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.ninjas4744.NinjasLib.RobotStateIO;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
