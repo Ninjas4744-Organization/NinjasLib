@@ -5,9 +5,6 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
-import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
 
 public class NinjasSimulatedController extends NinjasController {
 	private DCMotorSim _main;
@@ -16,13 +13,8 @@ public class NinjasSimulatedController extends NinjasController {
 	private final ProfiledPIDController _PIDFController;
 	private boolean isCurrentlyPiding = false;
 	private double _output = 0;
-	Mechanism2d m_mech2d;
-	private final MechanismRoot2d m_mech2dRoot;
 
-	private final MechanismLigament2d m_elevatorMech2d;
 	public NinjasSimulatedController(SimulatedControllerConstants constants) {
-		
-
 		super(constants.mainControllerConstants);
 
 		switch (constants.motorType) {
@@ -80,13 +72,6 @@ public class NinjasSimulatedController extends NinjasController {
 			constants.mainControllerConstants.PIDFConstants.D,
 			new TrapezoidProfile.Constraints(
 				constants.mainControllerConstants.PIDFConstants.CruiseVelocity, constants.mainControllerConstants.PIDFConstants.Acceleration));
-				
-		m_mech2d = new Mechanism2d(2,constants.mainControllerConstants.maxSoftLimit);
-
-		m_mech2dRoot =  m_mech2d.getRoot("Elevator Root", 10, 0);
-
-		m_elevatorMech2d = m_mech2dRoot.append(
-			new MechanismLigament2d("Elevator", constants.mainControllerConstants.maxSoftLimit, 90));
 	}
 
 	@Override

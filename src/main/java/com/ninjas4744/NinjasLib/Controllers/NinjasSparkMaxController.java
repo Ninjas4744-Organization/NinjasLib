@@ -7,9 +7,6 @@ import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
-import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
 
 public class NinjasSparkMaxController extends NinjasController {
 	private final CANSparkMax _main;
@@ -18,11 +15,10 @@ public class NinjasSparkMaxController extends NinjasController {
 	private final TrapezoidProfile _profile;
 	private final ProfiledPIDController _PIDFController;
 	private boolean isCurrentlyPiding = false;
-	
+
 	public NinjasSparkMaxController(MainControllerConstants constants) {
 		super(constants);
-		
-		
+
 		_main = new CANSparkMax(constants.main.id, CANSparkMax.MotorType.kBrushless);
 
 		_main.restoreFactoryDefaults();
