@@ -1,16 +1,17 @@
 package com.ninjas4744.NinjasLib.Controllers;
 
 import com.ninjas4744.NinjasLib.DataClasses.MainControllerConstants;
-import com.revrobotics.CANSparkBase;
-import com.revrobotics.CANSparkBase.ControlType;
-import com.revrobotics.CANSparkMax;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.ClosedLoopConfig;
+import com.revrobotics.spark.config.SoftLimitConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 
 public class NinjasSparkMaxController extends NinjasController {
-	private final CANSparkMax _main;
-	private final CANSparkMax[] _followers;
+	private final SparkMax _main;
+	private final SparkMax[] _followers;
 
 	private final TrapezoidProfile _profile;
 	private final ProfiledPIDController _PIDFController;
@@ -19,8 +20,17 @@ public class NinjasSparkMaxController extends NinjasController {
 	public NinjasSparkMaxController(MainControllerConstants constants) {
 		super(constants);
 
-		_main = new CANSparkMax(constants.main.id, CANSparkMax.MotorType.kBrushless);
+		_main = new SparkMax(constants.main.id, SparkMax.MotorType.kBrushless);
 
+		SparkMaxConfig config = new SparkMaxConfig();
+		config.apply(new SoftLimitConfig()
+			.forwardSoftLimit(constants.maxSoftLimit)
+			.reverseSoftLimit(constants.minSoftLimit)
+			.forwardSoftLimitEnabled(constants.isMaxSoftLimit)
+			.reverseSoftLimitEnabled(constants.isMinSoftLimit))
+			.apply(new ClosedLoopConfig().pid(constants.controlConstants.kP, constants.controlConstants.kI, constants.controlConstants.kD));
+
+		_main.configure(config);
 		_main.restoreFactoryDefaults();
 
 		_main.setInverted(constants.main.inverted);

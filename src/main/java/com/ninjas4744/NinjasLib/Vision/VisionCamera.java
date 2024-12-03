@@ -34,7 +34,6 @@ public class VisionCamera {
 		_estimator = new PhotonPoseEstimator(
 			_constants.fieldLayoutGetter.getFieldLayout(List.of()),
 				PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
-				_camera,
 				cameraPose);
 		_estimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
 
@@ -50,11 +49,11 @@ public class VisionCamera {
 	public VisionOutput Update() {
     PhotonPipelineResult result;
     try {
-      result = _camera.getLatestResult();
+      result = _camera.getAllUnreadResults().get(_camera.getAllUnreadResults().size() - 1);
     } catch (Exception e) {
       System.out.println("Camera " + getName() + "disconnected");
       _output.hasTargets = false;
-			_output.amountOfTargets = 0;
+	  _output.amountOfTargets = 0;
       return _output;
     }
 

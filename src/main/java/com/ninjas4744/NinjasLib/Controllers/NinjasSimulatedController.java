@@ -3,6 +3,7 @@ package com.ninjas4744.NinjasLib.Controllers;
 import com.ninjas4744.NinjasLib.DataClasses.SimulatedControllerConstants;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
@@ -20,45 +21,38 @@ public class NinjasSimulatedController extends NinjasController {
 		switch (constants.motorType) {
 			case KRAKEN:
 				_main = new DCMotorSim(
-						DCMotor.getKrakenX60(constants.mainControllerConstants.followers.length + 1),
-						constants.gearRatio,
-						constants.motorTorque);
+					    LinearSystemId.createDCMotorSystem(DCMotor.getKrakenX60(constants.mainControllerConstants.followers.length + 1), constants.motorTorque, constants.gearRatio),
+						DCMotor.getKrakenX60(constants.mainControllerConstants.followers.length + 1));
 				break;
 			case FALCON:
-				_main = new DCMotorSim(
-						DCMotor.getFalcon500(constants.mainControllerConstants.followers.length + 1),
-						constants.gearRatio,
-						constants.motorTorque);
+			_main = new DCMotorSim(
+				LinearSystemId.createDCMotorSystem(DCMotor.getFalcon500(constants.mainControllerConstants.followers.length + 1), constants.motorTorque, constants.gearRatio),
+				DCMotor.getFalcon500(constants.mainControllerConstants.followers.length + 1));
 				break;
 			case NEO:
-				_main = new DCMotorSim(
-						DCMotor.getNEO(constants.mainControllerConstants.followers.length + 1),
-						constants.gearRatio,
-						constants.motorTorque);
+			_main = new DCMotorSim(
+				LinearSystemId.createDCMotorSystem(DCMotor.getNEO(constants.mainControllerConstants.followers.length + 1), constants.motorTorque, constants.gearRatio),
+				DCMotor.getNEO(constants.mainControllerConstants.followers.length + 1));
 				break;
 			case NEO550:
-				_main = new DCMotorSim(
-						DCMotor.getNeo550(constants.mainControllerConstants.followers.length + 1),
-						constants.gearRatio,
-						constants.motorTorque);
+			_main = new DCMotorSim(
+				LinearSystemId.createDCMotorSystem(DCMotor.getNeo550(constants.mainControllerConstants.followers.length + 1), constants.motorTorque, constants.gearRatio),
+				DCMotor.getNeo550(constants.mainControllerConstants.followers.length + 1));
 				break;
 			case CIM:
-				_main = new DCMotorSim(
-					DCMotor.getCIM(constants.mainControllerConstants.followers.length + 1),
-					constants.gearRatio,
-					constants.motorTorque);
+			_main = new DCMotorSim(
+				LinearSystemId.createDCMotorSystem(DCMotor.getCIM(constants.mainControllerConstants.followers.length + 1), constants.motorTorque, constants.gearRatio),
+				DCMotor.getCIM(constants.mainControllerConstants.followers.length + 1));
 				break;
 			case FALCON_FOC:
-				_main = new DCMotorSim(
-					DCMotor.getFalcon500Foc(constants.mainControllerConstants.followers.length + 1),
-					constants.gearRatio,
-					constants.motorTorque);
+			_main = new DCMotorSim(
+				LinearSystemId.createDCMotorSystem(DCMotor.getFalcon500Foc(constants.mainControllerConstants.followers.length + 1), constants.motorTorque, constants.gearRatio),
+				DCMotor.getFalcon500Foc(constants.mainControllerConstants.followers.length + 1));
 				break;
 			case KRAKEN_FOC:
-				_main = new DCMotorSim(
-					DCMotor.getKrakenX60Foc(constants.mainControllerConstants.followers.length + 1),
-					constants.gearRatio,
-					constants.motorTorque);
+			_main = new DCMotorSim(
+				LinearSystemId.createDCMotorSystem(DCMotor.getKrakenX60Foc(constants.mainControllerConstants.followers.length + 1), constants.motorTorque, constants.gearRatio),
+				DCMotor.getKrakenX60Foc(constants.mainControllerConstants.followers.length + 1));
 				break;
 		}
 

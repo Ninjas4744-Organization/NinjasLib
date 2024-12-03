@@ -1,5 +1,6 @@
 package com.ninjas4744.NinjasLib.Controllers;
 
+import com.ninjas4744.NinjasLib.DataClasses.ControlConstants.SmartControlType;
 import com.ninjas4744.NinjasLib.DataClasses.MainControllerConstants;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 
@@ -8,16 +9,13 @@ import java.util.Map;
 public abstract class NinjasController {
 	public enum ControlState {
 		PERCENT_OUTPUT,
-		PIDF_POSITION,
-		PIDF_VELOCITY,
-		PID_POSITION,
-		PID_VELOCITY,
-		FF_POSITION,
-		FF_VELOCITY
+		POSITION,
+		VELOCITY
 	}
 
 	private final int shuffleboardEnteriesSize = 3;
 	protected ControlState _controlState = ControlState.PERCENT_OUTPUT;
+	protected SmartControlType _smartControlType = SmartControlType.PID;
 	protected MainControllerConstants _constants;
 	protected double _goal = 0;
 
@@ -91,16 +89,7 @@ public abstract class NinjasController {
 	 * @see #stop()
 	 */
 	public void setPosition(double position) {
-		if (_constants.PIDFConstants.kP != 0 || _constants.PIDFConstants.kI != 0 || _constants.PIDFConstants.kD != 0) {
-			if (_constants.PIDFConstants.kCruiseVelocity != 0 && _constants.PIDFConstants.kAcceleration != 0)
-				_controlState = ControlState.PIDF_POSITION;
-			else _controlState = ControlState.PID_POSITION;
-		} else {
-			if (_constants.PIDFConstants.kCruiseVelocity != 0 && _constants.PIDFConstants.kAcceleration != 0)
-				_controlState = ControlState.FF_POSITION;
-			else throw new UnsupportedOperationException("PIDF constants were not given for this controller");
-		}
-
+		_controlState = ControlState.POSITION;
 		_goal = position;
 	}
 
@@ -113,16 +102,7 @@ public abstract class NinjasController {
 	 * @see #stop()
 	 */
 	public void setVelocity(double velocity) {
-		if (_constants.PIDFConstants.kP != 0 || _constants.PIDFConstants.kI != 0 || _constants.PIDFConstants.kD != 0) {
-			if (_constants.PIDFConstants.kCruiseVelocity != 0 && _constants.PIDFConstants.kAcceleration != 0)
-				_controlState = ControlState.PIDF_VELOCITY;
-			else _controlState = ControlState.PID_VELOCITY;
-		} else {
-			if (_constants.PIDFConstants.kCruiseVelocity != 0 && _constants.PIDFConstants.kAcceleration != 0)
-				_controlState = ControlState.FF_VELOCITY;
-			else throw new UnsupportedOperationException("PIDF constants were not given for this controller");
-		}
-
+		_controlState = ControlState.VELOCITY;
 		_goal = velocity;
 	}
 
@@ -189,13 +169,9 @@ public abstract class NinjasController {
 	 *     Will return false if not in position or velocity control
 	 */
 	public boolean atGoal() {
-		if (_controlState == ControlState.PIDF_POSITION
-				|| _controlState == ControlState.PID_POSITION
-				|| _controlState == ControlState.FF_POSITION)
+		if (_controlState == ControlState.POSITION)
 			return Math.abs(getGoal() - getPosition()) < _constants.positionGoalTolerance;
-		else if (_controlState == ControlState.PIDF_VELOCITY
-				|| _controlState == ControlState.PID_VELOCITY
-				|| _controlState == ControlState.FF_VELOCITY)
+		else if (_controlState == ControlState.VELOCITY)
 			return Math.abs(getGoal() - getVelocity()) < _constants.velocityGoalTolerance;
 
 		return false;
