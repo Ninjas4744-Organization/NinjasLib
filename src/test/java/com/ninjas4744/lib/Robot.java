@@ -4,11 +4,28 @@
 
 package com.ninjas4744.lib;
 
+import com.ninjas4744.NinjasLib.Controllers.NinjasController;
+import com.ninjas4744.NinjasLib.Controllers.NinjasTalonFXController;
+import com.ninjas4744.NinjasLib.DataClasses.ControlConstants;
+import com.ninjas4744.NinjasLib.DataClasses.MainControllerConstants;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 
 public class Robot extends TimedRobot {
-  public Robot() {}
+  NinjasController _shooter;
+  CommandPS5Controller _controller;
+
+  public Robot() {
+    MainControllerConstants c = new MainControllerConstants();
+    c.main.id = 30;
+    c.controlConstants = ControlConstants.createTorqueCurrent(7.5, 0);
+    _shooter = new NinjasTalonFXController(c);
+
+    _controller = new CommandPS5Controller(0);
+    _controller.cross().whileTrue(Commands.startEnd(() -> _shooter.setVelocity(100), () -> _shooter.stop()));
+  }
 
   @Override
   public void robotPeriodic() {
@@ -37,7 +54,9 @@ public class Robot extends TimedRobot {
   public void teleopInit() {}
 
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    _shooter.periodic();
+  }
 
   @Override
   public void teleopExit() {}
