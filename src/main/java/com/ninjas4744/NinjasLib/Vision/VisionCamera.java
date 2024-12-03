@@ -49,11 +49,17 @@ public class VisionCamera {
 	public VisionOutput Update() {
     PhotonPipelineResult result;
     try {
+			if(_camera.getAllUnreadResults().isEmpty())
+				return _output;
+
       result = _camera.getAllUnreadResults().get(_camera.getAllUnreadResults().size() - 1);
     } catch (Exception e) {
-      System.out.println("Camera " + getName() + "disconnected");
+      System.out.println("Camera " + getName() + " disconnected");
+      System.out.println(e.getMessage());
+
       _output.hasTargets = false;
-	  _output.amountOfTargets = 0;
+	  	_output.amountOfTargets = 0;
+
       return _output;
     }
 
@@ -74,6 +80,8 @@ public class VisionCamera {
 			_output.hasTargets = false;
 			_output.amountOfTargets = 0;
 		}
+
+		System.out.println(_output.closestTagDist);
 
 		return _output;
 	}
