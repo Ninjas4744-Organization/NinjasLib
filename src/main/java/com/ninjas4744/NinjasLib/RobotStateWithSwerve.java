@@ -40,7 +40,7 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<State
 
     @Override
     protected void init(){
-        navX = new AHRS(AHRS.NavXComType.kMXP_UART);
+        navX = new AHRS(AHRS.NavXComType.kMXP_SPI);
 
         if(!isSimulated())
             poseEstimator = new SwerveDrivePoseEstimator(_kinematics, getGyroYaw(),
