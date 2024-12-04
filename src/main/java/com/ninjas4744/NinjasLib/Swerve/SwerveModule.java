@@ -72,7 +72,7 @@ public class SwerveModule {
 
 	public Rotation2d getCanCoder() {
 		canCoder.getAbsolutePosition().refresh();
-		return Rotation2d.fromDegrees(canCoder.getAbsolutePosition().getValue().in(Units.Degrees) * 360);
+		return Rotation2d.fromDegrees(canCoder.getAbsolutePosition().getValue().in(Units.Degrees));
 	}
 
 	public static SwerveModuleState optimize(SwerveModuleState desiredState, Rotation2d currentAngle) {
