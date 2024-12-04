@@ -7,103 +7,112 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ninjas4744.NinjasLib.DataClasses.MainControllerConstants;
 
 public class NinjasTalonFXController extends NinjasController {
-	private final TalonFX _main;
-	private final TalonFX[] _followers;
+    private final TalonFX _main;
+    private final TalonFX[] _followers;
 
-	public NinjasTalonFXController(MainControllerConstants constants) {
-		super(constants);
+    public NinjasTalonFXController(MainControllerConstants constants) {
+        super(constants);
 
-		_main = new TalonFX(constants.main.id);
-		_main.getConfigurator()
-				.apply(new TalonFXConfiguration()
-						.withSoftwareLimitSwitch(new SoftwareLimitSwitchConfigs()
-								.withForwardSoftLimitEnable(constants.isMaxSoftLimit)
-								.withReverseSoftLimitEnable(constants.isMinSoftLimit)
-								.withForwardSoftLimitThreshold(constants.maxSoftLimit)
-								.withReverseSoftLimitThreshold(constants.minSoftLimit))
-						.withAudio(new AudioConfigs().withBeepOnBoot(true))
-						.withMotorOutput(new MotorOutputConfigs()
-								.withInverted(
-										constants.main.inverted
-												? InvertedValue.CounterClockwise_Positive
-												: InvertedValue.Clockwise_Positive))
-						.withMotionMagic(new MotionMagicConfigs()
-								.withMotionMagicAcceleration(constants.PIDFConstants.Acceleration)
-								.withMotionMagicCruiseVelocity(constants.PIDFConstants.CruiseVelocity))
-						.withCurrentLimits(new CurrentLimitsConfigs()
-								.withStatorCurrentLimit(constants.currentLimit)
-								.withStatorCurrentLimitEnable(true)
-								.withSupplyCurrentLimit(constants.currentLimit)
-								.withSupplyCurrentLimitEnable(true))
-						.withSlot0(new Slot0Configs()
-								.withKP(constants.PIDFConstants.P)
-								.withKI(constants.PIDFConstants.I)
-								.withKD(constants.PIDFConstants.D)
-								.withKS(constants.PIDFConstants.S)
-								.withKV(constants.PIDFConstants.V)));
+        _main = new TalonFX(constants.main.id);
+        _main.getConfigurator()
+          .apply(new TalonFXConfiguration()
+            .withSoftwareLimitSwitch(new SoftwareLimitSwitchConfigs()
+              .withForwardSoftLimitEnable(constants.isMaxSoftLimit)
+              .withReverseSoftLimitEnable(constants.isMinSoftLimit)
+              .withForwardSoftLimitThreshold(constants.maxSoftLimit)
+              .withReverseSoftLimitThreshold(constants.minSoftLimit))
+            .withAudio(new AudioConfigs().withBeepOnBoot(true))
+            .withMotorOutput(new MotorOutputConfigs()
+              .withInverted(
+                constants.main.inverted
+                  ? InvertedValue.CounterClockwise_Positive
+                  : InvertedValue.Clockwise_Positive))
+            .withMotionMagic(new MotionMagicConfigs()
+              .withMotionMagicAcceleration(constants.controlConstants.kAcceleration)
+              .withMotionMagicCruiseVelocity(constants.controlConstants.kCruiseVelocity))
+            .withCurrentLimits(new CurrentLimitsConfigs()
+              .withStatorCurrentLimit(constants.currentLimit)
+              .withStatorCurrentLimitEnable(true)
+              .withSupplyCurrentLimit(constants.currentLimit)
+              .withSupplyCurrentLimitEnable(true))
+            .withSlot0(new Slot0Configs()
+              .withKP(constants.controlConstants.kP)
+              .withKI(constants.controlConstants.kI)
+              .withKD(constants.controlConstants.kD)
+              .withKS(constants.controlConstants.kS)
+              .withKV(constants.controlConstants.kV))
+            .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(constants.encoderConversionFactor)));
 
-		_followers = new TalonFX[constants.followers.length];
-		for (int i = 0; i < _followers.length; i++) {
-			_followers[i] = new TalonFX(constants.followers[i].id);
-			_followers[i].getConfigurator().apply(new TalonFXConfiguration());
-			_followers[i].setControl(new Follower(constants.main.id, constants.followers[i].inverted));
-		}
-	}
+        _followers = new TalonFX[constants.followers.length];
+        for (int i = 0; i < _followers.length; i++) {
+            _followers[i] = new TalonFX(constants.followers[i].id);
+            _followers[i].getConfigurator().apply(new TalonFXConfiguration());
+            _followers[i].setControl(new Follower(constants.main.id, constants.followers[i].inverted));
+        }
+    }
 
-	@Override
-	public void setPercent(double percent) {
-		super.setPercent(percent);
+    @Override
+    public void setPercent(double percent) {
+        super.setPercent(percent);
 
-		_main.set(percent);
-	}
+        _main.set(percent);
+    }
 
-	@Override
-	public void setPosition(double position) {
-		super.setPosition(position);
+    @Override
+    public void setPosition(double position) {
+        super.setPosition(position);
 
-		switch (_controlState) {
-			case PIDF_POSITION, FF_POSITION:
-				_main.setControl(new MotionMagicVoltage(position / _constants.encoderConversionFactor));
-				break;
+        switch (_constants.controlConstants.type) {
+            case PROFILED_PID, PROFILE:
+                _main.setControl(new MotionMagicVoltage(position));
+                break;
 
-			case PID_POSITION:
-				_main.setControl(new PositionVoltage(position / _constants.encoderConversionFactor));
-				break;
-		}
-	}
+            case PID:
+                _main.setControl(new PositionVoltage(position));
+                break;
 
-	@Override
-	public void setVelocity(double velocity) {
-		super.setVelocity(velocity);
+            case TORQUE_CURRENT:
+                _main.setControl(new PositionTorqueCurrentFOC(position));
+                break;
+        }
+    }
 
-		switch (_controlState) {
-			case PIDF_VELOCITY, FF_VELOCITY:
-				_main.setControl(new MotionMagicVelocityVoltage(velocity / _constants.encoderConversionFactor));
-				break;
+    @Override
+    public void setVelocity(double velocity) {
+        super.setVelocity(velocity);
 
-			case PID_VELOCITY:
-				_main.setControl(new VelocityVoltage(velocity / _constants.encoderConversionFactor));
-				break;
-		}
-	}
+        switch (_constants.controlConstants.type) {
+            case PROFILED_PID, PROFILE:
+                _main.setControl(new MotionMagicVelocityVoltage(velocity));
+                break;
 
-	@Override
-	public double getPosition() {
-		return _main.getPosition().getValueAsDouble() * _constants.encoderConversionFactor;
-	}
+            case PID:
+                _main.setControl(new VelocityVoltage(velocity));
+                break;
 
-	@Override
-	public double getVelocity() {
-		return _main.getVelocity().getValueAsDouble() * _constants.encoderConversionFactor;
-	}
+            case TORQUE_CURRENT:
+                _main.setControl(new VelocityTorqueCurrentFOC(velocity));
+                break;
+        }
+    }
 
-	@Override
-	public double getOutput() {
-		return _main.get();
-	}
+    @Override
+    public double getPosition() {
+        return _main.getPosition().getValueAsDouble();
+    }
 
-	@Override
-	public void setEncoder(double position) {
-		_main.setPosition(position / _constants.encoderConversionFactor);
-	}
+    @Override
+    public double getVelocity() {
+        return _main.getVelocity().getValueAsDouble();
+    }
+
+    @Override
+    public double getOutput() {
+        return _main.get();
+    }
+
+    @Override
+    public void setEncoder(double position) {
+        _main.setPosition(position);
+    }
 }

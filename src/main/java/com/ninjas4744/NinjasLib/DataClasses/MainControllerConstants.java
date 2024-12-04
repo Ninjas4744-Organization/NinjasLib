@@ -13,8 +13,8 @@ public class MainControllerConstants {
 	/** The name of the subsystem which uses this controller */
 	public String subsystemName = "";
 
-	/** PIDF constants */
-	public PIDFConstants PIDFConstants = new PIDFConstants();
+	/** Control constants */
+	public ControlConstants controlConstants = new ControlConstants();
 
 	/* The error which is considered atGoal(). if the PIDF error is smaller than this value it will be considered atGoal() */
 	/** The position error which is considered atGoal() */
@@ -35,13 +35,13 @@ public class MainControllerConstants {
 	 */
 	public double encoderConversionFactor = 1;
 
-	/** Wether or not to apply minimum soft limit */
+	/** Whether to apply minimum soft limit */
 	public boolean isMinSoftLimit = false;
 
 	/** The down soft limit, makes the system unable to move under it */
 	public double minSoftLimit = 0;
 
-	/** Wether or not to apply maximum soft limit */
+	/** Whether to apply maximum soft limit */
 	public boolean isMaxSoftLimit = false;
 
 	/** The up soft limit, makes the system unable to move above it */
