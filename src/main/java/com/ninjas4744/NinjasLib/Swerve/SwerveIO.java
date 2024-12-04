@@ -16,7 +16,7 @@ public abstract class SwerveIO {
     }
 
     public static SwerveIO setConstants(SwerveConstants constants){
-        if (!RobotStateIO.getInstance().isSimulated()) 
+        if (!RobotStateIO.isSimulated()) 
             _instance = new Swerve(constants);
         else
             _instance = new SwerveSimulated(constants);

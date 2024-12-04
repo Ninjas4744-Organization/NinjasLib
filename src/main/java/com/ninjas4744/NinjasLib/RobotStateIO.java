@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 public abstract class RobotStateIO<StateEnum> {
     protected static RobotStateIO _instance;
     protected StateEnum _robotState;
-    protected TimedRobot _robot;
 
     public static RobotStateIO getInstance() {
         if(_instance == null)
@@ -16,9 +15,8 @@ public abstract class RobotStateIO<StateEnum> {
         return _instance;
     }
 
-    public static void setInstance(RobotStateIO instance, TimedRobot robot) {
+    public static void setInstance(RobotStateIO instance) {
         _instance = instance;
-        _instance._robot = robot;
         _instance.init();
     }
 
@@ -46,15 +44,15 @@ public abstract class RobotStateIO<StateEnum> {
     /**
      * @return Whether the robot is at simulation mode or deployed on a real robot
      */
-    public boolean isSimulated() {
-        return _robot.isSimulation();
+    public static boolean isSimulated() {
+        return TimedRobot.isSimulation();
     }
 
-    public boolean isAutonomous() {
+    public static boolean isAutonomous() {
         return isSimulated() ? DriverStationSim.getAutonomous() : DriverStation.isAutonomous();
     }
 
-    public DriverStation.Alliance getAlliance() {
+    public static DriverStation.Alliance getAlliance() {
         return isSimulated()
             ? (DriverStationSim.getAllianceStationId().ordinal() > 3
             ? DriverStation.Alliance.Blue

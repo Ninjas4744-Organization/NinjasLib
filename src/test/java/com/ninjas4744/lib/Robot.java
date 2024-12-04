@@ -1,7 +1,8 @@
-package com.ninjas4744.NinjasLib;// Copyright (c) FIRST and other WPILib contributors.
+package com.ninjas4744.lib;// Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
+import com.ninjas4744.NinjasLib.RobotStateIO;
 import com.ninjas4744.NinjasLib.Controllers.NinjasController;
 import com.ninjas4744.NinjasLib.Controllers.NinjasTalonFXController;
 import com.ninjas4744.NinjasLib.DataClasses.ControlConstants;
@@ -76,7 +77,7 @@ public class Robot extends TimedRobot {
 //    _controller = new CommandPS5Controller(0);
 //    _controller.cross().whileTrue(Commands.startEnd(() -> _shooter.setVelocity(100), () -> _shooter.stop()));
 
-    RobotStateIO.setInstance(new RobotState(), this);
+    // RobotStateIO.setInstance(new RobotState(), this);
 
     VisionConstants kVisionConstants = new VisionConstants();
     kVisionConstants.cameras = Map.of(

@@ -15,7 +15,6 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.wpilibj.TimedRobot;
 
 public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<StateEnum>{
     private AHRS navX;
@@ -27,9 +26,8 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<State
     private boolean _gyroInverted;
     private FOMCalculator _fomCalculator;
 
-    public static void setInstance(RobotStateWithSwerve instance, TimedRobot robot, SwerveDriveKinematics kinematics, boolean gyroInverted, FOMCalculator fomCalculator){
+    public static void setInstance(RobotStateWithSwerve instance, SwerveDriveKinematics kinematics, boolean gyroInverted, FOMCalculator fomCalculator){
         _instance = instance;
-        instance._robot = robot;
         instance._kinematics = kinematics;
         instance._gyroInverted = gyroInverted;
         instance._fomCalculator = fomCalculator;
