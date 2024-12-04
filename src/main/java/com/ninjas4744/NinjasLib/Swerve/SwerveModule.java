@@ -3,12 +3,10 @@ package com.ninjas4744.NinjasLib.Swerve;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ninjas4744.NinjasLib.Controllers.NinjasController;
 import com.ninjas4744.NinjasLib.Controllers.NinjasSparkMaxController;
-import com.ninjas4744.NinjasLib.DataClasses.MainControllerConstants;
 import com.ninjas4744.NinjasLib.DataClasses.SwerveModuleConstants;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 
@@ -29,7 +27,7 @@ public class SwerveModule {
 		canCoder = new CANcoder(constants.canCoderID);
 		angleMotor = new NinjasSparkMaxController(constants.angleMotorConstants);
 		resetToAbsolute();
-		lastAngle = getState().angle;
+		lastAngle = Rotation2d.fromDegrees(angleMotor.getPosition());
 		
 		driveMotor = new NinjasSparkMaxController(constants.driveMotorConstants);
 
