@@ -1,7 +1,5 @@
 package com.ninjas4744.NinjasLib.DataClasses;
 
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-
 public class SwerveConstants {
     /** Whether to drive without module velocity PID control */
     public boolean openLoop;

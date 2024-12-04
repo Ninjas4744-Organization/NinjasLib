@@ -12,7 +12,7 @@ public class Swerve extends SwerveIO {
     private final SwerveModule[] _modules;
     private final SwerveDriveKinematics _kinematics;
 
-    public Swerve(SwerveConstants constants) {
+    protected Swerve(SwerveConstants constants) {
         super(constants);
 
         _kinematics = new SwerveDriveKinematics(
@@ -28,6 +28,13 @@ public class Swerve extends SwerveIO {
             new SwerveModule(constants.moduleConstants[2]),
             new SwerveModule(constants.moduleConstants[3])
         };
+    }
+
+    /**
+     * @return SwerveDriveKinematics of this swerve
+     */
+    public SwerveDriveKinematics getKinematics(){
+        return _kinematics;
     }
 
     @Override

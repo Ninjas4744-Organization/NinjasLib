@@ -6,7 +6,6 @@ import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.IdealStartingState;
 import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.path.Waypoint;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectoryState;
 import edu.wpi.first.math.controller.PIDController;
@@ -19,15 +18,13 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-import java.util.List;
-
 public class SwerveController {
     private final PIDController _anglePID;
     private final PIDController _xPID;
     private final PIDController _yPID;
     private final PIDController _axisPID;
-    private final Timer pathfindingTimer = new Timer();
-    private PathPlannerTrajectory pathfindingCurrentTraj = null;
+    // private final Timer pathfindingTimer = new Timer();
+    // private PathPlannerTrajectory pathfindingCurrentTraj = null;
     private final SwerveControllerConstants _constants;
     private final SwerveIO _swerve;
 
@@ -78,7 +75,7 @@ public class SwerveController {
         _yPID = new PIDController(constants.swerveDrivePIDConstants.P, constants.swerveDrivePIDConstants.I, constants.swerveDrivePIDConstants.D);
         _yPID.setIZone(constants.swerveDrivePIDConstants.IZone);
 
-        Shuffleboard.getTab("Swerve").addBoolean("Path Following Finished", this::isDriveAssistFinished);
+        Shuffleboard.getTab("Swerve").addBoolean("Drive Assist Finished", this::isDriveAssistFinished);
         Shuffleboard.getTab("Swerve").addNumber("Driver Input X", () -> _demand.driverInput.vxMetersPerSecond);
         Shuffleboard.getTab("Swerve").addNumber("Driver Input Y", () -> _demand.driverInput.vyMetersPerSecond);
         Shuffleboard.getTab("Swerve").addNumber("Driver Input Omega", () -> _demand.driverInput.omegaRadiansPerSecond);

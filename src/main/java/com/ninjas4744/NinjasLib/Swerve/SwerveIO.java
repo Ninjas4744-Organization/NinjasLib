@@ -10,14 +10,21 @@ public abstract class SwerveIO {
 
     /** Returns the swerve instance, simulated/real depends on if the code is simulated/real. */
     public static SwerveIO getInstance() {
-        if (_instance == null) {
-            if (!RobotStateIO.getInstance().isSimulated()) _instance = new Swerve(_instance._constants);
-            else _instance = new SwerveSimulated(_instance._constants);
-        }
+        if (_instance == null)
+            throw new RuntimeException("SwerveIO constants not given. Initialize SwerveIO by setConstants(SwerveConstants) first.");
         return _instance;
     }
 
-    public SwerveIO(SwerveConstants constants){
+    public static SwerveIO setConstants(SwerveConstants constants){
+        if (!RobotStateIO.getInstance().isSimulated()) 
+            _instance = new Swerve(constants);
+        else
+            _instance = new SwerveSimulated(constants);
+
+        return _instance;
+    }
+
+    protected SwerveIO(SwerveConstants constants){
         _constants = constants;
     }
 
