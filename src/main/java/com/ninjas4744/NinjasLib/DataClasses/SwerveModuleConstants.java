@@ -1,25 +1,17 @@
 package com.ninjas4744.NinjasLib.DataClasses;
 
-import edu.wpi.first.math.geometry.Rotation2d;
-
 public class SwerveModuleConstants {
-	public final int driveMotorID;
-	public final int angleMotorID;
-	public final int cancoderID;
-	public final Rotation2d angleOffset;
+    public int moduleNumber;
+    public MainControllerConstants driveMotorConstants;
+    public MainControllerConstants angleMotorConstants;
+    public double maxModuleSpeed;
+    public int canCoderID;
 
-	/**
-	 * Swerve Module Constants to be used when creating swerve modules.
-	 *
-	 * @param driveMotorID
-	 * @param angleMotorID
-	 * @param canCoderID
-	 * @param angleOffset
-	 */
-	public SwerveModuleConstants(int driveMotorID, int angleMotorID, int canCoderID, Rotation2d angleOffset) {
-		this.driveMotorID = driveMotorID;
-		this.angleMotorID = angleMotorID;
-		this.cancoderID = canCoderID;
-		this.angleOffset = angleOffset;
-	}
+    public SwerveModuleConstants(int moduleNumber, MainControllerConstants driveMotorConstants, MainControllerConstants angleMotorConstants, double maxModuleSpeed, int canCoderID){
+        this.moduleNumber = moduleNumber;
+        this.driveMotorConstants = driveMotorConstants;
+        this.angleMotorConstants = angleMotorConstants;
+        this.maxModuleSpeed = maxModuleSpeed;
+        this.canCoderID = canCoderID;
+    }
 }
