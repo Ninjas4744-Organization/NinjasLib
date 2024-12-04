@@ -1,7 +1,7 @@
 package com.ninjas4744.NinjasLib.Swerve;
 
 import com.ninjas4744.NinjasLib.DataClasses.SwerveConstants;
-import com.ninjas4744.NinjasLib.RobotStateIO;
+import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -32,9 +32,10 @@ public class Swerve extends SwerveIO {
 
     @Override
     public void drive(ChassisSpeeds drive, boolean fieldRelative) {
-        SwerveModuleState[] swerveModuleStates = _kinematics.toSwerveModuleStates(
-            fieldRelative ? ChassisSpeeds.fromFieldRelativeSpeeds(drive, RobotStateIO.getInstance().getGyroYaw()) : drive);
-        setModuleStates(swerveModuleStates, _constants.openLoop);
+        ChassisSpeeds robotRelativeSpeeds = new ChassisSpeeds(drive.vxMetersPerSecond, drive.vyMetersPerSecond, drive.omegaRadiansPerSecond);
+        robotRelativeSpeeds.toRobotRelativeSpeeds(RobotStateWithSwerve.getInstance().getGyroYaw());
+
+        setModuleStates(_kinematics.toSwerveModuleStates(fieldRelative ? robotRelativeSpeeds : drive), _constants.openLoop);
     }
 
     /**
@@ -60,9 +61,11 @@ public class Swerve extends SwerveIO {
 
     @Override
     public ChassisSpeeds getChassisSpeeds(boolean fieldRelative) {
-        return fieldRelative ? ChassisSpeeds.fromRobotRelativeSpeeds(
-            _kinematics.toChassisSpeeds(getModuleStates()), RobotStateIO.getInstance().getGyroYaw())
-            : _kinematics.toChassisSpeeds(getModuleStates());
+        ChassisSpeeds speeds = _kinematics.toChassisSpeeds(getModuleStates());
+        ChassisSpeeds robotRelativeSpeeds = _kinematics.toChassisSpeeds(getModuleStates());
+        robotRelativeSpeeds.toRobotRelativeSpeeds(RobotStateWithSwerve.getInstance().getGyroYaw());
+
+        return fieldRelative ? robotRelativeSpeeds : speeds;
     }
 
     /**
@@ -84,6 +87,6 @@ public class Swerve extends SwerveIO {
     @Override
     public void periodic() {
         super.periodic();
-        RobotStateIO.getInstance().updateRobotPose(getModulePositions());
+        RobotStateWithSwerve.getInstance().updateRobotPose(getModulePositions());
     }
 }

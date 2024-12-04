@@ -30,7 +30,7 @@ public class NinjasSparkMaxController extends NinjasController {
 		.forwardSoftLimitEnabled(constants.isMaxSoftLimit)
 		.reverseSoftLimitEnabled(constants.isMinSoftLimit);
 
-		config.closedLoop.pid(constants.controlConstants.kP, constants.controlConstants.kI, constants.controlConstants.kD);
+		config.closedLoop.pid(constants.controlConstants.P, constants.controlConstants.I, constants.controlConstants.D);
 
 		config.encoder.positionConversionFactor(constants.encoderConversionFactor)
 		.velocityConversionFactor(constants.encoderConversionFactor / 60);
@@ -47,14 +47,14 @@ public class NinjasSparkMaxController extends NinjasController {
 		}
 
 		_profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(
-				constants.controlConstants.kCruiseVelocity, constants.controlConstants.kAcceleration));
+				constants.controlConstants.CruiseVelocity, constants.controlConstants.Acceleration));
 
 		_PIDFController = new ProfiledPIDController(
-				constants.controlConstants.kP,
-				constants.controlConstants.kI,
-				constants.controlConstants.kD,
+				constants.controlConstants.P,
+				constants.controlConstants.I,
+				constants.controlConstants.D,
 				new TrapezoidProfile.Constraints(
-						constants.controlConstants.kCruiseVelocity, constants.controlConstants.kAcceleration));
+						constants.controlConstants.CruiseVelocity, constants.controlConstants.Acceleration));
 	}
 
 	@Override

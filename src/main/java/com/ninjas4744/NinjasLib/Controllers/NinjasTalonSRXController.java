@@ -16,12 +16,12 @@ public class NinjasTalonSRXController extends NinjasController {
 		_main.setInverted(constants.main.inverted);
 		_main.configPeakCurrentLimit((int) constants.currentLimit);
 
-		_main.config_kP(0, constants.controlConstants.kP);
-		_main.config_kI(0, constants.controlConstants.kI);
-		_main.config_kD(0, constants.controlConstants.kD);
+		_main.config_kP(0, constants.controlConstants.P);
+		_main.config_kI(0, constants.controlConstants.I);
+		_main.config_kD(0, constants.controlConstants.D);
 		_main.configMotionCruiseVelocity(
-				constants.controlConstants.kCruiseVelocity * constants.encoderConversionFactor / 10);
-		_main.configMotionAcceleration(constants.controlConstants.kAcceleration * constants.encoderConversionFactor / 10);
+				constants.controlConstants.CruiseVelocity * constants.encoderConversionFactor / 10);
+		_main.configMotionAcceleration(constants.controlConstants.Acceleration * constants.encoderConversionFactor / 10);
 
 		_main.configForwardSoftLimitEnable(constants.isMaxSoftLimit);
 		_main.configReverseSoftLimitEnable(constants.isMinSoftLimit);

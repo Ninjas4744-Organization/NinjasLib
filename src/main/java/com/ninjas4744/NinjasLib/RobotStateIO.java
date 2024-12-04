@@ -7,6 +7,8 @@ import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 
 public abstract class RobotStateIO<StateEnum> {
     protected static RobotStateIO _instance;
+    protected StateEnum _robotState;
+    protected TimedRobot _robot;
 
     public static RobotStateIO getInstance() {
         if(_instance == null)
@@ -16,18 +18,19 @@ public abstract class RobotStateIO<StateEnum> {
 
     public static void setInstance(RobotStateIO instance, TimedRobot robot) {
         _instance = instance;
-        _instance.robot = robot;
+        _instance._robot = robot;
+        _instance.init();
     }
 
-    protected StateEnum robotState;
+    protected void init(){
 
-    protected TimedRobot robot;
+    }
 
     /**
      * @return State of the robot
      */
     public StateEnum getRobotState() {
-        return robotState;
+        return _robotState;
     }
 
     /**
@@ -36,15 +39,15 @@ public abstract class RobotStateIO<StateEnum> {
      * @param state - the state to set the robot state to
      */
     public void setRobotState(StateEnum state) {
-        System.out.println("[Robot State Change] " + robotState.toString() + " -> " + state.toString());
-        robotState = state;
+        System.out.println("[Robot State Change] " + _robotState.toString() + " -> " + state.toString());
+        _robotState = state;
     }
 
     /**
      * @return Whether the robot is at simulation mode or deployed on a real robot
      */
     public boolean isSimulated() {
-        return robot.isSimulation();
+        return _robot.isSimulation();
     }
 
     public boolean isAutonomous() {

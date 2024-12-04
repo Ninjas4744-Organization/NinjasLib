@@ -8,6 +8,8 @@ import com.ninjas4744.NinjasLib.DataClasses.SwerveModuleConstants;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.units.AngleUnit;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 
 public class SwerveModule {
@@ -25,11 +27,11 @@ public class SwerveModule {
 		maxModuleSpeed = constants.maxModuleSpeed;
 		
 		canCoder = new CANcoder(constants.canCoderID);
-		angleMotor = new NinjasSparkMaxController(constants.angleConstants);
+		angleMotor = new NinjasSparkMaxController(constants.angleMotorConstants);
 		resetToAbsolute();
 		lastAngle = getState().angle;
 		
-		driveMotor = new NinjasSparkMaxController(constants.driveConstants);
+		driveMotor = new NinjasSparkMaxController(constants.driveMotorConstants);
 
 		Shuffleboard.getTab("Swerve Mod " + moduleNumber).addNumber("Speed", () -> getState().speedMetersPerSecond);
 		Shuffleboard.getTab("Swerve Mod " + moduleNumber).addNumber("Angle", () -> getState().angle.getDegrees());
@@ -72,7 +74,7 @@ public class SwerveModule {
 
 	public Rotation2d getCanCoder() {
 		canCoder.getAbsolutePosition().refresh();
-		return Rotation2d.fromDegrees(canCoder.getAbsolutePosition().getValue() * 360);
+		return Rotation2d.fromDegrees(canCoder.getAbsolutePosition().getValue().in(Units.Degrees) * 360);
 	}
 
 	public static SwerveModuleState optimize(SwerveModuleState desiredState, Rotation2d currentAngle) {

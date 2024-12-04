@@ -70,14 +70,14 @@ public class NinjasSimulatedController extends NinjasController {
           constants.mainControllerConstants.controlConstants.D,
           new TrapezoidProfile.Constraints(
             constants.mainControllerConstants.controlConstants.CruiseVelocity, constants.mainControllerConstants.controlConstants.Acceleration));
-        _PIDFController.setIZone(constants.mainControllerConstants.controlConstants.kIZone);
+        _PIDFController.setIZone(constants.mainControllerConstants.controlConstants.IZone);
 
         _PIDController = new PIDController(
-          constants.mainControllerConstants.controlConstants.kP,
-          constants.mainControllerConstants.controlConstants.kI,
-          constants.mainControllerConstants.controlConstants.kD
+          constants.mainControllerConstants.controlConstants.P,
+          constants.mainControllerConstants.controlConstants.I,
+          constants.mainControllerConstants.controlConstants.D
         );
-        _PIDController.setIZone(constants.mainControllerConstants.controlConstants.kIZone);
+        _PIDController.setIZone(constants.mainControllerConstants.controlConstants.IZone);
     }
 
     @Override
@@ -163,7 +163,7 @@ public class NinjasSimulatedController extends NinjasController {
                       new TrapezoidProfile.State(getPosition(), getGoal()))
                       .velocity;
 
-                _main.setInputVoltage(_output * _constants.controlConstants.kV);
+                _main.setInputVoltage(_output * _constants.controlConstants.V);
                 break;
         }
 

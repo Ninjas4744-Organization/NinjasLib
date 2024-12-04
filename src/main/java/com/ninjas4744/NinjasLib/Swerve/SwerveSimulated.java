@@ -1,13 +1,12 @@
 package com.ninjas4744.NinjasLib.Swerve;
 
 import com.ninjas4744.NinjasLib.DataClasses.SwerveConstants;
-import com.ninjas4744.NinjasLib.RobotStateIO;
+import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
+import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import frc.robot.Constants.SwerveConstants;
-import frc.robot.RobotState;
 
 public class SwerveSimulated extends SwerveIO {
     private ChassisSpeeds _currentChassisSpeeds = new ChassisSpeeds();
@@ -18,31 +17,38 @@ public class SwerveSimulated extends SwerveIO {
     public SwerveSimulated(SwerveConstants constants){
         super(constants);
 
-        _xAcceleration = new SlewRateLimiter(constants.Simulation.kAcceleration);
-        _yAcceleration = new SlewRateLimiter(constants.Simulation.kAcceleration);
-        _0Acceleration = new SlewRateLimiter(constants.Simulation.k0Acceleration);
+        _xAcceleration = new SlewRateLimiter(constants.simulationAcceleration);
+        _yAcceleration = new SlewRateLimiter(constants.simulationAcceleration);
+        _0Acceleration = new SlewRateLimiter(constants.simulationAngleAcceleration);
     }
 
     @Override
     public void drive(ChassisSpeeds drive, boolean fieldRelative) {
-        _currentChassisSpeeds =
-            fieldRelative ? drive : ChassisSpeeds.fromRobotRelativeSpeeds(drive, RobotState.getInstance().getGyroYaw());
+        _currentChassisSpeeds = drive;
+        if(!fieldRelative)
+            _currentChassisSpeeds.toFieldRelativeSpeeds(RobotStateWithSwerve.getInstance().getGyroYaw());
 
-        RobotStateIO.getInstance().setRobotPose(new Pose2d(
-            RobotStateIO.getInstance().getRobotPose().getX()
+        RobotStateWithSwerve.getInstance().setRobotPose(new Pose2d(
+            RobotStateWithSwerve.getInstance().getRobotPose().getX()
                 + _xAcceleration.calculate(_currentChassisSpeeds.vxMetersPerSecond)
-                * SwerveConstants.Simulation.kSimToRealSpeedConversion,
-            RobotStateIO.getInstance().getRobotPose().getY()
+                * 0.02,
+            RobotStateWithSwerve.getInstance().getRobotPose().getY()
                 + _yAcceleration.calculate(_currentChassisSpeeds.vyMetersPerSecond)
-                * SwerveConstants.Simulation.kSimToRealSpeedConversion,
-            RobotStateIO.getInstance().getRobotPose()
+                * 0.02,
+            RobotStateWithSwerve.getInstance().getRobotPose()
                 .getRotation()
                 .plus(Rotation2d.fromRadians(_0Acceleration.calculate(_currentChassisSpeeds.omegaRadiansPerSecond)
-                    * SwerveConstants.Simulation.kSimToRealSpeedConversion))));
+                    * 0.02))));
     }
 
     @Override
     public ChassisSpeeds getChassisSpeeds(boolean fieldRelative) {
-        return fieldRelative ? _currentChassisSpeeds : ChassisSpeeds.fromFieldRelativeSpeeds(_currentChassisSpeeds, RobotState.getInstance().getGyroYaw());
+        if(fieldRelative)
+            return _currentChassisSpeeds;
+        else{
+            ChassisSpeeds speeds = new ChassisSpeeds(_currentChassisSpeeds.vxMetersPerSecond, _currentChassisSpeeds.vyMetersPerSecond, _currentChassisSpeeds.omegaRadiansPerSecond);
+            speeds.toRobotRelativeSpeeds(RobotStateWithSwerve.getInstance().getGyroYaw());
+            return speeds;
+        }
     }
 }
