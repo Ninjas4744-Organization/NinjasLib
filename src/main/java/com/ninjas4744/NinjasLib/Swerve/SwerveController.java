@@ -129,35 +129,36 @@ public class SwerveController {
     }
 
     private ChassisSpeeds pathfindTo(Pose2d pose, ChassisSpeeds driverInput) {
-        Pathfinding.setGoalPosition(pose.getTranslation());
-        Pathfinding.setStartPosition(RobotStateIO.getInstance().getRobotPose().getTranslation());
-
-        PathPlannerPath path = Pathfinding.getCurrentPath(
-            constants.kConstraints, new GoalEndState(0, pose.getRotation()));
-        if (path == null) {
-            System.out.println("No path available");
-            return;
-        }
-        PathPlannerTrajectory trajectory = new PathPlannerTrajectory(
-            path, getChassisSpeeds(true), RobotStateIO.getInstance().getRobotPose().getRotation());
-        if (pathfindingCurrentTraj == null
-            || pathfindingCurrentTraj.getTotalTimeSeconds() != trajectory.getTotalTimeSeconds()) {
-            System.out.println("New path available");
-            pathfindingCurrentTraj = trajectory;
-            pathfindingTimer.restart();
-        }
-
-        double feedforwardX = trajectory.sample(pathfindingTimer.get()).velocityMps
-            * trajectory.sample(pathfindingTimer.get()).heading.getCos();
-        double feedforwardY = trajectory.sample(pathfindingTimer.get()).velocityMps
-            * trajectory.sample(pathfindingTimer.get()).heading.getSin();
-
-        Translation2d pid = pidTo(trajectory.sample(pathfindingTimer.get()).positionMeters);
-
-        return new ChassisSpeeds(
-                1 * feedforwardX + 0 * pid.getX() + driverInput.vxMetersPerSecond,
-                1 * feedforwardY + 0 * pid.getY() + driverInput.vyMetersPerSecond,
-                driverInput.omegaRadiansPerSecond);
+        return new ChassisSpeeds(0, 0, 0);
+//        Pathfinding.setGoalPosition(pose.getTranslation());
+//        Pathfinding.setStartPosition(RobotStateIO.getInstance().getRobotPose().getTranslation());
+//
+//        PathPlannerPath path = Pathfinding.getCurrentPath(
+//            constants.kConstraints, new GoalEndState(0, pose.getRotation()));
+//        if (path == null) {
+//            System.out.println("No path available");
+//            return;
+//        }
+//        PathPlannerTrajectory trajectory = new PathPlannerTrajectory(
+//            path, getChassisSpeeds(true), RobotStateIO.getInstance().getRobotPose().getRotation());
+//        if (pathfindingCurrentTraj == null
+//            || pathfindingCurrentTraj.getTotalTimeSeconds() != trajectory.getTotalTimeSeconds()) {
+//            System.out.println("New path available");
+//            pathfindingCurrentTraj = trajectory;
+//            pathfindingTimer.restart();
+//        }
+//
+//        double feedforwardX = trajectory.sample(pathfindingTimer.get()).velocityMps
+//            * trajectory.sample(pathfindingTimer.get()).heading.getCos();
+//        double feedforwardY = trajectory.sample(pathfindingTimer.get()).velocityMps
+//            * trajectory.sample(pathfindingTimer.get()).heading.getSin();
+//
+//        Translation2d pid = pidTo(trajectory.sample(pathfindingTimer.get()).positionMeters);
+//
+//        return new ChassisSpeeds(
+//                1 * feedforwardX + 0 * pid.getX() + driverInput.vxMetersPerSecond,
+//                1 * feedforwardY + 0 * pid.getY() + driverInput.vyMetersPerSecond,
+//                driverInput.omegaRadiansPerSecond);
     }
 
     /**
