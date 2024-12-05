@@ -1,6 +1,8 @@
 package com.ninjas4744.NinjasLib.Swerve;
 
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ninjas4744.NinjasLib.Controllers.NinjasController;
 import com.ninjas4744.NinjasLib.Controllers.NinjasSparkMaxController;
 import com.ninjas4744.NinjasLib.DataClasses.SwerveModuleConstants;
@@ -25,6 +27,7 @@ public class SwerveModule {
 		maxModuleSpeed = constants.maxModuleSpeed;
 		
 		canCoder = new CANcoder(constants.canCoderID);
+//		canCoder.getConfigurator().apply(new CANcoderConfiguration().MagnetSensor.withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)); TODO: Fix
 		angleMotor = new NinjasSparkMaxController(constants.angleMotorConstants);
 		resetToAbsolute();
 		lastAngle = Rotation2d.fromDegrees(angleMotor.getPosition());

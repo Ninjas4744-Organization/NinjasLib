@@ -57,23 +57,23 @@ public class SwerveController {
         _demand = new SwerveDemand();
 
         _anglePID = new PIDController(
-            constants.swerveAnglePIDConstants.P,
-            constants.swerveAnglePIDConstants.I,
-            constants.swerveAnglePIDConstants.D
+            constants.rotationPIDConstants.P,
+            constants.rotationPIDConstants.I,
+            constants.rotationPIDConstants.D
         );
-        _anglePID.setIZone(constants.swerveAnglePIDConstants.IZone);
+        _anglePID.setIZone(constants.rotationPIDConstants.IZone);
         _anglePID.enableContinuousInput(-180, 180);
 
         _axisPID = new PIDController(
-            constants.swerveAxisPIDConstants.P,
-            constants.swerveAxisPIDConstants.I,
-            constants.swerveAxisPIDConstants.D);
-        _axisPID.setIZone(constants.swerveAxisPIDConstants.IZone);
+            constants.axisLockPIDConstants.P,
+            constants.axisLockPIDConstants.I,
+            constants.axisLockPIDConstants.D);
+        _axisPID.setIZone(constants.axisLockPIDConstants.IZone);
 
-        _xPID = new PIDController(constants.swerveDrivePIDConstants.P, constants.swerveDrivePIDConstants.I, constants.swerveDrivePIDConstants.D);
-        _xPID.setIZone(constants.swerveDrivePIDConstants.IZone);
-        _yPID = new PIDController(constants.swerveDrivePIDConstants.P, constants.swerveDrivePIDConstants.I, constants.swerveDrivePIDConstants.D);
-        _yPID.setIZone(constants.swerveDrivePIDConstants.IZone);
+        _xPID = new PIDController(constants.drivePIDConstants.P, constants.drivePIDConstants.I, constants.drivePIDConstants.D);
+        _xPID.setIZone(constants.drivePIDConstants.IZone);
+        _yPID = new PIDController(constants.drivePIDConstants.P, constants.drivePIDConstants.I, constants.drivePIDConstants.D);
+        _yPID.setIZone(constants.drivePIDConstants.IZone);
 
         Shuffleboard.getTab("Swerve").addBoolean("Drive Assist Finished", this::isDriveAssistFinished);
         Shuffleboard.getTab("Swerve").addNumber("Driver Input X", () -> _demand.driverInput.vxMetersPerSecond);
@@ -222,11 +222,9 @@ public class SwerveController {
         double speed = new Translation3d(_swerve.getChassisSpeeds(true).vxMetersPerSecond, _swerve.getChassisSpeeds(true).vyMetersPerSecond, _swerve.getChassisSpeeds(true).omegaRadiansPerSecond).getNorm();
         PathPlannerPath _path = new PathPlannerPath(
             PathPlannerPath.waypointsFromPoses(RobotStateWithSwerve.getInstance().getRobotPose(), targetPose),
-            _constants.constraints,
+            _constants.pathConstraints,
             new IdealStartingState(speed, RobotStateWithSwerve.getInstance().getGyroYaw()),
-            new GoalEndState(
-                0,
-                RobotStateWithSwerve.getInstance().isSimulated() ? targetPose.getRotation().unaryMinus() : targetPose.getRotation()));
+            new GoalEndState(0, targetPose.getRotation()));
 
         _driveAssistTrajectory = new PathPlannerTrajectory(
             _path,
@@ -289,11 +287,10 @@ public class SwerveController {
                 break;
 
             case DRIVE_ASSIST:
-                Pose2d target = new Pose2d(
-                    _demand.targetPose.getX(),
-                    _demand.targetPose.getY(),
-                    _demand.targetPose.getRotation());
-                _swerve.drive(driveAssist(target), true);
+                if(!isDriveAssistFinished() && RobotStateWithSwerve.getInstance().getRobotPose().getTranslation().getDistance(_demand.targetPose.getTranslation()) <= _constants.driveAssistThreshold)
+                    _swerve.drive(driveAssist(_demand.targetPose), true);
+                else
+                    _swerve.drive(driverInput, _constants.driverFieldRelative);
                 break;
 
             case LOOK_AT_TARGET:
@@ -301,7 +298,7 @@ public class SwerveController {
                     new ChassisSpeeds(
                         driverInput.vxMetersPerSecond,
                         driverInput.vyMetersPerSecond,
-                        lookAtTarget(_demand.targetPose, false, _demand.sheer)), _constants.driverFieldRelative);
+                        lookAtTarget(_demand.targetPose, false, _demand.sheer)), true);
                 break;
 
             case PATHFINDING:

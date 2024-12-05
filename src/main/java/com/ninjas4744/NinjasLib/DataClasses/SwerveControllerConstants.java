@@ -1,7 +1,6 @@
 package com.ninjas4744.NinjasLib.DataClasses;
 
 import com.pathplanner.lib.config.RobotConfig;
-import com.pathplanner.lib.controllers.PathFollowingController;
 import com.pathplanner.lib.path.PathConstraints;
 
 public class SwerveControllerConstants {
@@ -12,23 +11,20 @@ public class SwerveControllerConstants {
     public boolean driverFieldRelative;
 
     /** Swerve auto driving PID constants */
-    public ControlConstants swerveDrivePIDConstants;
+    public ControlConstants drivePIDConstants;
 
     /** Swerve auto driving angle PID constants */
-    public ControlConstants swerveAnglePIDConstants;
+    public ControlConstants rotationPIDConstants;
 
     /** Swerve auto axis locking PID constants */
-    public ControlConstants swerveAxisPIDConstants;
+    public ControlConstants axisLockPIDConstants;
 
     /** Profile Constraints(Doesn't affect pathplanner autonomy, only paths created on the fly) */
-    public PathConstraints constraints;
-
-    /** Pathplanner autonomy config */
-    public PathFollowingController autonomyConfig;
+    public PathConstraints pathConstraints;
 
     /** Robot config */
     public RobotConfig robotConfig;
 
     /** Swerve drive assist distance threshold. meters */
-    public double kDriveAssistThreshold;
+    public double driveAssistThreshold;
 }

@@ -6,7 +6,8 @@ public class ControlConstants {
 		PID,
 		PROFILED_PID,
 		PROFILE,
-		TORQUE_CURRENT
+		TORQUE_CURRENT,
+		NONE
 	}
 
 	/**
@@ -55,7 +56,7 @@ public class ControlConstants {
 	 */
 	public double Acceleration = 0;
 
-	public SmartControlType type = SmartControlType.PID;
+	public SmartControlType type = SmartControlType.NONE;
 
 	public static ControlConstants createPID(double P, double I, double D, double IZone) {
 		ControlConstants constants = new ControlConstants();

@@ -43,7 +43,12 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
      *
      * @param wantedState - the state to change the robot state to
      */
-    public abstract void changeRobotState(StateEnum wantedState);
+    public void changeRobotState(StateEnum wantedState){
+        if(canChangeRobotState((StateEnum) RobotStateIO.getInstance().getRobotState(), wantedState))
+            RobotStateIO.getInstance().setRobotState(wantedState);
+    }
+
+    protected abstract boolean canChangeRobotState(StateEnum currentState, StateEnum wantedState);
 
     /**
      * Set in this function the end condition for each state with _endConditionMap

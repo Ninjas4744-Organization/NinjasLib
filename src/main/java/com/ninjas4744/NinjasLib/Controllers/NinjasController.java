@@ -15,7 +15,6 @@ public abstract class NinjasController {
 
 	private final int shuffleboardEnteriesSize = 3;
 	protected ControlState _controlState = ControlState.PERCENT_OUTPUT;
-	protected SmartControlType _smartControlType = SmartControlType.PID;
 	protected MainControllerConstants _constants;
 	protected double _goal = 0;
 
@@ -26,6 +25,9 @@ public abstract class NinjasController {
 	 */
 	public NinjasController(MainControllerConstants constants) {
 		_constants = constants;
+
+		if(!constants.createShuffleboard)
+			return;
 
 		try {
 			Shuffleboard.getTab(constants.subsystemName)
@@ -61,9 +63,15 @@ public abstract class NinjasController {
 				.withWidget("Text View")
 				.withSize(shuffleboardEnteriesSize, shuffleboardEnteriesSize / 2)
 				.withPosition(shuffleboardEnteriesSize, shuffleboardEnteriesSize + 1);
+
+			Shuffleboard.getTab(constants.subsystemName)
+				.addString("Control Type", () -> _constants.controlConstants.type == SmartControlType.NONE ? "N/A" : _constants.controlConstants.type.toString())
+				.withWidget("Text View")
+				.withSize(shuffleboardEnteriesSize, shuffleboardEnteriesSize / 2)
+				.withPosition(shuffleboardEnteriesSize * 2, shuffleboardEnteriesSize + 1);
 		} catch (Exception e) {
-			System.err.println("Shuffleboard error occurred while creating " + constants.subsystemName + " controller.");
-			System.err.println("Make sure if this controller's subsystem name is unique.");
+			System.err.println("Shuffleboard error occurred while creating " + constants.subsystemName + "'s controller." +
+				"\nMake sure that this controller's subsystem name is unique.");
 		}
 	}
 

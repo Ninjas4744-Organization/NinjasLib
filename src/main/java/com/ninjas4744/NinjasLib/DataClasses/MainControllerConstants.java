@@ -13,6 +13,9 @@ public class MainControllerConstants {
 	/** The name of the subsystem which uses this controller */
 	public String subsystemName = "";
 
+	/** Whether to create a shuffleboard tab for this controller's subsystem */
+	public boolean createShuffleboard = true;
+
 	/** Control constants */
 	public ControlConstants controlConstants = new ControlConstants();
 
