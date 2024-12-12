@@ -1,8 +1,6 @@
 package com.ninjas4744.NinjasLib.Swerve;
 
-import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
-import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ninjas4744.NinjasLib.Controllers.NinjasController;
 import com.ninjas4744.NinjasLib.Controllers.NinjasSparkMaxController;
 import com.ninjas4744.NinjasLib.DataClasses.SwerveModuleConstants;

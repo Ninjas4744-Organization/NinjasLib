@@ -11,7 +11,6 @@ import java.util.HashMap;
 public abstract class VisionIO extends SubsystemBase {
 	private static VisionIO _instance;
 	protected HashMap<String, VisionOutput> _outputs;
-	//	protected VisionEstimation[] _visionEstimations;
 	protected VisionCamera[] _cameras;
 
 	public static VisionIO getInstance() {
@@ -34,14 +33,9 @@ public abstract class VisionIO extends SubsystemBase {
 		for (int i = 0; i < constants.cameras.size(); i++)
 			_cameras[i] = new VisionCamera(camerasNames[i], constants.cameras.get(camerasNames[i]), constants);
 
-//		_visionEstimations = new VisionEstimation[camerasNames.length];
 		_outputs = new HashMap<>();
-		for (String name : camerasNames) {
-			VisionOutput output = new VisionOutput();
-			_outputs.put(name, output);
-
-//			_visionEstimations[Arrays.asList(camerasNames).indexOf(name)] = new VisionEstimation(output.robotPose, output.timestamp, output.hasTargets, output.closestTag.pose.toPose2d());
-		}
+		for (String name : camerasNames)
+			_outputs.put(name, new VisionOutput());
 	}
 
 	@Override

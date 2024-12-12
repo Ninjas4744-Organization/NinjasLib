@@ -20,6 +20,7 @@ public class VisionCamera {
 	private final VisionOutput _output;
 	private final List<Integer> _ignoredTags;
 	private final VisionConstants _constants;
+	private boolean disconnected = false;
 
 	/**
 	 * @param name Name of the camera.
@@ -47,16 +48,20 @@ public class VisionCamera {
 	 * @return The vision output of this camera
 	 */
 	public VisionOutput Update() {
+		if(disconnected)
+			return _output;
+
     PhotonPipelineResult result;
     try {
-			if(_camera.getAllUnreadResults().isEmpty())
+			List<PhotonPipelineResult> results = _camera.getAllUnreadResults();
+			if(results.isEmpty())
 				return _output;
-
-      result = _camera.getAllUnreadResults().get(_camera.getAllUnreadResults().size() - 1);
+			result = results.get(results.size() - 1);
     } catch (Exception e) {
       System.out.println("Camera " + getName() + " disconnected");
       System.out.println(e.getMessage());
 
+			disconnected = true;
       _output.hasTargets = false;
 	  	_output.amountOfTargets = 0;
 
