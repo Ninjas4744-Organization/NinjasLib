@@ -86,8 +86,6 @@ public class VisionCamera {
 			_output.amountOfTargets = 0;
 		}
 
-		System.out.println(_output.closestTagDist);
-
 		return _output;
 	}
 

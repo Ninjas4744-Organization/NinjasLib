@@ -88,7 +88,7 @@ public class Robot extends TimedRobot {
 
 
 //    _shooter.periodic();
-    System.out.println(VisionIO.getInstance().getVisionEstimations()[0].closestTagDist);
+//    System.out.println(VisionIO.getInstance().getVisionEstimations()[0].closestTagDist);
 //    for(VisionOutput o : VisionIO.getInstance().getVisionEstimations()){
 //    }
   }
