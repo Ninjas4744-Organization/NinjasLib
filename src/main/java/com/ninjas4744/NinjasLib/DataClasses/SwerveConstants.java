@@ -1,5 +1,7 @@
 package com.ninjas4744.NinjasLib.DataClasses;
 
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+
 public class SwerveConstants {
     /** Whether to drive without module velocity PID control */
     public boolean openLoop;
@@ -16,11 +18,14 @@ public class SwerveConstants {
     /** Max speed the swerve could possibly rotate */
     public double maxAngularVelocity;
 
-    /** CanCoder Invert */
+    /** Whether to invert the CanCoders, NOT WORKING YET */
     public boolean canCoderInvert;
 
     /** Module Specific Constants */
     public SwerveModuleConstants[] moduleConstants;
+
+    /** Swerve kinematics class used for calculating swerve movement */
+    public SwerveDriveKinematics kinematics;
 
     /** Simulation robot acceleration */
     public double simulationAcceleration;

@@ -6,9 +6,9 @@ public class SimulatedControllerConstants {
 
 	public enum MotorType {
 		KRAKEN,
-		KRAKEN_FOC,
+		KRAKEN_PRO,
 		FALCON,
-		FALCON_FOC,
+		FALCON_PRO,
 		NEO,
 		NEO550,
 		CIM
@@ -18,13 +18,4 @@ public class SimulatedControllerConstants {
 	 * The motor that is connected the simulated controller
 	 */
 	public MotorType motorType = MotorType.KRAKEN;
-
-	/** Torque of the motor in its subsystem(jKgMetersSquared) */
-	public double motorTorque = 1;
-
-	/**
-	 * Gear ratio between the motor output and the output after the gearbox, bigger values means
-	 * bigger reduction(1 / x)
-	 */
-	public double gearRatio = 1;
 }

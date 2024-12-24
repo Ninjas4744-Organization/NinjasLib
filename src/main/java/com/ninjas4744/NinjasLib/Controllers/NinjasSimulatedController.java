@@ -3,62 +3,64 @@ package com.ninjas4744.NinjasLib.Controllers;
 import com.ninjas4744.NinjasLib.DataClasses.ControlConstants;
 import com.ninjas4744.NinjasLib.DataClasses.ControlConstants.SmartControlType;
 import com.ninjas4744.NinjasLib.DataClasses.SimulatedControllerConstants;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
 public class NinjasSimulatedController extends NinjasController {
-    private DCMotorSim _main;
+    private double _maxVelocity;
+    private double _maxAcceleration;
+    private double _output = 0;
+    private double _velocity = 0;
+    private double _position = 0;
+
+    private SlewRateLimiter _accelerationLimiter;
 
     private final TrapezoidProfile _profile;
     private final ProfiledPIDController _PIDFController;
     private final PIDController _PIDController;
     private boolean isCurrentlyPiding = false;
-    private double _output = 0;
 
     public NinjasSimulatedController(SimulatedControllerConstants constants) {
         super(constants.mainControllerConstants);
 
         switch (constants.motorType) {
             case KRAKEN:
-                _main = new DCMotorSim(
-                  LinearSystemId.createDCMotorSystem(DCMotor.getKrakenX60(constants.mainControllerConstants.followers.length + 1), constants.motorTorque, constants.gearRatio),
-                  DCMotor.getKrakenX60(constants.mainControllerConstants.followers.length + 1));
+                _maxVelocity = 100;
+                _maxAcceleration = 100;
                 break;
             case FALCON:
-                _main = new DCMotorSim(
-                  LinearSystemId.createDCMotorSystem(DCMotor.getFalcon500(constants.mainControllerConstants.followers.length + 1), constants.motorTorque, constants.gearRatio),
-                  DCMotor.getFalcon500(constants.mainControllerConstants.followers.length + 1));
+                _maxVelocity = 100;
+                _maxAcceleration = 50;
                 break;
             case NEO:
-                _main = new DCMotorSim(
-                  LinearSystemId.createDCMotorSystem(DCMotor.getNEO(constants.mainControllerConstants.followers.length + 1), constants.motorTorque, constants.gearRatio),
-                  DCMotor.getNEO(constants.mainControllerConstants.followers.length + 1));
+                _maxVelocity = 94;
+                _maxAcceleration = 50;
                 break;
             case NEO550:
-                _main = new DCMotorSim(
-                  LinearSystemId.createDCMotorSystem(DCMotor.getNeo550(constants.mainControllerConstants.followers.length + 1), constants.motorTorque, constants.gearRatio),
-                  DCMotor.getNeo550(constants.mainControllerConstants.followers.length + 1));
+                _maxVelocity = 183;
+                _maxAcceleration = 6;
                 break;
             case CIM:
-                _main = new DCMotorSim(
-                  LinearSystemId.createDCMotorSystem(DCMotor.getCIM(constants.mainControllerConstants.followers.length + 1), constants.motorTorque, constants.gearRatio),
-                  DCMotor.getCIM(constants.mainControllerConstants.followers.length + 1));
+                _maxVelocity = 44;
+                _maxAcceleration = 12.5;
                 break;
-            case FALCON_FOC:
-                _main = new DCMotorSim(
-                  LinearSystemId.createDCMotorSystem(DCMotor.getFalcon500Foc(constants.mainControllerConstants.followers.length + 1), constants.motorTorque, constants.gearRatio),
-                  DCMotor.getFalcon500Foc(constants.mainControllerConstants.followers.length + 1));
+            case KRAKEN_PRO:
+                _maxVelocity = 97;
+                _maxAcceleration = 125;
                 break;
-            case KRAKEN_FOC:
-                _main = new DCMotorSim(
-                  LinearSystemId.createDCMotorSystem(DCMotor.getKrakenX60Foc(constants.mainControllerConstants.followers.length + 1), constants.motorTorque, constants.gearRatio),
-                  DCMotor.getKrakenX60Foc(constants.mainControllerConstants.followers.length + 1));
+            case FALCON_PRO:
+                _maxVelocity = 97;
+                _maxAcceleration = 63;
                 break;
         }
+
+        _accelerationLimiter = new SlewRateLimiter(_maxAcceleration);
 
         _profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(
           constants.mainControllerConstants.controlConstants.CruiseVelocity,
@@ -84,7 +86,6 @@ public class NinjasSimulatedController extends NinjasController {
     public void setPercent(double percent) {
         super.setPercent(percent);
 
-        _main.setInputVoltage(12 * percent);
         _output = percent;
     }
 
@@ -93,6 +94,7 @@ public class NinjasSimulatedController extends NinjasController {
         super.setPosition(position);
 
         _PIDFController.setGoal(position);
+        _PIDController.setSetpoint(position);
     }
 
     @Override
@@ -100,16 +102,17 @@ public class NinjasSimulatedController extends NinjasController {
         super.setVelocity(velocity);
 
         _PIDFController.setGoal(velocity);
+        _PIDController.setSetpoint(velocity);
     }
 
     @Override
     public double getPosition() {
-        return _main.getAngularPositionRotations() * _constants.encoderConversionFactor;
+        return _position * _constants.encoderConversionFactor;
     }
 
     @Override
     public double getVelocity() {
-        return _main.getAngularVelocityRPM() / 60 * _constants.encoderConversionFactor;
+        return _velocity * _constants.encoderConversionFactor;
     }
 
     @Override
@@ -119,7 +122,7 @@ public class NinjasSimulatedController extends NinjasController {
 
     @Override
     public void setEncoder(double position) {
-        _main.setState(position * Math.PI * 2 / _constants.encoderConversionFactor, _main.getAngularVelocityRadPerSec());
+        _position = position;
     }
 
     @Override
@@ -134,8 +137,6 @@ public class NinjasSimulatedController extends NinjasController {
                     _output = _PIDFController.calculate(getPosition());
                 else if(_controlState == ControlState.VELOCITY)
                     _output = _PIDFController.calculate(getVelocity());
-
-                _main.setInputVoltage(12 * _output);
                 break;
 
             case PID:
@@ -145,8 +146,6 @@ public class NinjasSimulatedController extends NinjasController {
                     _output = _PIDController.calculate(getPosition());
                 else if(_controlState == ControlState.VELOCITY)
                     _output = _PIDController.calculate(getVelocity());
-
-                _main.setInputVoltage(12 * _output);
                 break;
 
             case PROFILE:
@@ -155,15 +154,13 @@ public class NinjasSimulatedController extends NinjasController {
                       0.02,
                       new TrapezoidProfile.State(getPosition(), getVelocity()),
                       new TrapezoidProfile.State(getGoal(), 0))
-                      .velocity;
+                      .velocity * _constants.controlConstants.V / 12;
                 else if(_controlState == ControlState.VELOCITY)
                     _output = _profile.calculate(
                       0.02,
                       new TrapezoidProfile.State(getPosition(), getVelocity()),
                       new TrapezoidProfile.State(getPosition(), getGoal()))
-                      .velocity;
-
-                _main.setInputVoltage(_output * _constants.controlConstants.V);
+                      .velocity * _constants.controlConstants.V / 12;
                 break;
         }
 
@@ -171,6 +168,11 @@ public class NinjasSimulatedController extends NinjasController {
             _PIDFController.reset(new TrapezoidProfile.State(getPosition(), getVelocity()));
         isCurrentlyPiding = false;
 
-        _main.update(0.02);
+        _output = MathUtil.clamp(_output, -1, 1);
+        double dt = 0.02;
+        double v0 = _velocity;
+        _velocity = _accelerationLimiter.calculate(_output * _maxVelocity);
+        double a = (_velocity - v0) / dt;
+        _position += v0 * dt + 0.5 * a * dt * dt;
     }
 }

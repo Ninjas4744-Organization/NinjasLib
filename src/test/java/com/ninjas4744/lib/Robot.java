@@ -2,13 +2,11 @@ package com.ninjas4744.lib;// Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
+import com.ninjas4744.NinjasLib.Controllers.NinjasSimulatedController;
+import com.ninjas4744.NinjasLib.Controllers.NinjasSparkMaxController;
 import com.ninjas4744.NinjasLib.DataClasses.*;
 import com.ninjas4744.NinjasLib.RobotStateIO;
 import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
-import com.ninjas4744.NinjasLib.Swerve.Swerve;
-import com.ninjas4744.NinjasLib.Swerve.SwerveController;
-import com.ninjas4744.NinjasLib.Swerve.SwerveIO;
-import com.ninjas4744.NinjasLib.Vision.VisionIO;
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
@@ -17,22 +15,15 @@ import com.pathplanner.lib.controllers.PathFollowingController;
 import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 public class Robot extends TimedRobot {
 //  NinjasController _shooter;
@@ -98,7 +89,7 @@ public class Robot extends TimedRobot {
             kSwerveConstants.moduleConstants = new SwerveModuleConstants[4];
 
             for(int i = 0; i < 4; i++){
-                kSwerveConstants.moduleConstants[i] = new SwerveModuleConstants(i, new MainControllerConstants(), new MainControllerConstants(), kSwerveConstants.maxSpeed, 0);
+                kSwerveConstants.moduleConstants[i] = new SwerveModuleConstants<>(i, new MainControllerConstants(), new MainControllerConstants(), kSwerveConstants.maxSpeed, 0, NinjasSparkMaxController.class);
                 kSwerveConstants.moduleConstants[i].driveMotorConstants.main.inverted = true;
                 kSwerveConstants.moduleConstants[i].driveMotorConstants.currentLimit = 50;
                 kSwerveConstants.moduleConstants[i].driveMotorConstants.encoderConversionFactor = 0.0521545447;
@@ -147,7 +138,7 @@ public class Robot extends TimedRobot {
           );
     }
 
-
+    NinjasSimulatedController shooterAngle;
     public Robot() {
 //    MainControllerConstants c = new MainControllerConstants();
 //    c.main.id = 30;
@@ -157,37 +148,49 @@ public class Robot extends TimedRobot {
         CommandPS5Controller _controller = new CommandPS5Controller(0);
 //    _controller.cross().whileTrue(Commands.startEnd(() -> _shooter.setVelocity(100), () -> _shooter.stop()));
 
-        SwerveIO.setConstants(SwerveConstants.kSwerveConstants);
-        SwerveController.setConstants(SwerveConstants.kSwerveControllerConstants, SwerveIO.getInstance());
-        RobotStateWithSwerve.setInstance(new RobotState(), ((Swerve)SwerveIO.getInstance()).getKinematics(), false, (o) -> 0);
-        RobotStateWithSwerve.getInstance().resetGyro(Rotation2d.k180deg);
+//        SwerveIO.setConstants(SwerveConstants.kSwerveConstants);
+//        SwerveController.setConstants(SwerveConstants.kSwerveControllerConstants, SwerveIO.getInstance());
+//        RobotStateWithSwerve.setInstance(new RobotState(), ((Swerve)SwerveIO.getInstance()).getKinematics(), false, (o) -> 0);
+//        RobotStateWithSwerve.getInstance().resetGyro(Rotation2d.k180deg);
+//
+//        VisionConstants kVisionConstants = new VisionConstants();
+//        kVisionConstants.cameras = Map.of(
+//          "Front", new Transform3d(0.28 - 0.11 - 0.2, 0.105, -0.055, new Rotation3d(0, 30, 0)));
+//
+//        kVisionConstants.maxAmbiguity = 0.2;
+//        kVisionConstants.maxDistance = 4;
+//        kVisionConstants.fieldLayoutGetter = this::getFieldLayout;
+//
+//        VisionIO.setConstants(kVisionConstants);
 
-        VisionConstants kVisionConstants = new VisionConstants();
-        kVisionConstants.cameras = Map.of(
-          "Front", new Transform3d(0.28 - 0.11 - 0.2, 0.105, -0.055, new Rotation3d(0, 30, 0)));
+        SimulatedControllerConstants c = new SimulatedControllerConstants();
+        c.mainControllerConstants.subsystemName = "ShooterAngle";
+        c.mainControllerConstants.controlConstants = ControlConstants.createPID(0.15, 0, 0, 0);
+        c.mainControllerConstants.positionGoalTolerance = 0.5;
+        c.mainControllerConstants.encoderConversionFactor = 1.0 / 300.0 * 360.0;
+        c.mainControllerConstants.encoderHomePosition = 31;
+        c.motorType = SimulatedControllerConstants.MotorType.NEO;
 
-        kVisionConstants.maxAmbiguity = 0.2;
-        kVisionConstants.maxDistance = 4;
-        kVisionConstants.fieldLayoutGetter = this::getFieldLayout;
+        shooterAngle = new NinjasSimulatedController(c);
 
-        VisionIO.setConstants(kVisionConstants);
+        _controller.cross().toggleOnTrue(Commands.startEnd(() -> shooterAngle.setPosition(70), () -> shooterAngle.setPosition(31)));
     }
 
     @Override
     public void robotPeriodic() {
         CommandScheduler.getInstance().run();
 
-
+        shooterAngle.periodic();
 //    _shooter.periodic();
 //    System.out.println(VisionIO.getInstance().getVisionEstimations()[0].closestTagDist);
-        for(VisionOutput o : VisionIO.getInstance().getVisionEstimations()){
-            RobotStateWithSwerve.getInstance().updateRobotPose(o);
-        }
-
-        SwerveController.getInstance().periodic();
-        SwerveIO.getInstance().periodic();
-
-        SmartDashboard.putString("Swerve State", SwerveController.getInstance().getState().toString());
+//        for(VisionOutput o : VisionIO.getInstance().getVisionEstimations()){
+//            RobotStateWithSwerve.getInstance().updateRobotPose(o);
+//        }
+//
+//        SwerveController.getInstance().periodic();
+//        SwerveIO.getInstance().periodic();
+//
+//        SmartDashboard.putString("Swerve State", SwerveController.getInstance().getState().toString());
     }
 
     @Override
@@ -201,14 +204,14 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
-        Commands.run(() -> {
-            Translation2d pid = SwerveController.getInstance().pidTo(new Translation2d(3, 6));
-            SmartDashboard.putNumber("pidx", pid.getX());
-            SmartDashboard.putNumber("pidy", pid.getY());
-            SwerveController.getInstance().setState(SwerveDemand.SwerveState.VELOCITY);
-            SwerveController.getInstance()._demand.fieldRelative = true;
-            SwerveController.getInstance()._demand.velocity = new ChassisSpeeds(pid.getX(), pid.getY(), 0);
-        }).repeatedly().schedule();
+//        Commands.run(() -> {
+//            Translation2d pid = SwerveController.getInstance().pidTo(new Translation2d(3, 6));
+//            SmartDashboard.putNumber("pidx", pid.getX());
+//            SmartDashboard.putNumber("pidy", pid.getY());
+//            SwerveController.getInstance().setState(SwerveDemand.SwerveState.VELOCITY);
+//            SwerveController.getInstance()._demand.fieldRelative = true;
+//            SwerveController.getInstance()._demand.velocity = new ChassisSpeeds(pid.getX(), pid.getY(), 0);
+//        }).repeatedly().schedule();
     }
 
     @Override

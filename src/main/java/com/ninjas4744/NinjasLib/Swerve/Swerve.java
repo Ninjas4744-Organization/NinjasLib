@@ -15,12 +15,7 @@ public class Swerve extends SwerveIO {
     protected Swerve(SwerveConstants constants) {
         super(constants);
 
-        _kinematics = new SwerveDriveKinematics(
-            new Translation2d(constants.wheelBase / 2.0, constants.trackWidth / 2.0),
-            new Translation2d(constants.wheelBase / 2.0, -constants.trackWidth / 2.0),
-            new Translation2d(-constants.wheelBase / 2.0, constants.trackWidth / 2.0),
-            new Translation2d(-constants.wheelBase / 2.0, -constants.trackWidth / 2.0)
-        );
+        _kinematics = constants.kinematics;
 
         _modules = new SwerveModule[] {
             new SwerveModule(constants.moduleConstants[0]),
@@ -28,13 +23,6 @@ public class Swerve extends SwerveIO {
             new SwerveModule(constants.moduleConstants[2]),
             new SwerveModule(constants.moduleConstants[3])
         };
-    }
-
-    /**
-     * @return SwerveDriveKinematics of this swerve
-     */
-    public SwerveDriveKinematics getKinematics(){
-        return _kinematics;
     }
 
     @Override
