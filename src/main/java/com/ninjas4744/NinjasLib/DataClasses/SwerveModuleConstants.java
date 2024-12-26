@@ -1,17 +1,21 @@
 package com.ninjas4744.NinjasLib.DataClasses;
 
-public class SwerveModuleConstants {
+import com.ninjas4744.NinjasLib.Controllers.NinjasController;
+
+public class SwerveModuleConstants<T extends NinjasController> {
     public int moduleNumber;
     public MainControllerConstants driveMotorConstants;
     public MainControllerConstants angleMotorConstants;
     public double maxModuleSpeed;
     public int canCoderID;
+    public Class<T> controllerType;
 
-    public SwerveModuleConstants(int moduleNumber, MainControllerConstants driveMotorConstants, MainControllerConstants angleMotorConstants, double maxModuleSpeed, int canCoderID){
+    public SwerveModuleConstants(int moduleNumber, MainControllerConstants driveMotorConstants, MainControllerConstants angleMotorConstants, double maxModuleSpeed, int canCoderID, Class<T> controllerType) {
         this.moduleNumber = moduleNumber;
         this.driveMotorConstants = driveMotorConstants;
         this.angleMotorConstants = angleMotorConstants;
         this.maxModuleSpeed = maxModuleSpeed;
         this.canCoderID = canCoderID;
+        this.controllerType = controllerType;
     }
 }
