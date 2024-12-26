@@ -1,25 +1,19 @@
 package com.ninjas4744.NinjasLib.Controllers;
 
-import com.ninjas4744.NinjasLib.DataClasses.ControlConstants;
-import com.ninjas4744.NinjasLib.DataClasses.ControlConstants.SmartControlType;
 import com.ninjas4744.NinjasLib.DataClasses.SimulatedControllerConstants;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
 public class NinjasSimulatedController extends NinjasController {
     private double _maxVelocity;
     private double _maxAcceleration;
+    private double _maxDeceleration;
     private double _output = 0;
+    private double _lastOutput = 0;
     private double _velocity = 0;
     private double _position = 0;
-
-    private SlewRateLimiter _accelerationLimiter;
 
     private final TrapezoidProfile _profile;
     private final ProfiledPIDController _PIDFController;
@@ -32,35 +26,40 @@ public class NinjasSimulatedController extends NinjasController {
         switch (constants.motorType) {
             case KRAKEN:
                 _maxVelocity = 100;
-                _maxAcceleration = 100;
+                _maxAcceleration = 140;
+                _maxDeceleration = 750;
                 break;
             case FALCON:
                 _maxVelocity = 100;
-                _maxAcceleration = 50;
+                _maxAcceleration = 110;
+                _maxDeceleration = 500;
                 break;
             case NEO:
                 _maxVelocity = 94;
-                _maxAcceleration = 50;
+                _maxAcceleration = 80;
+                _maxDeceleration = 400;
                 break;
             case NEO550:
                 _maxVelocity = 183;
-                _maxAcceleration = 6;
+                _maxAcceleration = 12;
+                _maxDeceleration = 65;
                 break;
             case CIM:
                 _maxVelocity = 44;
-                _maxAcceleration = 12.5;
+                _maxAcceleration = 25;
+                _maxDeceleration = 125;
                 break;
             case KRAKEN_PRO:
                 _maxVelocity = 97;
-                _maxAcceleration = 125;
+                _maxAcceleration = 280;
+                _maxDeceleration = 1500;
                 break;
             case FALCON_PRO:
                 _maxVelocity = 97;
-                _maxAcceleration = 63;
+                _maxAcceleration = 200;
+                _maxDeceleration = 1000;
                 break;
         }
-
-        _accelerationLimiter = new SlewRateLimiter(_maxAcceleration);
 
         _profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(
           constants.mainControllerConstants.controlConstants.CruiseVelocity,
@@ -168,11 +167,28 @@ public class NinjasSimulatedController extends NinjasController {
             _PIDFController.reset(new TrapezoidProfile.State(getPosition(), getVelocity()));
         isCurrentlyPiding = false;
 
+        calculateKinematics();
+    }
+
+    private void calculateKinematics() {
         _output = MathUtil.clamp(_output, -1, 1);
         double dt = 0.02;
         double v0 = _velocity;
-        _velocity = _accelerationLimiter.calculate(_output * _maxVelocity);
+
+        double dynamicAccelerationLimiter;
+        if(Math.signum(_velocity) == Math.signum(_output - _lastOutput) || Math.signum(_output - _lastOutput) == 0)
+            dynamicAccelerationLimiter = _maxAcceleration * (1 - Math.pow(Math.abs(_velocity) / _maxVelocity, 2));
+        else
+            dynamicAccelerationLimiter = _maxDeceleration;
+
+        _velocity +=
+            MathUtil.clamp(
+                _output * _maxVelocity - _velocity,
+                -dynamicAccelerationLimiter * dt,
+                dynamicAccelerationLimiter * dt);
+
         double a = (_velocity - v0) / dt;
         _position += v0 * dt + 0.5 * a * dt * dt;
+        _lastOutput = _output;
     }
 }

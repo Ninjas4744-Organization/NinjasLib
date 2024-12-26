@@ -169,11 +169,12 @@ public class Robot extends TimedRobot {
         c.mainControllerConstants.positionGoalTolerance = 0.5;
         c.mainControllerConstants.encoderConversionFactor = 1.0 / 300.0 * 360.0;
         c.mainControllerConstants.encoderHomePosition = 31;
-        c.motorType = SimulatedControllerConstants.MotorType.NEO;
+        c.motorType = SimulatedControllerConstants.MotorType.KRAKEN_PRO;
 
         shooterAngle = new NinjasSimulatedController(c);
 
         _controller.cross().toggleOnTrue(Commands.startEnd(() -> shooterAngle.setPosition(70), () -> shooterAngle.setPosition(31)));
+        _controller.square().toggleOnTrue(Commands.startEnd(() -> shooterAngle.setPercent(1), () -> shooterAngle.setPercent(0)));
     }
 
     @Override
