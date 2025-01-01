@@ -15,7 +15,6 @@ import com.pathplanner.lib.controllers.PathFollowingController;
 import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -157,10 +156,9 @@ public class Robot extends TimedRobot {
 //
 //    _controller.cross().whileTrue(Commands.startEnd(() -> _shooter.setVelocity(100), () -> _shooter.stop()));
 
+        RobotStateWithSwerve.setInstance(new RobotState(), SwerveConstants.kSwerveConstants.kinematics, false, (o) -> 0, 1);
         SwerveIO.setConstants(SwerveConstants.kSwerveConstants);
 //        SwerveController.setConstants(SwerveConstants.kSwerveControllerConstants, SwerveIO.getInstance());
-        RobotStateWithSwerve.setInstance(new RobotState(), SwerveConstants.kSwerveConstants.kinematics, false, (o) -> 0);
-        RobotStateWithSwerve.getInstance().resetGyro(Rotation2d.k180deg);
 //
 //        VisionConstants kVisionConstants = new VisionConstants();
 //        kVisionConstants.cameras = Map.of(
@@ -235,7 +233,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopPeriodic() {
-        SwerveIO.getInstance().drive(new ChassisSpeeds(-_controller.getLeftY(), -_controller.getLeftX(), -_controller.getRightX()), false);
+        SwerveIO.getInstance().drive(new ChassisSpeeds(-_controller.getLeftY() * 5, -_controller.getLeftX() * 5, -_controller.getRightX() * 11), true);
     }
 
     @Override
