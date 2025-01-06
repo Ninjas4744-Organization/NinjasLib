@@ -1,35 +1,35 @@
-package com.ninjas4744.NinjasLib.DataClasses;
+package com.ninjas4744.NinjasLib.DataClasses;
 
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 
 public class SwerveConstants {
     /** Whether to drive without module velocity PID control */
-    public boolean openLoop;
+    public boolean openLoop;
 
     /** Distance between modules in forward axis */
-    public double trackWidth;
+    public double trackWidth;
 
     /** Distance between modules in side axis */
-    public double wheelBase;
+    public double wheelBase;
 
     /** Max speed the swerve could possibly drive */
-    public double maxSpeed;
+    public double maxSpeed;
 
     /** Max speed the swerve could possibly rotate */
-    public double maxAngularVelocity;
+    public double maxAngularVelocity;
 
     /** Whether to invert the CanCoders, NOT WORKING YET */
-    public boolean canCoderInvert;
+    public boolean canCoderInvert;
 
     /** Module Specific Constants */
-    public SwerveModuleConstants[] moduleConstants;
+    public SwerveModuleConstants[] moduleConstants;
 
     /** Swerve kinematics class used for calculating swerve movement */
-    public SwerveDriveKinematics kinematics;
+    public SwerveDriveKinematics kinematics;
 
     /** Simulation robot acceleration */
-    public double simulationAcceleration;
+    public double simulationAcceleration;
 
     /** Simulation robot angle acceleration */
-    public double simulationAngleAcceleration;
+    public double simulationAngleAcceleration;
 }
