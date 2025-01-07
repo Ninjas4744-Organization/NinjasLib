@@ -16,12 +16,12 @@ import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 
 import java.io.IOException;
@@ -147,6 +147,7 @@ public class Robot extends TimedRobot {
      }
 
     NinjasSimulatedController shooterAngle;
+    NinjasSimulatedController shooter;
     CommandPS5Controller _controller = new CommandPS5Controller(0);
     public Robot() {
 //    MainControllerConstants c = new MainControllerConstants();
@@ -182,6 +183,16 @@ public class Robot extends TimedRobot {
 //
 //        _controller.cross().toggleOnTrue(Commands.startEnd(() -> shooterAngle.setPosition(70), () -> shooterAngle.setPosition(31)));
 //        _controller.square().toggleOnTrue(Commands.startEnd(() -> shooterAngle.setPercent(1), () -> shooterAngle.setPercent(0)));
+
+        SimulatedControllerConstants c = new SimulatedControllerConstants();
+        c.mainControllerConstants.subsystemName = "Shooter";
+        c.mainControllerConstants.controlConstants = ControlConstants.createTorqueCurrent(3, 0.185);
+        c.mainControllerConstants.velocityGoalTolerance = 600;
+        c.mainControllerConstants.encoderConversionFactor = 60;
+        c.motorType = SimulatedControllerConstants.MotorType.FALCON_PRO;
+        shooter = new NinjasSimulatedController(c);
+
+        _controller.cross().toggleOnTrue(Commands.startEnd(() -> shooter.setVelocity(6000), () -> shooter.setVelocity(0)));
     }
 
     @Override
@@ -196,7 +207,7 @@ public class Robot extends TimedRobot {
 //        }
 //
 //        SwerveController.getInstance().periodic();
-        SwerveIO.getInstance().periodic();
+//        SwerveIO.getInstance().periodic();
 //
 //        SmartDashboard.putString("Swerve State", SwerveController.getInstance().getState().toString());
     }
@@ -233,7 +244,8 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopPeriodic() {
-        SwerveIO.getInstance().drive(new ChassisSpeeds(-_controller.getLeftY() * 5, -_controller.getLeftX() * 5, -_controller.getRightX() * 11), true);
+//        SwerveIO.getInstance().drive(new ChassisSpeeds(-_controller.getLeftY() * 5, -_controller.getLeftX() * 5, -_controller.getRightX() * 11), true);
+        shooter.periodic();
     }
 
     @Override

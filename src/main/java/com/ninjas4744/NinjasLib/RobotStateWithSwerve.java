@@ -64,7 +64,6 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<State
             poseEstimator = new SwerveDrivePoseEstimator(_kinematics, getGyroYaw(),
                 ((Swerve)SwerveIO.getInstance()).getModulePositions(), new Pose2d());
         }else{
-            System.out.println("Pose Estimator");
             poseEstimator = new SwerveDrivePoseEstimator(_kinematics, new Rotation2d(),
                 new SwerveModulePosition[]{
                     new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),

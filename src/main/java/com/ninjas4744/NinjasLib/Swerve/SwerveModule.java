@@ -42,7 +42,6 @@ public class SwerveModule {
             throw new IllegalArgumentException("Invalid controller class: " + constants.controllerType.getSimpleName());
         }
 
-        resetToAbsolute();
         lastAngle = Rotation2d.fromDegrees(angleMotor.getPosition());
 
         Shuffleboard.getTab("Swerve Mod " + moduleNumber).addNumber("Speed", () -> getState().speedMetersPerSecond);

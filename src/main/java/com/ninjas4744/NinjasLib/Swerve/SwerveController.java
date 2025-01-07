@@ -260,8 +260,6 @@ public class SwerveController {
         _state = state;
 
         if (_state != SwerveDemand.SwerveState.DRIVE_ASSIST) stopDriveAssist();
-
-        SmartDashboard.putString("Swerve State", _state.toString());
     }
 
     /**
@@ -313,5 +311,7 @@ public class SwerveController {
                 _swerve.drive(lockAxis(_demand.angle, _demand.phase, driverInput, _demand.isXDriverInput), true);
                 break;
         }
+
+        _swerve.periodic();
     }
 }

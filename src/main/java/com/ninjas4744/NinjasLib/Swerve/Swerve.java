@@ -2,15 +2,16 @@ package com.ninjas4744.NinjasLib.Swerve;
 
 import com.ninjas4744.NinjasLib.DataClasses.SwerveConstants;
 import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 
 public class Swerve extends SwerveIO {
     private final SwerveModule[] _modules;
     private final SwerveDriveKinematics _kinematics;
+    private ChassisSpeeds robotRelativeSpeeds = new ChassisSpeeds();
 
     protected Swerve(SwerveConstants constants) {
         super(constants);
@@ -23,12 +24,24 @@ public class Swerve extends SwerveIO {
             new SwerveModule(constants.moduleConstants[2]),
             new SwerveModule(constants.moduleConstants[3])
         };
+
+        resetModulesToAbsolute();
+
+        Shuffleboard.getTab("Swerve").addNumber("Wanted Vx", () -> robotRelativeSpeeds.vxMetersPerSecond);
+        Shuffleboard.getTab("Swerve").addNumber("Wanted Vy", () -> robotRelativeSpeeds.vyMetersPerSecond);
+        Shuffleboard.getTab("Swerve").addNumber("Wanted V0", () -> robotRelativeSpeeds.omegaRadiansPerSecond);
+
+        Shuffleboard.getTab("Swerve").addNumber("Current Vx", () -> getChassisSpeeds(false).vxMetersPerSecond);
+        Shuffleboard.getTab("Swerve").addNumber("Current Vy", () -> getChassisSpeeds(false).vyMetersPerSecond);
+        Shuffleboard.getTab("Swerve").addNumber("Current V0", () -> getChassisSpeeds(false).omegaRadiansPerSecond);
     }
 
     @Override
     public void drive(ChassisSpeeds drive, boolean fieldRelative) {
         ChassisSpeeds robotRelativeSpeeds = new ChassisSpeeds(drive.vxMetersPerSecond, drive.vyMetersPerSecond, drive.omegaRadiansPerSecond);
         robotRelativeSpeeds.toRobotRelativeSpeeds(RobotStateWithSwerve.getInstance().getGyroYaw());
+
+        this.robotRelativeSpeeds = fieldRelative ? robotRelativeSpeeds : drive;
 
         setModuleStates(_kinematics.toSwerveModuleStates(fieldRelative ? robotRelativeSpeeds : drive), _constants.openLoop);
     }

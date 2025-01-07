@@ -5,11 +5,11 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class NinjasSimulatedController extends NinjasController {
     private double _maxVelocity;
     private double _maxAcceleration;
-    private double _maxDeceleration;
     private double _output = 0;
     private double _lastOutput = 0;
     private double _velocity = 0;
@@ -18,46 +18,31 @@ public class NinjasSimulatedController extends NinjasController {
     private final TrapezoidProfile _profile;
     private final ProfiledPIDController _PIDFController;
     private final PIDController _PIDController;
-    private boolean isCurrentlyPiding = false;
+    private boolean isCurrentlyPidfing = false;
 
     public NinjasSimulatedController(SimulatedControllerConstants constants) {
         super(constants.mainControllerConstants);
 
         switch (constants.motorType) {
-            case KRAKEN:
+            case KRAKEN, FALCON:
                 _maxVelocity = 100;
-                _maxAcceleration = 140;
-                _maxDeceleration = 750;
-                break;
-            case FALCON:
-                _maxVelocity = 100;
-                _maxAcceleration = 110;
-                _maxDeceleration = 500;
+                _maxAcceleration = 120;
                 break;
             case NEO:
                 _maxVelocity = 94;
                 _maxAcceleration = 80;
-                _maxDeceleration = 400;
                 break;
             case NEO550:
                 _maxVelocity = 183;
-                _maxAcceleration = 12;
-                _maxDeceleration = 65;
+                _maxAcceleration = 1183;
                 break;
             case CIM:
                 _maxVelocity = 44;
-                _maxAcceleration = 25;
-                _maxDeceleration = 125;
+                _maxAcceleration = 88;
                 break;
-            case KRAKEN_PRO:
+            case KRAKEN_PRO, FALCON_PRO:
                 _maxVelocity = 97;
-                _maxAcceleration = 280;
-                _maxDeceleration = 1500;
-                break;
-            case FALCON_PRO:
-                _maxVelocity = 97;
-                _maxAcceleration = 200;
-                _maxDeceleration = 1000;
+                _maxAcceleration = 240;
                 break;
         }
 
@@ -130,7 +115,7 @@ public class NinjasSimulatedController extends NinjasController {
 
         switch (_constants.controlConstants.type) {
             case PROFILED_PID:
-                isCurrentlyPiding = true;
+                isCurrentlyPidfing = true;
 
                 if(_controlState == ControlState.POSITION)
                     _output = _PIDFController.calculate(getPosition());
@@ -138,9 +123,7 @@ public class NinjasSimulatedController extends NinjasController {
                     _output = _PIDFController.calculate(getVelocity());
                 break;
 
-            case PID:
-                isCurrentlyPiding = true;
-
+            case PID, TORQUE_CURRENT:
                 if(_controlState == ControlState.POSITION)
                     _output = _PIDController.calculate(getPosition());
                 else if(_controlState == ControlState.VELOCITY)
@@ -163,9 +146,9 @@ public class NinjasSimulatedController extends NinjasController {
                 break;
         }
 
-        if (!isCurrentlyPiding && _controlState != ControlState.PERCENT_OUTPUT)
+        if (!isCurrentlyPidfing && _controlState != ControlState.PERCENT_OUTPUT)
             _PIDFController.reset(new TrapezoidProfile.State(getPosition(), getVelocity()));
-        isCurrentlyPiding = false;
+        isCurrentlyPidfing = false;
 
         calculateKinematics();
     }
@@ -175,11 +158,13 @@ public class NinjasSimulatedController extends NinjasController {
         double dt = 0.02;
         double v0 = _velocity;
 
+        double accelerationDir = Math.signum(_output - _lastOutput);
+        double velocityDir = Math.signum(v0);
         double dynamicAccelerationLimiter;
-        if(Math.signum(_velocity) == Math.signum(_output - _lastOutput) || Math.signum(_output - _lastOutput) == 0)
-            dynamicAccelerationLimiter = _maxAcceleration * (1 - Math.pow(Math.abs(_velocity) / _maxVelocity, 2));
+        if(velocityDir == accelerationDir || accelerationDir == 0 || velocityDir == 0)
+            dynamicAccelerationLimiter = _maxAcceleration * (1 - Math.pow(Math.abs(v0) / _maxVelocity, 2));
         else
-            dynamicAccelerationLimiter = _maxDeceleration;
+            dynamicAccelerationLimiter = _maxAcceleration * 5;
 
         _velocity +=
             MathUtil.clamp(
