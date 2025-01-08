@@ -37,6 +37,9 @@ public class VisionSimulated extends VisionIO {
 			_cameraProperties[i].setLatencyStdDevMs(constants.simulationConstants.latencyStdDev);
 
 			_simulatedCameras[i] = new PhotonCameraSim(_cameras[i].getCamera(), _cameraProperties[i]);
+			_simulatedCameras[i].enableRawStream(true);
+			_simulatedCameras[i].enableProcessedStream(true);
+			_simulatedCameras[i].enableDrawWireframe(true);
 
 			_visionSystemSim.addCamera(_simulatedCameras[i], constants.cameras.get(_cameras[i].getName()));
 		}
