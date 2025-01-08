@@ -136,7 +136,7 @@ public class Robot extends TimedRobot {
              kSwerveControllerConstants.driveAssistThreshold = 2;
              kSwerveControllerConstants.driverFieldRelative = true;
              kSwerveControllerConstants.pathConstraints = new PathConstraints(5, 10, 8, 16);
-             kSwerveControllerConstants.robotConfig = new RobotConfig(42, 6.883, new ModuleConfig(0.048, kSwerveConstants.maxSpeed, 1.2, DCMotor.getNEO(1), 50, 4), 0.62, 0.62);
+            //  kSwerveControllerConstants.robotConfig = new RobotConfig(42, 6.883, new ModuleConfig(0.048, kSwerveConstants.maxSpeed, 1.2, DCMotor.getNEO(1), 50, 4), 0.62, 0.62);
          }
 
          public static final PathFollowingController kPathFollowingController =

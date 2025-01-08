@@ -13,7 +13,6 @@ public class VisionConstants {
     public double maxDistance;
     public FieldLayoutGetter fieldLayoutGetter;
     public SimulationConstants simulationConstants;
-    public NoteDetectionConstants noteDetectionConstants;
 
     public static class SimulationConstants {
         public int resolutionWidth;
@@ -24,15 +23,6 @@ public class VisionConstants {
         public int FPS;
         public int averageLatency;
         public int latencyStdDev;
-        public Supplier<Pose2d> robotPoseSupplier;
-    }
-
-    public static class NoteDetectionConstants {
-        public String limelightName;
-        public double limelightMountAngleX;
-        public double limelightMountAngleY;
-        public double limelightHeight;
-        public double noteHeight;
         public Supplier<Pose2d> robotPoseSupplier;
     }
 }
