@@ -29,7 +29,7 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
     }
 
     public void setTriggerForSimulationTesting(Trigger trigger) {
-        if (RobotStateIO.getInstance().isSimulated())
+        if (RobotStateIO.isSimulated())
             trigger.onTrue(Commands.runOnce(
                 () -> {
                     if(_endConditionMap.get(RobotStateIO.getInstance().getRobotState()) != null)
@@ -66,8 +66,7 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
         if(_endConditionMap.get(RobotStateIO.getInstance().getRobotState()) == null)
             return;
 
-        if (_endConditionMap.get(RobotStateIO.getInstance().getRobotState()).condition.getAsBoolean() &&
-            !RobotStateIO.getInstance().isSimulated())
+        if (_endConditionMap.get(RobotStateIO.getInstance().getRobotState()).condition.getAsBoolean())
             changeRobotState(_endConditionMap.get(RobotStateIO.getInstance().getRobotState()).nextState);
     }
 }

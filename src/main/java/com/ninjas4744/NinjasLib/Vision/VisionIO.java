@@ -21,7 +21,7 @@ public abstract class VisionIO extends SubsystemBase {
 
 	public static void setConstants(VisionConstants constants) {
 		if (_instance == null) {
-			if (RobotStateIO.getInstance().isSimulated()) _instance = new VisionSimulated(constants);
+			if (RobotStateIO.isSimulated()) _instance = new VisionSimulated(constants);
 			else _instance = new Vision(constants);
 		}
 	}

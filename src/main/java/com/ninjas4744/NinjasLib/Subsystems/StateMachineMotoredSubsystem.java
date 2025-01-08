@@ -11,12 +11,12 @@ public abstract class StateMachineMotoredSubsystem<StateEnum> extends StateMachi
 	protected NinjasSimulatedController _simulatedController;
 
 	public StateMachineMotoredSubsystem() {
-		if (RobotStateIO.getInstance().isSimulated()) setSimulationController();
+		if (RobotStateIO.isSimulated()) setSimulationController();
 		else setController();
 	}
 
 	protected NinjasController controller() {
-		if (RobotStateIO.getInstance().isSimulated()) return _simulatedController;
+		if (RobotStateIO.isSimulated()) return _simulatedController;
 		else return _controller;
 	}
 
