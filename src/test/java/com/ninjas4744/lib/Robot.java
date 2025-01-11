@@ -6,6 +6,7 @@ import com.ninjas4744.NinjasLib.Controllers.NinjasSparkMaxController;
 import com.ninjas4744.NinjasLib.DataClasses.*;
 import com.ninjas4744.NinjasLib.RobotStateIO;
 import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
+import com.ninjas4744.NinjasLib.Swerve.SwerveController;
 import com.ninjas4744.NinjasLib.Swerve.SwerveIO;
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.PIDConstants;
@@ -21,7 +22,6 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 
 import java.io.IOException;
@@ -136,7 +136,7 @@ public class Robot extends TimedRobot {
              kSwerveControllerConstants.driveAssistThreshold = 2;
              kSwerveControllerConstants.driverFieldRelative = true;
              kSwerveControllerConstants.pathConstraints = new PathConstraints(5, 10, 8, 16);
-            //  kSwerveControllerConstants.robotConfig = new RobotConfig(42, 6.883, new ModuleConfig(0.048, kSwerveConstants.maxSpeed, 1.2, DCMotor.getNEO(1), 50, 4), 0.62, 0.62);
+             kSwerveControllerConstants.robotConfig = new RobotConfig(50, 20, new ModuleConfig(0.04, 5, 1, DCMotor.getKrakenX60(1), 60, 4), 0.7);
          }
 
          public static final PathFollowingController kPathFollowingController =
@@ -159,7 +159,7 @@ public class Robot extends TimedRobot {
 
         RobotStateWithSwerve.setInstance(new RobotState(), SwerveConstants.kSwerveConstants.kinematics, false, (o) -> 0, 1);
         SwerveIO.setConstants(SwerveConstants.kSwerveConstants);
-//        SwerveController.setConstants(SwerveConstants.kSwerveControllerConstants, SwerveIO.getInstance());
+        SwerveController.setConstants(SwerveConstants.kSwerveControllerConstants, SwerveIO.getInstance());
 //
 //        VisionConstants kVisionConstants = new VisionConstants();
 //        kVisionConstants.cameras = Map.of(
@@ -184,15 +184,23 @@ public class Robot extends TimedRobot {
 //        _controller.cross().toggleOnTrue(Commands.startEnd(() -> shooterAngle.setPosition(70), () -> shooterAngle.setPosition(31)));
 //        _controller.square().toggleOnTrue(Commands.startEnd(() -> shooterAngle.setPercent(1), () -> shooterAngle.setPercent(0)));
 
-        SimulatedControllerConstants c = new SimulatedControllerConstants();
-        c.mainControllerConstants.subsystemName = "Shooter";
-        c.mainControllerConstants.controlConstants = ControlConstants.createTorqueCurrent(3, 0.185);
-        c.mainControllerConstants.velocityGoalTolerance = 600;
-        c.mainControllerConstants.encoderConversionFactor = 60;
-        c.motorType = SimulatedControllerConstants.MotorType.FALCON_PRO;
-        shooter = new NinjasSimulatedController(c);
+//        SimulatedControllerConstants c = new SimulatedControllerConstants();
+//        c.mainControllerConstants.subsystemName = "Shooter";
+//        c.mainControllerConstants.controlConstants = ControlConstants.createTorqueCurrent(3, 0.185);
+//        c.mainControllerConstants.velocityGoalTolerance = 600;
+//        c.mainControllerConstants.encoderConversionFactor = 60;
+//        c.motorType = SimulatedControllerConstants.MotorType.FALCON_PRO;
+//        shooter = new NinjasSimulatedController(c);
+//
+//        _controller.cross().toggleOnTrue(Commands.startEnd(() -> shooter.setVelocity(6000), () -> shooter.setVelocity(0)));
 
-        _controller.cross().toggleOnTrue(Commands.startEnd(() -> shooter.setVelocity(6000), () -> shooter.setVelocity(0)));
+//        SwerveController.getInstance().setState(SwerveDemand.SwerveState.DRIVE_ASSIST);
+//        SwerveController.getInstance().Demand.targetPose = new Pose2d(3, 8, Rotation2d.fromDegrees(90));
+//        NetworkTableInstance.getDefault().getDoubleArrayTopic("Target").getEntry(new double[]{ 3, 8, Units.degreesToRadians(90) }).set(new double[]{ 3, 8, Units.degreesToRadians(90) });
+//        _controller.square().onTrue(Commands.runOnce(() -> {
+//            SwerveController.getInstance().setState(SwerveDemand.SwerveState.DEFAULT);
+//            SwerveController.getInstance().setState(SwerveDemand.SwerveState.DRIVE_ASSIST);
+//        }));
     }
 
     @Override
@@ -245,7 +253,10 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopPeriodic() {
 //        SwerveIO.getInstance().drive(new ChassisSpeeds(-_controller.getLeftY() * 5, -_controller.getLeftX() * 5, -_controller.getRightX() * 11), true);
-        shooter.periodic();
+//        shooter.periodic();
+
+//        SwerveController.getInstance().Demand.driverInput = new ChassisSpeeds(-_controller.getLeftY(), -_controller.getLeftX(), -_controller.getRightX());
+//        SwerveController.getInstance().periodic();
     }
 
     @Override

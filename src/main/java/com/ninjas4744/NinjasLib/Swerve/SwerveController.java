@@ -28,10 +28,10 @@ public class SwerveController {
     private final SwerveIO _swerve;
 
     private final Timer _driveAssistTimer = new Timer();
-    private boolean driveAssistStarted = false;
+    private Pose2d _driveAssistTargetPose;
     private PathPlannerTrajectory _driveAssistTrajectory;
 
-    public final SwerveDemand _demand;
+    public final SwerveDemand Demand;
     private SwerveDemand.SwerveState _state;
     private SwerveDemand.SwerveState _previousState;
 
@@ -53,7 +53,7 @@ public class SwerveController {
 
         _state = SwerveDemand.SwerveState.DEFAULT;
         _previousState = SwerveDemand.SwerveState.DEFAULT;
-        _demand = new SwerveDemand();
+        Demand = new SwerveDemand();
 
         _anglePID = new PIDController(
             constants.rotationPIDConstants.P,
@@ -75,9 +75,9 @@ public class SwerveController {
         _yPID.setIZone(constants.drivePIDConstants.IZone);
 
         Shuffleboard.getTab("Swerve").addBoolean("Drive Assist Finished", this::isDriveAssistFinished);
-        Shuffleboard.getTab("Swerve").addNumber("Driver Input X", () -> _demand.driverInput.vxMetersPerSecond);
-        Shuffleboard.getTab("Swerve").addNumber("Driver Input Y", () -> _demand.driverInput.vyMetersPerSecond);
-        Shuffleboard.getTab("Swerve").addNumber("Driver Input Omega", () -> _demand.driverInput.omegaRadiansPerSecond);
+        Shuffleboard.getTab("Swerve").addNumber("Driver Input X", () -> Demand.driverInput.vxMetersPerSecond);
+        Shuffleboard.getTab("Swerve").addNumber("Driver Input Y", () -> Demand.driverInput.vyMetersPerSecond);
+        Shuffleboard.getTab("Swerve").addNumber("Driver Input Omega", () -> Demand.driverInput.omegaRadiansPerSecond);
         Shuffleboard.getTab("Swerve").addString("State", () -> _state.toString());
         Shuffleboard.getTab("Swerve").addString("Previous State", () -> _previousState.toString());
     }
@@ -196,9 +196,9 @@ public class SwerveController {
      * @return Calculated chassis speeds, field relative
      */
     public ChassisSpeeds driveAssist(Pose2d targetPose) {
-        if (!driveAssistStarted) {
-            startingDriveAssist(targetPose);
-            driveAssistStarted = true;
+        if (targetPose != _driveAssistTargetPose) {
+            _driveAssistTargetPose = targetPose;
+            startingDriveAssist(_driveAssistTargetPose);
         }
 
         return calculateDriveAssist();
@@ -219,6 +219,7 @@ public class SwerveController {
 
     private void startingDriveAssist(Pose2d targetPose) {
         double speed = new Translation3d(_swerve.getChassisSpeeds(true).vxMetersPerSecond, _swerve.getChassisSpeeds(true).vyMetersPerSecond, _swerve.getChassisSpeeds(true).omegaRadiansPerSecond).getNorm();
+
         PathPlannerPath _path = new PathPlannerPath(
             PathPlannerPath.waypointsFromPoses(RobotStateWithSwerve.getInstance().getRobotPose(), targetPose),
             _constants.pathConstraints,
@@ -232,15 +233,6 @@ public class SwerveController {
             _constants.robotConfig);
 
         _driveAssistTimer.restart();
-    }
-
-    /**
-     * Call this when turning off path follower.
-     * You need to call this when turning off path follower for some logic going on in here. DON'T ASK!
-     */
-    public void stopDriveAssist() {
-        driveAssistStarted = false;
-        _driveAssistTrajectory = null;
     }
 
     /**
@@ -258,7 +250,12 @@ public class SwerveController {
         _previousState = _state;
         _state = state;
 
-        if (_state != SwerveDemand.SwerveState.DRIVE_ASSIST) stopDriveAssist();
+        if(state != SwerveDemand.SwerveState.DRIVE_ASSIST){
+            _driveAssistTargetPose = null;
+            _driveAssistTrajectory = null;
+            _driveAssistTimer.stop();
+            _driveAssistTimer.reset();
+        }
     }
 
     /**
@@ -276,7 +273,7 @@ public class SwerveController {
     }
 
     public void periodic() {
-        ChassisSpeeds driverInput = _swerve.fromPercent(_demand.driverInput);
+        ChassisSpeeds driverInput = _swerve.fromPercent(Demand.driverInput);
 
         switch (_state) {
             case DEFAULT:
@@ -284,8 +281,8 @@ public class SwerveController {
                 break;
 
             case DRIVE_ASSIST:
-                if(!isDriveAssistFinished() && RobotStateWithSwerve.getInstance().getRobotPose().getTranslation().getDistance(_demand.targetPose.getTranslation()) <= _constants.driveAssistThreshold)
-                    _swerve.drive(driveAssist(_demand.targetPose), true);
+                if(!isDriveAssistFinished() && RobotStateWithSwerve.getInstance().getRobotPose().getTranslation().getDistance(Demand.targetPose.getTranslation()) <= _constants.driveAssistThreshold)
+                    _swerve.drive(driveAssist(Demand.targetPose), true);
                 else
                     _swerve.drive(driverInput, _constants.driverFieldRelative);
                 break;
@@ -295,19 +292,19 @@ public class SwerveController {
                     new ChassisSpeeds(
                         driverInput.vxMetersPerSecond,
                         driverInput.vyMetersPerSecond,
-                        lookAtTarget(_demand.targetPose, false, _demand.sheer)), true);
+                        lookAtTarget(Demand.targetPose, false, Demand.sheer)), true);
                 break;
 
             case PATHFINDING:
-                _swerve.drive(pathfindTo(_demand.targetPose, driverInput), true);
+                _swerve.drive(pathfindTo(Demand.targetPose, driverInput), true);
                 break;
 
             case VELOCITY:
-                _swerve.drive(_demand.velocity, _demand.fieldRelative);
+                _swerve.drive(Demand.velocity, Demand.fieldRelative);
                 break;
 
             case LOCKED_AXIS:
-                _swerve.drive(lockAxis(_demand.angle, _demand.phase, driverInput, _demand.isXDriverInput), true);
+                _swerve.drive(lockAxis(Demand.angle, Demand.phase, driverInput, Demand.isXDriverInput), true);
                 break;
         }
 
