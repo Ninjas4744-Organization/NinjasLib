@@ -222,12 +222,12 @@ public class SwerveController {
         PathPlannerPath _path = new PathPlannerPath(
             PathPlannerPath.waypointsFromPoses(RobotStateWithSwerve.getInstance().getRobotPose(), targetPose),
             _constants.pathConstraints,
-            new IdealStartingState(speed, RobotStateWithSwerve.getInstance().getGyroYaw()),
-            new GoalEndState(0, targetPose.getRotation()));
+            null,
+            new GoalEndState(0.01, targetPose.getRotation()));
 
         _driveAssistTrajectory = new PathPlannerTrajectory(
             _path,
-            _swerve.getChassisSpeeds(true),
+            _swerve.getChassisSpeeds(false),
             RobotStateWithSwerve.getInstance().getRobotPose().getRotation(),
             _constants.robotConfig);
 
