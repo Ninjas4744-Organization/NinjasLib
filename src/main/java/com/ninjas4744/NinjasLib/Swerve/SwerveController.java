@@ -281,7 +281,7 @@ public class SwerveController {
                 break;
 
             case DRIVE_ASSIST:
-                if(!isDriveAssistFinished() && RobotStateWithSwerve.getInstance().getRobotPose().getTranslation().getDistance(Demand.targetPose.getTranslation()) <= _constants.driveAssistThreshold)
+                if((!isDriveAssistFinished() || Demand.targetPose != _driveAssistTargetPose) && RobotStateWithSwerve.getInstance().getRobotPose().getTranslation().getDistance(Demand.targetPose.getTranslation()) <= _constants.driveAssistThreshold)
                     _swerve.drive(driveAssist(Demand.targetPose), true);
                 else
                     _swerve.drive(driverInput, _constants.driverFieldRelative);
