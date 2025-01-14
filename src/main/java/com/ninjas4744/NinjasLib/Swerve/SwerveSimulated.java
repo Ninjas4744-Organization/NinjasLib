@@ -23,31 +23,25 @@ public class SwerveSimulated extends SwerveIO {
 
     @Override
     public void drive(ChassisSpeeds drive, boolean fieldRelative) {
-        _currentChassisSpeeds = drive;
-        if(!fieldRelative)
-            _currentChassisSpeeds.toFieldRelativeSpeeds(RobotStateWithSwerve.getInstance().getGyroYaw());
+        _currentChassisSpeeds = new ChassisSpeeds(
+            _xAcceleration.calculate(drive.vxMetersPerSecond),
+            _yAcceleration.calculate(drive.vyMetersPerSecond),
+            _0Acceleration.calculate(drive.omegaRadiansPerSecond)
+        );
+        _currentChassisSpeeds = fieldRelative ? _currentChassisSpeeds : ChassisSpeeds.fromRobotRelativeSpeeds(_currentChassisSpeeds, RobotStateWithSwerve.getInstance().getGyroYaw());
 
         RobotStateWithSwerve.getInstance().setRobotPose(new Pose2d(
             RobotStateWithSwerve.getInstance().getRobotPose().getX()
-                + _xAcceleration.calculate(_currentChassisSpeeds.vxMetersPerSecond)
-                * 0.02,
+                + _currentChassisSpeeds.vxMetersPerSecond * 0.02,
             RobotStateWithSwerve.getInstance().getRobotPose().getY()
-                + _yAcceleration.calculate(_currentChassisSpeeds.vyMetersPerSecond)
-                * 0.02,
+                + _currentChassisSpeeds.vyMetersPerSecond * 0.02,
             RobotStateWithSwerve.getInstance().getRobotPose()
                 .getRotation()
-                .plus(Rotation2d.fromRadians(_0Acceleration.calculate(_currentChassisSpeeds.omegaRadiansPerSecond)
-                    * 0.02))));
+                .plus(Rotation2d.fromRadians(_currentChassisSpeeds.omegaRadiansPerSecond * 0.02))));
     }
 
     @Override
     public ChassisSpeeds getChassisSpeeds(boolean fieldRelative) {
-        if(fieldRelative)
-            return _currentChassisSpeeds;
-        else{
-            ChassisSpeeds speeds = new ChassisSpeeds(_currentChassisSpeeds.vxMetersPerSecond, _currentChassisSpeeds.vyMetersPerSecond, _currentChassisSpeeds.omegaRadiansPerSecond);
-            speeds.toRobotRelativeSpeeds(RobotStateWithSwerve.getInstance().getGyroYaw());
-            return speeds;
-        }
+        return fieldRelative ? _currentChassisSpeeds : ChassisSpeeds.fromFieldRelativeSpeeds(_currentChassisSpeeds, RobotStateWithSwerve.getInstance().getGyroYaw());
     }
 }

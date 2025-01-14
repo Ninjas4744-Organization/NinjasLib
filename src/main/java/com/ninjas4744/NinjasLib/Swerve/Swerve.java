@@ -38,12 +38,8 @@ public class Swerve extends SwerveIO {
 
     @Override
     public void drive(ChassisSpeeds drive, boolean fieldRelative) {
-        ChassisSpeeds robotRelativeSpeeds = new ChassisSpeeds(drive.vxMetersPerSecond, drive.vyMetersPerSecond, drive.omegaRadiansPerSecond);
-        robotRelativeSpeeds.toRobotRelativeSpeeds(RobotStateWithSwerve.getInstance().getGyroYaw());
-
-        this.robotRelativeSpeeds = fieldRelative ? robotRelativeSpeeds : drive;
-
-        setModuleStates(_kinematics.toSwerveModuleStates(fieldRelative ? robotRelativeSpeeds : drive), _constants.openLoop);
+        this.robotRelativeSpeeds = fieldRelative ? ChassisSpeeds.fromFieldRelativeSpeeds(drive, RobotStateWithSwerve.getInstance().getGyroYaw()) : drive;
+        setModuleStates(_kinematics.toSwerveModuleStates(robotRelativeSpeeds), _constants.openLoop);
     }
 
     /**
@@ -70,10 +66,7 @@ public class Swerve extends SwerveIO {
     @Override
     public ChassisSpeeds getChassisSpeeds(boolean fieldRelative) {
         ChassisSpeeds speeds = _kinematics.toChassisSpeeds(getModuleStates());
-        ChassisSpeeds robotRelativeSpeeds = _kinematics.toChassisSpeeds(getModuleStates());
-        robotRelativeSpeeds.toRobotRelativeSpeeds(RobotStateWithSwerve.getInstance().getGyroYaw());
-
-        return fieldRelative ? robotRelativeSpeeds : speeds;
+        return fieldRelative ? ChassisSpeeds.fromRobotRelativeSpeeds(speeds, RobotStateWithSwerve.getInstance().getGyroYaw()) : speeds;
     }
 
     /**
