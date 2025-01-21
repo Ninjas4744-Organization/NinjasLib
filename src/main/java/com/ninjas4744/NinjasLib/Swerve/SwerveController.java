@@ -116,11 +116,11 @@ public class SwerveController {
         return 0;
     }
 
-    public double lookAtTarget(Pose2d target, boolean invert, Rotation2d sheer) {
+    public double lookAtTarget(Pose2d target, boolean invert, Rotation2d offset) {
         Translation2d lookAtTranslation =
             target.getTranslation().minus(RobotStateWithSwerve.getInstance().getRobotPose().getTranslation());
 
-        lookAtTranslation = lookAtTranslation.rotateBy(sheer);
+        lookAtTranslation = lookAtTranslation.rotateBy(offset);
 
         return lookAt(invert ? lookAtTranslation.rotateBy(Rotation2d.fromDegrees(180)) : lookAtTranslation, 1);
     }
@@ -168,26 +168,32 @@ public class SwerveController {
      * Makes the swerve be locked to an axis with a pid that ensures that. The driver input let the driver move along the axis.
      *
      * @param angle          angle of the axis
-     * @param phase          how much the axis is moved from the origin of the field in meters
+     * @param point           a point on the axis in meters
      * @param driverInput    the driver controller input
      * @param isXDriverInput whether to let the driver drive along the axis by the x of the joystick input or the y
      */
-    private ChassisSpeeds lockAxis(Rotation2d angle, double phase, ChassisSpeeds driverInput, boolean isXDriverInput) {
+    private ChassisSpeeds lockAxis(Rotation2d angle, Pose2d point, ChassisSpeeds driverInput, boolean isXDriverInput, boolean invertDriverInput) {
         Translation2d axis = new Translation2d(-1, angle);
         Translation2d perpendicularAxis = axis.rotateBy(Rotation2d.fromDegrees(90));
         Translation2d robotPose = RobotStateWithSwerve.getInstance().getRobotPose().getTranslation();
 
         double a = -axis.getY();
         double b = axis.getX();
-        double c = -phase * Math.sqrt(a * a + b * b);
+//        double c = -phase * Math.sqrt(a * a + b * b);
+        double c = - a * point.getX() - b * point.getY();
         double error = -(a * robotPose.getX() + b * robotPose.getY() + c) / Math.sqrt(a * a + b * b);
         Translation2d pid = perpendicularAxis.times(_axisPID.calculate(-error));
 
-        Translation2d driver =
-            axis.times(isXDriverInput ? -driverInput.vyMetersPerSecond : -driverInput.vxMetersPerSecond);
+        Translation2d driver = axis.times(
+                isXDriverInput
+                ? (!invertDriverInput ? -driverInput.vyMetersPerSecond : driverInput.vyMetersPerSecond)
+                : (!invertDriverInput ? -driverInput.vxMetersPerSecond : driverInput.vxMetersPerSecond)
+        );
 
         return new ChassisSpeeds(
-            driver.getX() + pid.getX(), driver.getY() + pid.getY(), driverInput.omegaRadiansPerSecond);
+                driver.getX() + pid.getX(),
+                driver.getY() + pid.getY(),
+                driverInput.omegaRadiansPerSecond);
     }
 
     /**
@@ -292,7 +298,7 @@ public class SwerveController {
                     new ChassisSpeeds(
                         driverInput.vxMetersPerSecond,
                         driverInput.vyMetersPerSecond,
-                        lookAtTarget(Demand.targetPose, false, Demand.sheer)), true);
+                        lookAtTarget(Demand.targetPose, false, Demand.angleOffset)), true);
                 break;
 
             case PATHFINDING:
@@ -304,7 +310,7 @@ public class SwerveController {
                 break;
 
             case LOCKED_AXIS:
-                _swerve.drive(lockAxis(Demand.angle, Demand.phase, driverInput, Demand.isXDriverInput), true);
+                _swerve.drive(lockAxis(Demand.angle, Demand.point, driverInput, Demand.isXDriverInput, Demand.invertDriverInput), true);
                 break;
         }
 

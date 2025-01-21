@@ -8,7 +8,7 @@ plugins {
 apply plugin: 'java'
 apply plugin: 'maven-publish'
 group = 'com.github.Ninjas4744-Organization'
-version = '0.29'
+version = '0.30'
 
 def javaVersion = JavaVersion.VERSION_17
 

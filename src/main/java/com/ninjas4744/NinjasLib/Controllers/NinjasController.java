@@ -21,7 +21,7 @@ public abstract class NinjasController {
 	/**
 	 * Creates a new Ninjas controller
 	 *
-	 * @param constants - the constants for the controller
+	 * @param constants the constants for the controller
 	 */
 	public NinjasController(MainControllerConstants constants) {
 		_constants = constants;
@@ -78,7 +78,7 @@ public abstract class NinjasController {
 	/**
 	 * Sets percentage output to the controller
 	 *
-	 * @param percent - how much to power the motor between -1 and 1
+	 * @param percent how much to power the motor between -1 and 1
 	 * @see #setPosition(double)
 	 * @see #setVelocity(double)
 	 * @see #stop()
@@ -91,7 +91,7 @@ public abstract class NinjasController {
 	/**
 	 * Sets position setpoint to the controller
 	 *
-	 * @param position - the wanted position of the controller according to the encoder
+	 * @param position the wanted position of the controller according to the encoder
 	 * @see #setPercent(double)
 	 * @see #setVelocity(double)
 	 * @see #stop()
@@ -104,7 +104,7 @@ public abstract class NinjasController {
 	/**
 	 * Sets velocity setpoint output to the controller
 	 *
-	 * @param velocity - the wanted velocity of the controller according to the encoder
+	 * @param velocity the wanted velocity of the controller according to the encoder
 	 * @see #setPercent(double)
 	 * @see #setPosition(double)
 	 * @see #stop()
@@ -143,7 +143,7 @@ public abstract class NinjasController {
 	/**
 	 * Sets the position in the encoder so it thinks it is at that position
 	 *
-	 * @param position - the position to set the encoder to
+	 * @param position the position to set the encoder to
 	 */
 	public abstract void setEncoder(double position);
 
@@ -165,7 +165,7 @@ public abstract class NinjasController {
 	}
 
 	/**
-	 * @return the goal/setpoint/reference of the controller, the target of PIDF / PID / Motion
+	 * @return goal/setpoint/reference of the controller, the target of PIDF / PID / Motion
 	 *     Magic...
 	 */
 	public double getGoal() {
