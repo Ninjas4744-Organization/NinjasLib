@@ -38,11 +38,11 @@ public class SwerveModule {
             throw new IllegalArgumentException("Invalid drive controller type: " + constants.driveControllerType.getSimpleName());
 
         if (constants.angleControllerType.equals(NinjasSparkMaxController.class))
-            angleMotor = new NinjasSparkMaxController(constants.driveMotorConstants);
+            angleMotor = new NinjasSparkMaxController(constants.angleMotorConstants);
         else if (constants.angleControllerType.equals(NinjasTalonFXController.class))
-            angleMotor = new NinjasTalonFXController(constants.driveMotorConstants);
+            angleMotor = new NinjasTalonFXController(constants.angleMotorConstants);
         else if (constants.angleControllerType.equals(NinjasTalonSRXController.class))
-            angleMotor = new NinjasTalonSRXController(constants.driveMotorConstants);
+            angleMotor = new NinjasTalonSRXController(constants.angleMotorConstants);
         /* else if (controllerClass.equals(NinjasSimulatedController.class))
             angleMotor = new NinjasSimulatedController(constants.angleMotorConstants);*/
         else
