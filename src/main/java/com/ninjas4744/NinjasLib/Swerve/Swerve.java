@@ -27,6 +27,9 @@ public class Swerve extends SwerveIO {
 
         resetModulesToAbsolute();
 
+        if(!constants.createShuffleBoard)
+            return;
+
         Shuffleboard.getTab("Swerve").addNumber("Wanted Vx", () -> robotRelativeSpeeds.vxMetersPerSecond);
         Shuffleboard.getTab("Swerve").addNumber("Wanted Vy", () -> robotRelativeSpeeds.vyMetersPerSecond);
         Shuffleboard.getTab("Swerve").addNumber("Wanted V0", () -> robotRelativeSpeeds.omegaRadiansPerSecond);

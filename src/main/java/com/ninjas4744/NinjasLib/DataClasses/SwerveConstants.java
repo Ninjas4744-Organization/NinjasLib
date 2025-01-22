@@ -32,4 +32,7 @@ public class SwerveConstants {
 
     /** Simulation robot angle acceleration */
     public double simulationAngleAcceleration;
+
+    /** Whether to create shuffleboard tabs for the swerve*/
+    public boolean createShuffleBoard;
 }

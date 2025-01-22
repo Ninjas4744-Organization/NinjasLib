@@ -26,23 +26,32 @@ public class SwerveModule {
         canCoder = new CANcoder(constants.canCoderID);
 //		canCoder.getConfigurator().apply(new CANcoderConfiguration().MagnetSensor.withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)); TODO: Fix
 
-        if (constants.controllerType.equals(NinjasSparkMaxController.class)) {
-            angleMotor = new NinjasSparkMaxController(constants.angleMotorConstants);
+        if (constants.driveControllerType.equals(NinjasSparkMaxController.class))
             driveMotor = new NinjasSparkMaxController(constants.driveMotorConstants);
-        } else if (constants.controllerType.equals(NinjasTalonFXController.class)){
-            angleMotor = new NinjasTalonFXController(constants.angleMotorConstants);
+        else if (constants.driveControllerType.equals(NinjasTalonFXController.class))
             driveMotor = new NinjasTalonFXController(constants.driveMotorConstants);
-        } else if (constants.controllerType.equals(NinjasTalonSRXController.class)){
-            angleMotor = new NinjasTalonSRXController(constants.angleMotorConstants);
+        else if (constants.driveControllerType.equals(NinjasTalonSRXController.class))
             driveMotor = new NinjasTalonSRXController(constants.driveMotorConstants);
-        /*} else if (controllerClass.equals(NinjasSimulatedController.class)){
-            angleMotor = new NinjasSimulatedController(constants.angleMotorConstants);
+        /* else if (controllerClass.equals(NinjasSimulatedController.class))
             driveMotor = new NinjasSimulatedController(constants.driveMotorConstants);*/
-        } else {
-            throw new IllegalArgumentException("Invalid controller class: " + constants.controllerType.getSimpleName());
-        }
+        else
+            throw new IllegalArgumentException("Invalid drive controller type: " + constants.driveControllerType.getSimpleName());
+
+        if (constants.angleControllerType.equals(NinjasSparkMaxController.class))
+            angleMotor = new NinjasSparkMaxController(constants.driveMotorConstants);
+        else if (constants.angleControllerType.equals(NinjasTalonFXController.class))
+            angleMotor = new NinjasTalonFXController(constants.driveMotorConstants);
+        else if (constants.angleControllerType.equals(NinjasTalonSRXController.class))
+            angleMotor = new NinjasTalonSRXController(constants.driveMotorConstants);
+        /* else if (controllerClass.equals(NinjasSimulatedController.class))
+            angleMotor = new NinjasSimulatedController(constants.angleMotorConstants);*/
+        else
+            throw new IllegalArgumentException("Invalid angle controller type: " + constants.driveControllerType.getSimpleName());
 
         lastAngle = Rotation2d.fromDegrees(angleMotor.getPosition());
+
+        if(!constants.createShuffleboard)
+            return;
 
         Shuffleboard.getTab("Swerve Mod " + moduleNumber).addNumber("Speed", () -> getState().speedMetersPerSecond);
         Shuffleboard.getTab("Swerve Mod " + moduleNumber).addNumber("Angle", () -> getState().angle.getDegrees());

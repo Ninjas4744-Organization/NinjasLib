@@ -74,6 +74,9 @@ public class SwerveController {
         _yPID = new PIDController(constants.drivePIDConstants.P, constants.drivePIDConstants.I, constants.drivePIDConstants.D);
         _yPID.setIZone(constants.drivePIDConstants.IZone);
 
+        if(!constants.swerveConstants.createShuffleBoard)
+            return;
+
         Shuffleboard.getTab("Swerve").addBoolean("Drive Assist Finished", this::isDriveAssistFinished);
         Shuffleboard.getTab("Swerve").addNumber("Driver Input X", () -> Demand.driverInput.vxMetersPerSecond);
         Shuffleboard.getTab("Swerve").addNumber("Driver Input Y", () -> Demand.driverInput.vyMetersPerSecond);
