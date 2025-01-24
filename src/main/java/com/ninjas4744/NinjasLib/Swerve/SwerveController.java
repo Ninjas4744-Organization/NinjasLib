@@ -6,6 +6,7 @@ import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.IdealStartingState;
 import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.Waypoint;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectoryState;
 import edu.wpi.first.math.controller.PIDController;
@@ -16,6 +17,8 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+
+import java.util.List;
 
 public class SwerveController {
     private final PIDController _anglePID;
@@ -227,10 +230,14 @@ public class SwerveController {
     }
 
     private void startingDriveAssist(Pose2d targetPose) {
-        double speed = new Translation3d(_swerve.getChassisSpeeds(true).vxMetersPerSecond, _swerve.getChassisSpeeds(true).vyMetersPerSecond, _swerve.getChassisSpeeds(true).omegaRadiansPerSecond).getNorm();
+        Rotation2d dir = targetPose.getTranslation().minus(RobotStateWithSwerve.getInstance().getRobotPose().getTranslation()).getAngle();
+        List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(
+            new Pose2d(RobotStateWithSwerve.getInstance().getRobotPose().getX(), RobotStateWithSwerve.getInstance().getRobotPose().getY(), dir),
+            new Pose2d(targetPose.getX(), targetPose.getY(), dir)
+        );
 
         PathPlannerPath _path = new PathPlannerPath(
-            PathPlannerPath.waypointsFromPoses(RobotStateWithSwerve.getInstance().getRobotPose(), targetPose),
+            waypoints,
             _constants.pathConstraints,
             null,
             new GoalEndState(0.01, targetPose.getRotation()));
@@ -248,7 +255,7 @@ public class SwerveController {
      * @return Whether the path following was finished, will return false if not started
      */
     public boolean isDriveAssistFinished() {
-        return _driveAssistTrajectory != null && _driveAssistTimer.get() >= _driveAssistTrajectory.getTotalTimeSeconds();
+        return _driveAssistTrajectory != null && _driveAssistTimer.get() > _driveAssistTrajectory.getTotalTimeSeconds();
     }
 
     /**

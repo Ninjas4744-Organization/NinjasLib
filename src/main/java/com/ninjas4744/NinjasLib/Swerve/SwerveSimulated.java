@@ -35,8 +35,7 @@ public class SwerveSimulated extends SwerveIO {
                 + _currentChassisSpeeds.vxMetersPerSecond * 0.02,
             RobotStateWithSwerve.getInstance().getRobotPose().getY()
                 + _currentChassisSpeeds.vyMetersPerSecond * 0.02,
-            RobotStateWithSwerve.getInstance().getRobotPose()
-                .getRotation()
+            RobotStateWithSwerve.getInstance().getRobotPose().getRotation()
                 .plus(Rotation2d.fromRadians(_currentChassisSpeeds.omegaRadiansPerSecond * 0.02))));
     }
 
