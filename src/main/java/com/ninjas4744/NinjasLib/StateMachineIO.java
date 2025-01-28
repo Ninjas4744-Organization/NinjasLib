@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import com.ninjas4744.NinjasLib.DataClasses.StateEndCondition;
 import com.ninjas4744.NinjasLib.Subsystems.StateMachineSubsystem;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,8 +71,12 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
     protected void addEndCondition(StateEnum state, StateEndCondition<StateEnum> endCondition) {
         if(!_endConditionMap.containsKey(state))
             _endConditionMap.put(state, List.of(endCondition));
-        else
-            _endConditionMap.get(state).add(endCondition);
+        else{
+            List<StateEndCondition<StateEnum>> endConditions = new ArrayList<>(_endConditionMap.get(state));
+            endConditions.add(endCondition);
+            _endConditionMap.put(state, endConditions);
+            // _endConditionMap.get(state).add(endCondition);
+        }
     }
 
     @Override

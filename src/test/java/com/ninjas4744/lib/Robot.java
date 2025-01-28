@@ -3,9 +3,12 @@ package com.ninjas4744.lib;// Open Source Software; you can modify and/or share 
 
 import com.ninjas4744.NinjasLib.Controllers.NinjasSimulatedController;
 import com.ninjas4744.NinjasLib.Controllers.NinjasSparkMaxController;
+import com.ninjas4744.NinjasLib.Controllers.NinjasTalonFXController;
 import com.ninjas4744.NinjasLib.DataClasses.*;
 import com.ninjas4744.NinjasLib.RobotStateIO;
 import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
+import com.ninjas4744.NinjasLib.StateMachineIO;
+import com.ninjas4744.NinjasLib.Subsystems.StateMachineMotoredSubsystem;
 import com.ninjas4744.NinjasLib.Swerve.SwerveController;
 import com.ninjas4744.NinjasLib.Swerve.SwerveIO;
 import com.pathplanner.lib.config.ModuleConfig;
@@ -66,16 +69,7 @@ public class Robot extends TimedRobot {
         hey
     }
 
-    public class RobotState extends RobotStateWithSwerve<st> {
-
-    }
-
      public class SwerveConstants {
-         public static final double kSpeedFactor = 0.5;
-         public static final double kRotationSpeedFactor = 0.25;
-         public static final double kJoystickDeadband = 0.2;
-         public static final boolean kInvertGyro = false;
-
          public static final com.ninjas4744.NinjasLib.DataClasses.SwerveConstants kSwerveConstants = new com.ninjas4744.NinjasLib.DataClasses.SwerveConstants();
          static{
              kSwerveConstants.openLoop = true;
@@ -90,38 +84,28 @@ public class Robot extends TimedRobot {
 
              kSwerveConstants.maxSpeed = 5;
              kSwerveConstants.maxAngularVelocity = 10.7;
+             kSwerveConstants.speedFactor = 0.5;
+             kSwerveConstants.rotationSpeedFactor = 0.5;
+             kSwerveConstants.maxAcceleration = 10;
+             kSwerveConstants.maxRotationAcceleration = 54;
 
              kSwerveConstants.moduleConstants = new SwerveModuleConstants[4];
-
              for(int i = 0; i < 4; i++){
-                 kSwerveConstants.moduleConstants[i] = new SwerveModuleConstants<>(i, new MainControllerConstants(), new MainControllerConstants(), kSwerveConstants.maxSpeed, 0, NinjasSparkMaxController.class, NinjasSparkMaxController.class, false, false);
+                 kSwerveConstants.moduleConstants[i] = new SwerveModuleConstants<>(i, new MainControllerConstants(), new MainControllerConstants(), kSwerveConstants.maxSpeed, 40 + i, NinjasSparkMaxController.class, NinjasSparkMaxController.class, false, false);
+                 kSwerveConstants.moduleConstants[i].driveMotorConstants.main.id = 10 + i * 2;
                  kSwerveConstants.moduleConstants[i].driveMotorConstants.main.inverted = true;
                  kSwerveConstants.moduleConstants[i].driveMotorConstants.currentLimit = 50;
                  kSwerveConstants.moduleConstants[i].driveMotorConstants.encoderConversionFactor = 0.0521545447;
                  kSwerveConstants.moduleConstants[i].driveMotorConstants.subsystemName = "Swerve Module " + i + " Drive Motor";
                  kSwerveConstants.moduleConstants[i].driveMotorConstants.createShuffleboard = false;
+
+                 kSwerveConstants.moduleConstants[i].angleMotorConstants.main.id = 11 + i * 2;
                  kSwerveConstants.moduleConstants[i].angleMotorConstants.currentLimit = 50;
                  kSwerveConstants.moduleConstants[i].angleMotorConstants.encoderConversionFactor = 28.125;
                  kSwerveConstants.moduleConstants[i].angleMotorConstants.subsystemName = "Swerve Module " + i + " Angle Motor";
                  kSwerveConstants.moduleConstants[i].angleMotorConstants.createShuffleboard = false;
                  kSwerveConstants.moduleConstants[i].angleMotorConstants.controlConstants = ControlConstants.createPID(0.01, 0, 0.005, 0);
-                 kSwerveConstants.moduleConstants[i].maxModuleSpeed = kSwerveConstants.maxSpeed;
              }
-             kSwerveConstants.moduleConstants[0].driveMotorConstants.main.id = 10;
-             kSwerveConstants.moduleConstants[0].angleMotorConstants.main.id = 11;
-             kSwerveConstants.moduleConstants[0].canCoderID = 40;
-
-             kSwerveConstants.moduleConstants[1].driveMotorConstants.main.id = 12;
-             kSwerveConstants.moduleConstants[1].angleMotorConstants.main.id = 13;
-             kSwerveConstants.moduleConstants[1].canCoderID = 41;
-
-             kSwerveConstants.moduleConstants[2].driveMotorConstants.main.id = 14;
-             kSwerveConstants.moduleConstants[2].angleMotorConstants.main.id = 15;
-             kSwerveConstants.moduleConstants[2].canCoderID = 42;
-
-             kSwerveConstants.moduleConstants[3].driveMotorConstants.main.id = 16;
-             kSwerveConstants.moduleConstants[3].angleMotorConstants.main.id = 17;
-             kSwerveConstants.moduleConstants[3].canCoderID = 43;
          }
 
          public static final SwerveControllerConstants kSwerveControllerConstants = new SwerveControllerConstants();
@@ -143,6 +127,54 @@ public class Robot extends TimedRobot {
            );
      }
 
+     public class TestSub extends StateMachineMotoredSubsystem<st>{
+         public TestSub(boolean paused) {
+             super(paused);
+         }
+
+//         public TestSub getInstance
+
+         @Override
+         protected void setController() {
+            MainControllerConstants c = new MainControllerConstants();
+            c.subsystemName = "Test";
+            c.controlConstants = ControlConstants.createPID(1, 0, 0, 0);
+            c.positionGoalTolerance = 5;
+            _controller = new NinjasTalonFXController(c);
+         }
+
+         @Override
+         protected void setSimulationController() {
+             SimulatedControllerConstants c = new SimulatedControllerConstants();
+             c.mainControllerConstants.subsystemName = "Test";
+             c.mainControllerConstants.controlConstants = ControlConstants.createPID(1, 0, 0, 0);
+             c.mainControllerConstants.positionGoalTolerance = 5;
+             c.motorType = SimulatedControllerConstants.MotorType.KRAKEN;
+            _simulatedController = new NinjasSimulatedController(c);
+         }
+
+         @Override
+         public void resetSubsystem() {
+            controller().setPosition(0);
+         }
+
+         @Override
+         public boolean isResetted() {
+             return controller().isHomed();
+         }
+
+         @Override
+         protected void setFunctionMaps() {
+
+         }
+     }
+
+     public class RobotState extends RobotStateWithSwerve<st>{
+        public RobotState(){
+            _robotState = st.hey;
+        }
+     }
+
     NinjasSimulatedController shooterAngle;
     NinjasSimulatedController shooter;
     CommandPS5Controller _controller = new CommandPS5Controller(0);
@@ -154,9 +186,28 @@ public class Robot extends TimedRobot {
 //
 //    _controller.cross().whileTrue(Commands.startEnd(() -> _shooter.setVelocity(100), () -> _shooter.stop()));
 
-        RobotStateWithSwerve.setInstance(new RobotState(), SwerveConstants.kSwerveConstants.kinematics, false, (o) -> 0, 1);
-        SwerveIO.setConstants(SwerveConstants.kSwerveConstants);
-        SwerveController.setConstants(SwerveConstants.kSwerveControllerConstants, SwerveIO.getInstance());
+        RobotStateWithSwerve.setInstance(new RobotState(), SwerveConstants.kSwerveConstants.kinematics, false, (o) -> 0);
+//        SwerveIO.setConstants(SwerveConstants.kSwerveConstants);
+//        SwerveController.setConstants(SwerveConstants.kSwerveControllerConstants, SwerveIO.getInstance());
+
+        StateMachineIO.setInstance(new StateMachineIO<st>(false) {
+            @Override
+            protected boolean canChangeRobotState(st currentState, st wantedState) {
+                return true;
+            }
+
+            @Override
+            protected void setEndConditionMap() {
+                addEndCondition(st.hey, new StateEndCondition<>(() -> true, st.hey));
+                addEndCondition(st.hey, new StateEndCondition<>(() -> false, st.hey));
+            }
+
+            @Override
+            protected void setFunctionMaps() {
+
+            }
+        });
+
 //
 //        VisionConstants kVisionConstants = new VisionConstants();
 //        kVisionConstants.cameras = Map.of(
