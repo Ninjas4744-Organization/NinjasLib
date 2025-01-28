@@ -10,14 +10,23 @@ public abstract class StateMachineMotoredSubsystem<StateEnum> extends StateMachi
 	protected NinjasController _controller;
 	protected NinjasSimulatedController _simulatedController;
 
-	public StateMachineMotoredSubsystem() {
-		if (RobotStateIO.isSimulated()) setSimulationController();
-		else setController();
+	public StateMachineMotoredSubsystem(boolean paused) {
+		super(paused);
+
+		if(_paused)
+			return;
+
+		if (RobotStateIO.isSimulated())
+			setSimulationController();
+		else
+			setController();
 	}
 
 	protected NinjasController controller() {
-		if (RobotStateIO.isSimulated()) return _simulatedController;
-		else return _controller;
+		if (RobotStateIO.isSimulated())
+			return _simulatedController;
+		else
+			return _controller;
 	}
 
 	/**
@@ -41,16 +50,12 @@ public abstract class StateMachineMotoredSubsystem<StateEnum> extends StateMachi
 	public abstract boolean isResetted();
 
 	/**
-	 * @return Whether the subsystem is homed/reseted/closed
-	 */
-	public boolean isHomed() {
-		return controller().isHomed();
-	}
-
-	/**
 	 * @return Whether the subsystem is at its PIDF goal
 	 */
 	public boolean atGoal() {
+		if(_paused)
+			return true;
+
 		return controller().atGoal();
 	}
 
@@ -61,14 +66,19 @@ public abstract class StateMachineMotoredSubsystem<StateEnum> extends StateMachi
 	 * @return a command that runs that on start and stops to motor on end
 	 */
 	public Command runMotor(double percent) {
+		if(_paused)
+			return Commands.none();
+
 		return Commands.startEnd(
 				() -> controller().setPercent(percent), () -> controller().stop(), this);
 	}
 
 	@Override
 	public void periodic() {
-		super.periodic();
+		if(_paused)
+			return;
 
+		super.periodic();
 		controller().periodic();
 	}
 }

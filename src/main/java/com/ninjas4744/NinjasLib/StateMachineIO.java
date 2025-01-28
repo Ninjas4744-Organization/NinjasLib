@@ -6,11 +6,12 @@ import com.ninjas4744.NinjasLib.DataClasses.StateEndCondition;
 import com.ninjas4744.NinjasLib.Subsystems.StateMachineSubsystem;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<StateEnum> {
     private static StateMachineIO _instance;
-    private Map<StateEnum, StateEndCondition<StateEnum>> _endConditionMap;
+    private final Map<StateEnum, List<StateEndCondition<StateEnum>>> _endConditionMap;
 
     public static StateMachineIO getInstance() {
         if(_instance == null)
@@ -22,19 +23,24 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
         _instance = instance;
     }
 
-    protected StateMachineIO() {
-        super();
+    protected StateMachineIO(boolean paused) {
+        super(paused);
         _endConditionMap = new HashMap<>();
-        setEndConditionMap();
+
+        if(!paused)
+            setEndConditionMap();
     }
 
     public void setTriggerForSimulationTesting(Trigger trigger) {
-        if (RobotStateIO.isSimulated())
-            trigger.onTrue(Commands.runOnce(
-                () -> {
-                    if(_endConditionMap.get(RobotStateIO.getInstance().getRobotState()) != null)
-                        changeRobotState(_endConditionMap.get(RobotStateIO.getInstance().getRobotState()).nextState);
-                }));
+        trigger.onTrue(Commands.runOnce(
+            () -> {
+                if(!RobotStateIO.isSimulated())
+                    return;
+
+                if(_endConditionMap.get(RobotStateIO.getInstance().getRobotState()) != null)
+                    changeRobotState(_endConditionMap.get(RobotStateIO.getInstance().getRobotState()).get(0).nextState);
+            })
+        );
     }
 
     /**
@@ -48,6 +54,12 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
             RobotStateIO.getInstance().setRobotState(wantedState);
     }
 
+    /**
+     * Whether the robot can change from the current state to the wanted state, is it logical?
+     * @param currentState the current state of the robot
+     * @param wantedState the wanted state
+     * @return true if robot can change
+     */
     protected abstract boolean canChangeRobotState(StateEnum currentState, StateEnum wantedState);
 
     /**
@@ -56,7 +68,10 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
     protected abstract void setEndConditionMap();
 
     protected void addEndCondition(StateEnum state, StateEndCondition<StateEnum> endCondition) {
-        _endConditionMap.put(state, endCondition);
+        if(!_endConditionMap.containsKey(state))
+            _endConditionMap.put(state, List.of(endCondition));
+        else
+            _endConditionMap.get(state).add(endCondition);
     }
 
     @Override
@@ -66,7 +81,9 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
         if(_endConditionMap.get(RobotStateIO.getInstance().getRobotState()) == null)
             return;
 
-        if (_endConditionMap.get(RobotStateIO.getInstance().getRobotState()).condition.getAsBoolean())
-            changeRobotState(_endConditionMap.get(RobotStateIO.getInstance().getRobotState()).nextState);
+        for(StateEndCondition<StateEnum> endCondition : _endConditionMap.get(RobotStateIO.getInstance().getRobotState())){
+            if (endCondition.condition.getAsBoolean())
+                changeRobotState(endCondition.nextState);
+        }
     }
 }

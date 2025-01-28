@@ -16,17 +16,17 @@ public class SwerveSimulated extends SwerveIO {
     public SwerveSimulated(SwerveConstants constants){
         super(constants);
 
-        _xAcceleration = new SlewRateLimiter(constants.simulationAcceleration);
-        _yAcceleration = new SlewRateLimiter(constants.simulationAcceleration);
-        _0Acceleration = new SlewRateLimiter(constants.simulationAngleAcceleration);
+        _xAcceleration = new SlewRateLimiter(constants.maxAcceleration);
+        _yAcceleration = new SlewRateLimiter(constants.maxAcceleration);
+        _0Acceleration = new SlewRateLimiter(constants.maxRotationAcceleration);
     }
 
     @Override
     public void drive(ChassisSpeeds drive, boolean fieldRelative) {
         _currentChassisSpeeds = new ChassisSpeeds(
-            _xAcceleration.calculate(drive.vxMetersPerSecond),
-            _yAcceleration.calculate(drive.vyMetersPerSecond),
-            _0Acceleration.calculate(drive.omegaRadiansPerSecond)
+            _xAcceleration.calculate(drive.vxMetersPerSecond * _constants.speedFactor),
+            _yAcceleration.calculate(drive.vyMetersPerSecond * _constants.speedFactor),
+            _0Acceleration.calculate(drive.omegaRadiansPerSecond * _constants.rotationSpeedFactor)
         );
         _currentChassisSpeeds = fieldRelative ? _currentChassisSpeeds : ChassisSpeeds.fromRobotRelativeSpeeds(_currentChassisSpeeds, RobotStateWithSwerve.getInstance().getGyroYaw());
 

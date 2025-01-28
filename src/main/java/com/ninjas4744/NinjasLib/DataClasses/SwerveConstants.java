@@ -18,20 +18,23 @@ public class SwerveConstants {
     /** Max speed the swerve could possibly rotate */
     public double maxAngularVelocity;
 
-    /** Whether to invert the CanCoders, NOT WORKING YET */
-    public boolean canCoderInvert;
+    /** Percent factor of swerve speed, essentially speed limit, 1 no speed limit, 0 no movement */
+    public double speedFactor;
+
+    /** Percent factor of swerve rotational speed, essentially rotational speed limit, 1 no speed limit, 0 no movement */
+    public double rotationSpeedFactor;
+
+    /** Swerve max acceleration limit, m/s^2 */
+    public double maxAcceleration;
+
+    /** Swerve max rotational acceleration limit, rad/s^2 */
+    public double maxRotationAcceleration;
 
     /** Module Specific Constants */
     public SwerveModuleConstants[] moduleConstants;
 
     /** Swerve kinematics class used for calculating swerve movement */
     public SwerveDriveKinematics kinematics;
-
-    /** Simulation robot acceleration */
-    public double simulationAcceleration;
-
-    /** Simulation robot angle acceleration */
-    public double simulationAngleAcceleration;
 
     /** Whether to create shuffleboard tabs for the swerve*/
     public boolean createShuffleBoard;

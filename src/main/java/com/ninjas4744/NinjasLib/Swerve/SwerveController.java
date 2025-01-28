@@ -64,7 +64,7 @@ public class SwerveController {
             constants.rotationPIDConstants.D
         );
         _anglePID.setIZone(constants.rotationPIDConstants.IZone);
-        _anglePID.enableContinuousInput(-180, 180);
+        _anglePID.enableContinuousInput(constants.rotationPIDContinuousConnections.getFirst(), constants.rotationPIDContinuousConnections.getSecond());
 
         _axisPID = new PIDController(
             constants.axisLockPIDConstants.P,
@@ -72,9 +72,16 @@ public class SwerveController {
             constants.axisLockPIDConstants.D);
         _axisPID.setIZone(constants.axisLockPIDConstants.IZone);
 
-        _xPID = new PIDController(constants.drivePIDConstants.P, constants.drivePIDConstants.I, constants.drivePIDConstants.D);
+        _xPID = new PIDController(
+                constants.drivePIDConstants.P,
+                constants.drivePIDConstants.I,
+                constants.drivePIDConstants.D);
         _xPID.setIZone(constants.drivePIDConstants.IZone);
-        _yPID = new PIDController(constants.drivePIDConstants.P, constants.drivePIDConstants.I, constants.drivePIDConstants.D);
+
+        _yPID = new PIDController(
+                constants.drivePIDConstants.P,
+                constants.drivePIDConstants.I,
+                constants.drivePIDConstants.D);
         _yPID.setIZone(constants.drivePIDConstants.IZone);
 
         if(!constants.swerveConstants.createShuffleBoard)
@@ -122,13 +129,9 @@ public class SwerveController {
         return 0;
     }
 
-    public double lookAtTarget(Pose2d target, boolean invert, Rotation2d offset) {
-        Translation2d lookAtTranslation =
-            target.getTranslation().minus(RobotStateWithSwerve.getInstance().getRobotPose().getTranslation());
-
-        lookAtTranslation = lookAtTranslation.rotateBy(offset);
-
-        return lookAt(invert ? lookAtTranslation.rotateBy(Rotation2d.fromDegrees(180)) : lookAtTranslation, 1);
+    public double lookAtTarget(Pose2d target, Rotation2d offset) {
+        Translation2d lookAtTranslation = RobotStateWithSwerve.getInstance().getDistanceTo(target).rotateBy(offset);
+        return lookAt(lookAtTranslation, 1);
     }
 
     public Translation2d pidTo(Translation2d target) {
@@ -230,7 +233,7 @@ public class SwerveController {
     }
 
     private void startingDriveAssist(Pose2d targetPose) {
-        Rotation2d dir = targetPose.getTranslation().minus(RobotStateWithSwerve.getInstance().getRobotPose().getTranslation()).getAngle();
+        Rotation2d dir = RobotStateWithSwerve.getInstance().getDistanceTo(targetPose).getAngle();
         List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(
             new Pose2d(RobotStateWithSwerve.getInstance().getRobotPose().getX(), RobotStateWithSwerve.getInstance().getRobotPose().getY(), dir),
             new Pose2d(targetPose.getX(), targetPose.getY(), dir)
@@ -297,7 +300,7 @@ public class SwerveController {
                 break;
 
             case DRIVE_ASSIST:
-                if((!isDriveAssistFinished() || Demand.targetPose != _driveAssistTargetPose) && RobotStateWithSwerve.getInstance().getRobotPose().getTranslation().getDistance(Demand.targetPose.getTranslation()) <= _constants.driveAssistThreshold)
+                if((!isDriveAssistFinished() || Demand.targetPose != _driveAssistTargetPose) && RobotStateWithSwerve.getInstance().getDistanceTo(Demand.targetPose).getNorm() <= _constants.driveAssistThreshold)
                     _swerve.drive(driveAssist(Demand.targetPose), true);
                 else
                     _swerve.drive(driverInput, _constants.driverFieldRelative);
@@ -308,7 +311,7 @@ public class SwerveController {
                     new ChassisSpeeds(
                         driverInput.vxMetersPerSecond,
                         driverInput.vyMetersPerSecond,
-                        lookAtTarget(Demand.targetPose, false, Demand.angleOffset)), true);
+                        lookAtTarget(Demand.targetPose, Demand.angleOffset)), true);
                 break;
 
             case PATHFINDING:

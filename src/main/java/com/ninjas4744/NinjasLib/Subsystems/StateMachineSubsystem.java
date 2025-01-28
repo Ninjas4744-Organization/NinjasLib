@@ -9,15 +9,27 @@ import java.util.Map;
 public abstract class StateMachineSubsystem<StateEnum> extends SubsystemBase {
 	private final Map<StateEnum, Runnable> _periodicFunctionMap;
 	private final Map<StateEnum, Runnable> _onChangeFunctionMap;
-	private StateEnum previousRobotState;
+	private StateEnum _previousRobotState;
+	protected boolean _paused;
 
-	public StateMachineSubsystem() {
+	public StateMachineSubsystem(boolean paused) {
+		_paused = paused;
+
 		_periodicFunctionMap = new HashMap<>();
 		_onChangeFunctionMap = new HashMap<>();
 
-		previousRobotState = (StateEnum) RobotStateIO.getInstance().getRobotState();
+		_previousRobotState = (StateEnum) RobotStateIO.getInstance().getRobotState();
 
-		setFunctionMaps();
+		if(!_paused)
+			setFunctionMaps();
+	}
+
+	public void pauseSubsystem(){
+		_paused = true;
+	}
+
+	public void resumeSubsystem(){
+		_paused = false;
 	}
 
 	/**
@@ -71,9 +83,12 @@ public abstract class StateMachineSubsystem<StateEnum> extends SubsystemBase {
 
 	@Override
 	public void periodic() {
-		if (!RobotStateIO.getInstance().getRobotState().equals(previousRobotState) && _onChangeFunctionMap.get(RobotStateIO.getInstance().getRobotState()) != null)
+		if(_paused)
+			return;
+
+		if (!RobotStateIO.getInstance().getRobotState().equals(_previousRobotState) && _onChangeFunctionMap.get(RobotStateIO.getInstance().getRobotState()) != null)
 			_onChangeFunctionMap.get(RobotStateIO.getInstance().getRobotState()).run();
-		previousRobotState = (StateEnum) RobotStateIO.getInstance().getRobotState();
+		_previousRobotState = (StateEnum) RobotStateIO.getInstance().getRobotState();
 
 		if(_periodicFunctionMap.get(RobotStateIO.getInstance().getRobotState()) != null)
 			_periodicFunctionMap.get(RobotStateIO.getInstance().getRobotState()).run();

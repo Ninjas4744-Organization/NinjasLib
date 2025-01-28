@@ -90,14 +90,11 @@ public class Robot extends TimedRobot {
 
              kSwerveConstants.maxSpeed = 5;
              kSwerveConstants.maxAngularVelocity = 10.7;
-             kSwerveConstants.simulationAcceleration = 12;
-             kSwerveConstants.simulationAngleAcceleration = 18;
 
-             kSwerveConstants.canCoderInvert = false;
              kSwerveConstants.moduleConstants = new SwerveModuleConstants[4];
 
              for(int i = 0; i < 4; i++){
-                 kSwerveConstants.moduleConstants[i] = new SwerveModuleConstants<>(i, new MainControllerConstants(), new MainControllerConstants(), kSwerveConstants.maxSpeed, 0, NinjasSparkMaxController.class);
+                 kSwerveConstants.moduleConstants[i] = new SwerveModuleConstants<>(i, new MainControllerConstants(), new MainControllerConstants(), kSwerveConstants.maxSpeed, 0, NinjasSparkMaxController.class, NinjasSparkMaxController.class, false, false);
                  kSwerveConstants.moduleConstants[i].driveMotorConstants.main.inverted = true;
                  kSwerveConstants.moduleConstants[i].driveMotorConstants.currentLimit = 50;
                  kSwerveConstants.moduleConstants[i].driveMotorConstants.encoderConversionFactor = 0.0521545447;

@@ -11,6 +11,7 @@ import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -78,6 +79,10 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<State
      */
     public Pose2d getRobotPose() {
         return poseEstimator.getEstimatedPosition();
+    }
+
+    public Translation2d getDistanceTo(Pose2d other){
+        return other.getTranslation().minus(getRobotPose().getTranslation());
     }
 
     /**

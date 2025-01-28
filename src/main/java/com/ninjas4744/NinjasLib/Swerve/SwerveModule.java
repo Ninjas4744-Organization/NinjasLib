@@ -1,6 +1,8 @@
 package com.ninjas4744.NinjasLib.Swerve;
 
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ninjas4744.NinjasLib.Controllers.*;
 import com.ninjas4744.NinjasLib.DataClasses.SwerveModuleConstants;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -24,7 +26,7 @@ public class SwerveModule {
         maxModuleSpeed = constants.maxModuleSpeed;
 
         canCoder = new CANcoder(constants.canCoderID);
-//		canCoder.getConfigurator().apply(new CANcoderConfiguration().MagnetSensor.withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)); TODO: Fix
+		canCoder.getConfigurator().apply(new CANcoderConfiguration().MagnetSensor.withSensorDirection(constants.invertCANCoder ? SensorDirectionValue.Clockwise_Positive : SensorDirectionValue.CounterClockwise_Positive));
 
         if (constants.driveControllerType.equals(NinjasSparkMaxController.class))
             driveMotor = new NinjasSparkMaxController(constants.driveMotorConstants);
