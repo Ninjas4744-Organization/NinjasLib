@@ -84,10 +84,10 @@ public class Robot extends TimedRobot {
 
              kSwerveConstants.maxSpeed = 5;
              kSwerveConstants.maxAngularVelocity = 10.7;
-             kSwerveConstants.speedFactor = 0.5;
-             kSwerveConstants.rotationSpeedFactor = 0.5;
-             kSwerveConstants.maxAcceleration = 10;
-             kSwerveConstants.maxRotationAcceleration = 54;
+             kSwerveConstants.speedLimit = 2.5;
+             kSwerveConstants.rotationSpeedLimit = 6;
+             kSwerveConstants.accelerationLimit = 10;
+             kSwerveConstants.rotationAccelerationLimit = 54;
              kSwerveConstants.createShuffleBoard = true;
 
              kSwerveConstants.moduleConstants = new SwerveModuleConstants[4];
@@ -160,12 +160,12 @@ public class Robot extends TimedRobot {
          }
 
          @Override
-         public void resetSubsystem() {
+         protected void resetSubsystemO() {
             controller().setPosition(0);
          }
 
          @Override
-         public boolean isResetted() {
+         protected boolean isResettedO() {
              return controller().isHomed();
          }
 

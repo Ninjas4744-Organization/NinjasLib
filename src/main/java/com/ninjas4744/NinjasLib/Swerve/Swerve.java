@@ -2,6 +2,7 @@ package com.ninjas4744.NinjasLib.Swerve;
 
 import com.ninjas4744.NinjasLib.DataClasses.SwerveConstants;
 import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -29,9 +30,9 @@ public class Swerve extends SwerveIO {
             new SwerveModule(constants.moduleConstants[3])
         };
 
-        _xAccelerationLimit = new SlewRateLimiter(constants.maxAcceleration);
-        _yAccelerationLimit = new SlewRateLimiter(constants.maxAcceleration);
-        _0AccelerationLimit = new SlewRateLimiter(constants.maxRotationAcceleration);
+        _xAccelerationLimit = new SlewRateLimiter(constants.accelerationLimit);
+        _yAccelerationLimit = new SlewRateLimiter(constants.accelerationLimit);
+        _0AccelerationLimit = new SlewRateLimiter(constants.rotationAccelerationLimit);
 
         resetModulesToAbsolute();
 
@@ -51,9 +52,9 @@ public class Swerve extends SwerveIO {
     public void drive(ChassisSpeeds drive, boolean fieldRelative) {
         _robotRelativeSpeeds = fieldRelative ? ChassisSpeeds.fromFieldRelativeSpeeds(drive, RobotStateWithSwerve.getInstance().getGyroYaw()) : drive;
         _robotRelativeSpeeds = new ChassisSpeeds(
-            _xAccelerationLimit.calculate(_robotRelativeSpeeds.vxMetersPerSecond * _constants.speedFactor),
-            _yAccelerationLimit.calculate(_robotRelativeSpeeds.vyMetersPerSecond * _constants.speedFactor),
-            _0AccelerationLimit.calculate(_robotRelativeSpeeds.omegaRadiansPerSecond * _constants.rotationSpeedFactor)
+            _xAccelerationLimit.calculate(MathUtil.clamp(_robotRelativeSpeeds.vxMetersPerSecond, -_constants.speedLimit, _constants.speedLimit)),
+            _yAccelerationLimit.calculate(MathUtil.clamp(_robotRelativeSpeeds.vyMetersPerSecond, -_constants.speedLimit, _constants.speedLimit)),
+            _0AccelerationLimit.calculate(MathUtil.clamp(_robotRelativeSpeeds.omegaRadiansPerSecond, -_constants.rotationSpeedLimit, _constants.rotationSpeedLimit))
         );
         setModuleStates(_kinematics.toSwerveModuleStates(_robotRelativeSpeeds), _constants.openLoop);
     }

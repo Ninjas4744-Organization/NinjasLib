@@ -12,23 +12,23 @@ public class SwerveConstants {
     /** Distance between modules in side axis */
     public double wheelBase;
 
-    /** Max speed the swerve could possibly drive */
+    /** Max speed the swerve could possibly drive, the real thing if you want a speed limit do it in the speedLimit, in m/s */
     public double maxSpeed;
 
-    /** Max speed the swerve could possibly rotate */
+    /** Max speed the swerve could possibly rotate, the real thing if you want a speed limit do it in the rotationSpeedLimit, in rad/s */
     public double maxAngularVelocity;
 
-    /** Percent factor of swerve speed, essentially speed limit, 1 no speed limit, 0 no movement */
-    public double speedFactor;
+    /** Swerve speed limit, the swerve can't drive faster than this number +-, in m/s */
+    public double speedLimit;
 
-    /** Percent factor of swerve rotational speed, essentially rotational speed limit, 1 no speed limit, 0 no movement */
-    public double rotationSpeedFactor;
+    /** Swerve rotation speed limit, the swerve can't rotate faster than this number +-, in rad/s */
+    public double rotationSpeedLimit;
 
     /** Swerve max acceleration limit, m/s^2 */
-    public double maxAcceleration;
+    public double accelerationLimit;
 
     /** Swerve max rotational acceleration limit, rad/s^2 */
-    public double maxRotationAcceleration;
+    public double rotationAccelerationLimit;
 
     /** Module Specific Constants */
     public SwerveModuleConstants[] moduleConstants;

@@ -45,9 +45,20 @@ public abstract class StateMachineMotoredSubsystem<StateEnum> extends StateMachi
 	 */
 	protected abstract void setSimulationController();
 
-	public abstract void resetSubsystem();
+	public void resetSubsystem(){
+		if(!_paused)
+			resetSubsystemO();
+	}
 
-	public abstract boolean isResetted();
+	protected abstract void resetSubsystemO();
+
+	public boolean isResetted(){
+		if(!_paused)
+			return isResettedO();
+		return true;
+	}
+
+	protected abstract boolean isResettedO();
 
 	/**
 	 * @return Whether the subsystem is at its PIDF goal

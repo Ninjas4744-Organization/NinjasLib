@@ -62,6 +62,22 @@ public abstract class SwerveIO {
         );
     }
 
+    public void setAccelerationLimit(double accelerationLimit){
+        _constants.accelerationLimit = accelerationLimit;
+    }
+
+    public void setRotationAccelerationLimit(double rotationAccelerationLimit){
+        _constants.rotationAccelerationLimit = rotationAccelerationLimit;
+    }
+
+    public void setSpeedLimit(double speedLimit){
+        _constants.speedLimit = speedLimit;
+    }
+
+    public void setRotationSpeedLimit(double rotationSpeedLimit){
+        _constants.rotationSpeedLimit = rotationSpeedLimit;
+    }
+
     public void periodic(){
 
     }
