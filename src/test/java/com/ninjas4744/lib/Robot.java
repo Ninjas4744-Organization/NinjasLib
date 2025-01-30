@@ -9,7 +9,6 @@ import com.ninjas4744.NinjasLib.RobotStateIO;
 import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
 import com.ninjas4744.NinjasLib.StateMachineIO;
 import com.ninjas4744.NinjasLib.Subsystems.StateMachineMotoredSubsystem;
-import com.ninjas4744.NinjasLib.Swerve.SwerveController;
 import com.ninjas4744.NinjasLib.Swerve.SwerveIO;
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.PIDConstants;
@@ -20,6 +19,7 @@ import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -88,10 +88,11 @@ public class Robot extends TimedRobot {
              kSwerveConstants.rotationSpeedFactor = 0.5;
              kSwerveConstants.maxAcceleration = 10;
              kSwerveConstants.maxRotationAcceleration = 54;
+             kSwerveConstants.createShuffleBoard = true;
 
              kSwerveConstants.moduleConstants = new SwerveModuleConstants[4];
              for(int i = 0; i < 4; i++){
-                 kSwerveConstants.moduleConstants[i] = new SwerveModuleConstants<>(i, new MainControllerConstants(), new MainControllerConstants(), kSwerveConstants.maxSpeed, 40 + i, NinjasSparkMaxController.class, NinjasSparkMaxController.class, false, false);
+                 kSwerveConstants.moduleConstants[i] = new SwerveModuleConstants<>(i, new MainControllerConstants(), new MainControllerConstants(), kSwerveConstants.maxSpeed, 40 + i, NinjasSparkMaxController.class, NinjasSparkMaxController.class, true, false, 0);
                  kSwerveConstants.moduleConstants[i].driveMotorConstants.main.id = 10 + i * 2;
                  kSwerveConstants.moduleConstants[i].driveMotorConstants.main.inverted = true;
                  kSwerveConstants.moduleConstants[i].driveMotorConstants.currentLimit = 50;
@@ -106,6 +107,11 @@ public class Robot extends TimedRobot {
                  kSwerveConstants.moduleConstants[i].angleMotorConstants.createShuffleboard = false;
                  kSwerveConstants.moduleConstants[i].angleMotorConstants.controlConstants = ControlConstants.createPID(0.01, 0, 0.005, 0);
              }
+
+             kSwerveConstants.moduleConstants[0].CANCoderOffset = 0.493652;
+             kSwerveConstants.moduleConstants[1].CANCoderOffset = -0.359375;
+             kSwerveConstants.moduleConstants[2].CANCoderOffset = -0.270752;
+             kSwerveConstants.moduleConstants[3].CANCoderOffset = -0.134277;
          }
 
          public static final SwerveControllerConstants kSwerveControllerConstants = new SwerveControllerConstants();
@@ -169,7 +175,7 @@ public class Robot extends TimedRobot {
          }
      }
 
-     public class RobotState extends RobotStateWithSwerve<st>{
+     public class RobotState extends RobotStateWithSwerve<st> {
         public RobotState(){
             _robotState = st.hey;
         }
@@ -186,8 +192,8 @@ public class Robot extends TimedRobot {
 //
 //    _controller.cross().whileTrue(Commands.startEnd(() -> _shooter.setVelocity(100), () -> _shooter.stop()));
 
+        SwerveIO.setConstants(SwerveConstants.kSwerveConstants);
         RobotStateWithSwerve.setInstance(new RobotState(), SwerveConstants.kSwerveConstants.kinematics, false, (o) -> 0);
-//        SwerveIO.setConstants(SwerveConstants.kSwerveConstants);
 //        SwerveController.setConstants(SwerveConstants.kSwerveControllerConstants, SwerveIO.getInstance());
 
         StateMachineIO.setInstance(new StateMachineIO<st>(false) {
@@ -198,8 +204,8 @@ public class Robot extends TimedRobot {
 
             @Override
             protected void setEndConditionMap() {
-                addEndCondition(st.hey, new StateEndCondition<>(() -> true, st.hey));
-                addEndCondition(st.hey, new StateEndCondition<>(() -> false, st.hey));
+//                addEndCondition(st.hey, new StateEndCondition<>(() -> true, st.hey));
+//                addEndCondition(st.hey, new StateEndCondition<>(() -> false, st.hey));
             }
 
             @Override
@@ -300,7 +306,8 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopPeriodic() {
-//        SwerveIO.getInstance().drive(new ChassisSpeeds(-_controller.getLeftY() * 5, -_controller.getLeftX() * 5, -_controller.getRightX() * 11), true);
+        SwerveIO.getInstance().drive(new ChassisSpeeds(-_controller.getLeftY() * 5, -_controller.getLeftX() * 5, -_controller.getRightX() * 11), false);
+        SwerveIO.getInstance().periodic();
 //        shooter.periodic();
 
 //        SwerveController.getInstance().Demand.driverInput = new ChassisSpeeds(-_controller.getLeftY(), -_controller.getLeftX(), -_controller.getRightX());

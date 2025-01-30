@@ -26,7 +26,11 @@ public class SwerveModule {
         maxModuleSpeed = constants.maxModuleSpeed;
 
         canCoder = new CANcoder(constants.canCoderID);
-		canCoder.getConfigurator().apply(new CANcoderConfiguration().MagnetSensor.withSensorDirection(constants.invertCANCoder ? SensorDirectionValue.Clockwise_Positive : SensorDirectionValue.CounterClockwise_Positive));
+		canCoder.getConfigurator().apply(
+                new CANcoderConfiguration().MagnetSensor
+                .withSensorDirection(constants.invertCANCoder ? SensorDirectionValue.Clockwise_Positive : SensorDirectionValue.CounterClockwise_Positive)
+                .withMagnetOffset(constants.CANCoderOffset)
+        );
 
         if (constants.driveControllerType.equals(NinjasSparkMaxController.class))
             driveMotor = new NinjasSparkMaxController(constants.driveMotorConstants);
