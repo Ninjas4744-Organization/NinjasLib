@@ -14,9 +14,6 @@ public class Swerve extends SwerveIO {
     private final SwerveModule[] _modules;
     private final SwerveDriveKinematics _kinematics;
     private ChassisSpeeds _robotRelativeSpeeds = new ChassisSpeeds();
-    private final SlewRateLimiter _xAccelerationLimit;
-    private final SlewRateLimiter _yAccelerationLimit;
-    private final SlewRateLimiter _0AccelerationLimit;
 
     protected Swerve(SwerveConstants constants) {
         super(constants);

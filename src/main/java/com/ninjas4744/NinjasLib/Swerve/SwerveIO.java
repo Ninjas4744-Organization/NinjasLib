@@ -2,11 +2,15 @@ package com.ninjas4744.NinjasLib.Swerve;
 
 import com.ninjas4744.NinjasLib.DataClasses.SwerveConstants;
 import com.ninjas4744.NinjasLib.RobotStateIO;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
 public abstract class SwerveIO {
     private static SwerveIO _instance;
     protected SwerveConstants _constants;
+    protected SlewRateLimiter _xAccelerationLimit;
+    protected SlewRateLimiter _yAccelerationLimit;
+    protected SlewRateLimiter _0AccelerationLimit;
 
     /** Returns the swerve instance, simulated/real depends on if the code is simulated/real. */
     public static SwerveIO getInstance() {
@@ -64,10 +68,22 @@ public abstract class SwerveIO {
 
     public void setAccelerationLimit(double accelerationLimit){
         _constants.accelerationLimit = accelerationLimit;
+
+        double lastValue = _xAccelerationLimit.lastValue();
+        _xAccelerationLimit = new SlewRateLimiter(accelerationLimit);
+        _xAccelerationLimit.reset(lastValue);
+
+        lastValue = _yAccelerationLimit.lastValue();
+        _yAccelerationLimit = new SlewRateLimiter(accelerationLimit);
+        _yAccelerationLimit.reset(lastValue);
     }
 
     public void setRotationAccelerationLimit(double rotationAccelerationLimit){
         _constants.rotationAccelerationLimit = rotationAccelerationLimit;
+
+        double lastValue = _0AccelerationLimit.lastValue();
+        _0AccelerationLimit = new SlewRateLimiter(rotationAccelerationLimit);
+        _0AccelerationLimit.reset(lastValue);
     }
 
     public void setSpeedLimit(double speedLimit){

@@ -10,9 +10,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
 public class SwerveSimulated extends SwerveIO {
     private ChassisSpeeds _currentChassisSpeeds = new ChassisSpeeds();
-    private final SlewRateLimiter _xAccelerationLimit;
-    private final SlewRateLimiter _yAccelerationLimit;
-    private final SlewRateLimiter _0AccelerationLimit;
 
     public SwerveSimulated(SwerveConstants constants){
         super(constants);

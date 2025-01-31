@@ -204,8 +204,8 @@ public class Robot extends TimedRobot {
 
             @Override
             protected void setEndConditionMap() {
-//                addEndCondition(st.hey, new StateEndCondition<>(() -> true, st.hey));
-//                addEndCondition(st.hey, new StateEndCondition<>(() -> false, st.hey));
+                addEndCondition(st.hey, new StateEndCondition<>(() -> true, st.hey));
+                addEndCondition(st.hey, new StateEndCondition<>(() -> true, st.hey));
             }
 
             @Override

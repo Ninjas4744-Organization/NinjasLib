@@ -70,13 +70,9 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
 
     protected void addEndCondition(StateEnum state, StateEndCondition<StateEnum> endCondition) {
         if(!_endConditionMap.containsKey(state))
-            _endConditionMap.put(state, List.of(endCondition));
-        else{
-            List<StateEndCondition<StateEnum>> endConditions = new ArrayList<>(_endConditionMap.get(state));
-            endConditions.add(endCondition);
-            _endConditionMap.put(state, endConditions);
-            // _endConditionMap.get(state).add(endCondition);
-        }
+            _endConditionMap.put(state, new ArrayList<>(List.of(endCondition)));
+        else
+            _endConditionMap.get(state).add(endCondition);
     }
 
     @Override

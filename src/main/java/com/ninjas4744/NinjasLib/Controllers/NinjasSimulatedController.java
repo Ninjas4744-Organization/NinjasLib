@@ -158,17 +158,20 @@ public class NinjasSimulatedController extends NinjasController {
         double dt = 0.02;
         double v0 = _velocity;
 
-        double accelerationDir = Math.signum(_output - _lastOutput);
+//        double accelerationDir = Math.signum(_output - _lastOutput);
         double velocityDir = Math.signum(v0);
+        double outputDir = Math.signum(_output);
+        double wantedVelocity = _output * _maxVelocity;
+
         double dynamicAccelerationLimiter;
-        if(velocityDir == accelerationDir || accelerationDir == 0 || velocityDir == 0)
+        if((outputDir == velocityDir && Math.abs(wantedVelocity) >= Math.abs(v0)))
             dynamicAccelerationLimiter = _maxAcceleration * (1 - Math.pow(Math.abs(v0) / _maxVelocity, 2));
         else
             dynamicAccelerationLimiter = _maxAcceleration * 5;
 
         _velocity +=
             MathUtil.clamp(
-                _output * _maxVelocity - _velocity,
+                wantedVelocity - v0,
                 -dynamicAccelerationLimiter * dt,
                 dynamicAccelerationLimiter * dt);
 
