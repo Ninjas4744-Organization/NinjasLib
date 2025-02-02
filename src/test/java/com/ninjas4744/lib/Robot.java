@@ -1,13 +1,11 @@
 package com.ninjas4744.lib;// Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
+import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
 import com.ninjas4744.NinjasLib.Controllers.NinjasSimulatedController;
 import com.ninjas4744.NinjasLib.Controllers.NinjasSparkMaxController;
 import com.ninjas4744.NinjasLib.Controllers.NinjasTalonFXController;
 import com.ninjas4744.NinjasLib.DataClasses.*;
-import com.ninjas4744.NinjasLib.RobotStateIO;
-import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
-import com.ninjas4744.NinjasLib.StateMachineIO;
 import com.ninjas4744.NinjasLib.Subsystems.StateMachineMotoredSubsystem;
 import com.ninjas4744.NinjasLib.Swerve.SwerveIO;
 import com.pathplanner.lib.config.ModuleConfig;
@@ -193,7 +191,7 @@ public class Robot extends TimedRobot {
 //    _controller.cross().whileTrue(Commands.startEnd(() -> _shooter.setVelocity(100), () -> _shooter.stop()));
 
         SwerveIO.setConstants(SwerveConstants.kSwerveConstants);
-        RobotStateWithSwerve.setInstance(new RobotState(), SwerveConstants.kSwerveConstants.kinematics, false, (o) -> 0);
+        RobotStateWithSwerve.setInstance(new RobotState(), SwerveConstants.kSwerveConstants.kinematics, false, (o) -> 0, 45);
 //        SwerveController.setConstants(SwerveConstants.kSwerveControllerConstants, SwerveIO.getInstance());
 
         StateMachineIO.setInstance(new StateMachineIO<st>(false) {
