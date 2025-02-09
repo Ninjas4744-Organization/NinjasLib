@@ -111,8 +111,6 @@ public class NinjasSimulatedController extends NinjasController {
 
     @Override
     public void periodic() {
-        super.periodic();
-
         switch (_constants.controlConstants.type) {
             case PROFILED_PID:
                 isCurrentlyPidfing = true;
@@ -151,6 +149,8 @@ public class NinjasSimulatedController extends NinjasController {
         isCurrentlyPidfing = false;
 
         calculateKinematics();
+
+        super.periodic();
     }
 
     private void calculateKinematics() {

@@ -10,6 +10,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import org.littletonrobotics.junction.Logger;
 
 public class SwerveModule {
     public final int moduleNumber;
@@ -21,7 +22,11 @@ public class SwerveModule {
     private final CANcoder canCoder;
     private final double maxModuleSpeed;
 
+    private SwerveModuleConstants _constants;
+
     public SwerveModule(SwerveModuleConstants constants) {
+        _constants = constants;
+
         moduleNumber = constants.moduleNumber;
         maxModuleSpeed = constants.maxModuleSpeed;
 
@@ -56,12 +61,12 @@ public class SwerveModule {
 
         lastAngle = Rotation2d.fromDegrees(angleMotor.getPosition());
 
-        if(!constants.createShuffleboard)
-            return;
-
-        Shuffleboard.getTab("Swerve Mod " + moduleNumber).addNumber("Speed", () -> getState().speedMetersPerSecond);
-        Shuffleboard.getTab("Swerve Mod " + moduleNumber).addNumber("Angle", () -> getState().angle.getDegrees());
-        Shuffleboard.getTab("Swerve Mod " + moduleNumber).addNumber("Absolute Angle", () -> getCanCoder().getDegrees());
+//        if(!constants.createShuffleboard)
+//            return;
+//
+//        Shuffleboard.getTab("Swerve Mod " + moduleNumber).addNumber("Speed", () -> getState().speedMetersPerSecond);
+//        Shuffleboard.getTab("Swerve Mod " + moduleNumber).addNumber("Angle", () -> getState().angle.getDegrees());
+//        Shuffleboard.getTab("Swerve Mod " + moduleNumber).addNumber("Absolute Angle", () -> getCanCoder().getDegrees());
     }
 
     public SwerveModuleState getState() {
@@ -117,5 +122,14 @@ public class SwerveModule {
         }
 
         return new SwerveModuleState(desiredState.speedMetersPerSecond, Rotation2d.fromDegrees((targetDegrees + 360) % 360));
+    }
+
+    public void periodic() {
+        if(!_constants.enableLogging)
+            return;
+
+        Logger.recordOutput("Swerve Module " + moduleNumber + "/Speed", getState().speedMetersPerSecond);
+        Logger.recordOutput("Swerve Module " + moduleNumber + "/Angle", getState().angle.getDegrees());
+        Logger.recordOutput("Swerve Module " + moduleNumber + "/Absolute Angle", getCanCoder().getDegrees());
     }
 }

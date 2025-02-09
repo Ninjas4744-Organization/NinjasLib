@@ -8,7 +8,7 @@ plugins {
 apply plugin: 'java'
 apply plugin: 'maven-publish'
 group = 'com.github.Ninjas4744-Organization'
-version = '0.38'
+version = '0.40'
 
 def javaVersion = JavaVersion.VERSION_17
 
@@ -17,7 +17,7 @@ java {
     targetCompatibility = javaVersion
 }
 
-def ROBOT_MAIN_CLASS = "com.ninjas4744.NinjasLib.Main"
+def ROBOT_MAIN_CLASS = "com.ninjas4744.lib.Main"
 
 // Define my targets (RoboRIO) and artifacts (deployable files)
 // This is added by GradleRIO's backing project DeployUtils.
@@ -56,6 +56,11 @@ wpi.java.debugJni = false
 // Set this to true to enable desktop support.
 def includeDesktopSupport = true
 
+task(replayWatch, type: JavaExec) {
+    mainClass = "org.littletonrobotics.junction.ReplayWatch"
+    classpath = sourceSets.main.runtimeClasspath
+}
+
 dependencies {
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
@@ -78,6 +83,9 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-api"
     testImplementation "org.junit.jupiter:junit-jupiter-params"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+
+    def akitJson = new groovy.json.JsonSlurper().parseText(new File(projectDir.getAbsolutePath() + "/vendordeps/AdvantageKit.json").text)
+    annotationProcessor "org.littletonrobotics.akit:akit-autolog:$akitJson.version"
 }
 
 test{

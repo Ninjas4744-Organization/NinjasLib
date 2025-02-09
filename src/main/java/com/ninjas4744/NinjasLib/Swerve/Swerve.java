@@ -9,6 +9,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import org.littletonrobotics.junction.Logger;
 
 public class Swerve extends SwerveIO {
     private final SwerveModule[] _modules;
@@ -33,16 +34,16 @@ public class Swerve extends SwerveIO {
 
         resetModulesToAbsolute();
 
-        if(!constants.createShuffleBoard)
-            return;
+//        if(!constants.createShuffleBoard)
+//            return;
 
-        Shuffleboard.getTab("Swerve").addNumber("Wanted Vx", () -> _robotRelativeSpeeds.vxMetersPerSecond);
-        Shuffleboard.getTab("Swerve").addNumber("Wanted Vy", () -> _robotRelativeSpeeds.vyMetersPerSecond);
-        Shuffleboard.getTab("Swerve").addNumber("Wanted V0", () -> _robotRelativeSpeeds.omegaRadiansPerSecond);
-
-        Shuffleboard.getTab("Swerve").addNumber("Current Vx", () -> getChassisSpeeds(false).vxMetersPerSecond);
-        Shuffleboard.getTab("Swerve").addNumber("Current Vy", () -> getChassisSpeeds(false).vyMetersPerSecond);
-        Shuffleboard.getTab("Swerve").addNumber("Current V0", () -> getChassisSpeeds(false).omegaRadiansPerSecond);
+//        Shuffleboard.getTab("Swerve").addNumber("Wanted Vx", () -> _robotRelativeSpeeds.vxMetersPerSecond);
+//        Shuffleboard.getTab("Swerve").addNumber("Wanted Vy", () -> _robotRelativeSpeeds.vyMetersPerSecond);
+//        Shuffleboard.getTab("Swerve").addNumber("Wanted V0", () -> _robotRelativeSpeeds.omegaRadiansPerSecond);
+//
+//        Shuffleboard.getTab("Swerve").addNumber("Current Vx", () -> getChassisSpeeds(false).vxMetersPerSecond);
+//        Shuffleboard.getTab("Swerve").addNumber("Current Vy", () -> getChassisSpeeds(false).vyMetersPerSecond);
+//        Shuffleboard.getTab("Swerve").addNumber("Current V0", () -> getChassisSpeeds(false).omegaRadiansPerSecond);
     }
 
     @Override
@@ -94,13 +95,24 @@ public class Swerve extends SwerveIO {
     /** Resets the swerve modules to their absolute encoders */
     public void resetModulesToAbsolute() {
         System.out.println("---------------Reseting modules to absolute---------------");
-        for (SwerveModule module : _modules) module.resetToAbsolute();
+        for (SwerveModule module : _modules)
+            module.resetToAbsolute();
         System.out.println("---------------Reseting modules to absolute---------------");
     }
 
     @Override
     public void periodic() {
         super.periodic();
+
         RobotStateWithSwerve.getInstance().updateRobotPose(getModulePositions());
+
+        if(!_constants.enableLogging)
+            return;
+
+        for (SwerveModule module : _modules)
+            module.periodic();
+
+        Logger.recordOutput("Swerve/Current Velocity", getChassisSpeeds(true));
+        Logger.recordOutput("Swerve/Wanted Velocity", ChassisSpeeds.fromRobotRelativeSpeeds(_robotRelativeSpeeds, RobotStateWithSwerve.getInstance().getGyroYaw()));
     }
 }

@@ -1,12 +1,14 @@
-package com.ninjas4744.lib;// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
+package com.ninjas4744.lib;
 
+import com.ninjas4744.NinjasLib.RobotStateIO;
 import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
+import com.ninjas4744.NinjasLib.StateMachineIO;
 import com.ninjas4744.NinjasLib.Controllers.NinjasSimulatedController;
 import com.ninjas4744.NinjasLib.Controllers.NinjasSparkMaxController;
 import com.ninjas4744.NinjasLib.Controllers.NinjasTalonFXController;
 import com.ninjas4744.NinjasLib.DataClasses.*;
 import com.ninjas4744.NinjasLib.Subsystems.StateMachineMotoredSubsystem;
+import com.ninjas4744.NinjasLib.Swerve.SwerveController;
 import com.ninjas4744.NinjasLib.Swerve.SwerveIO;
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.PIDConstants;
@@ -16,11 +18,14 @@ import com.pathplanner.lib.controllers.PathFollowingController;
 import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
@@ -28,7 +33,14 @@ import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import java.io.IOException;
 import java.util.List;
 
-public class Robot extends TimedRobot {
+import org.littletonrobotics.junction.LogFileUtil;
+import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+import org.littletonrobotics.junction.wpilog.WPILOGReader;
+import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+
+public class Robot extends LoggedRobot {
 //  NinjasController _shooter;
 //  CommandPS5Controller _controller;
 
@@ -50,7 +62,7 @@ public class Robot extends TimedRobot {
     public AprilTagFieldLayout getFieldLayout(List<Integer> ignoredTags) {
         AprilTagFieldLayout layout;
 
-        layout = RobotStateIO.getInstance().getAlliance() == DriverStation.Alliance.Blue
+        layout = RobotStateIO.getAlliance() == DriverStation.Alliance.Blue
           ? kBlueFieldLayout
           : kRedFieldLayout;
 
@@ -86,7 +98,7 @@ public class Robot extends TimedRobot {
              kSwerveConstants.rotationSpeedLimit = 6;
              kSwerveConstants.accelerationLimit = 10;
              kSwerveConstants.rotationAccelerationLimit = 54;
-             kSwerveConstants.createShuffleBoard = true;
+             kSwerveConstants.enableLogging = true;
 
              kSwerveConstants.moduleConstants = new SwerveModuleConstants[4];
              for(int i = 0; i < 4; i++){
@@ -96,13 +108,13 @@ public class Robot extends TimedRobot {
                  kSwerveConstants.moduleConstants[i].driveMotorConstants.currentLimit = 50;
                  kSwerveConstants.moduleConstants[i].driveMotorConstants.encoderConversionFactor = 0.0521545447;
                  kSwerveConstants.moduleConstants[i].driveMotorConstants.subsystemName = "Swerve Module " + i + " Drive Motor";
-                 kSwerveConstants.moduleConstants[i].driveMotorConstants.createShuffleboard = false;
+                 kSwerveConstants.moduleConstants[i].driveMotorConstants.enableLogging = true;
 
                  kSwerveConstants.moduleConstants[i].angleMotorConstants.main.id = 11 + i * 2;
                  kSwerveConstants.moduleConstants[i].angleMotorConstants.currentLimit = 50;
                  kSwerveConstants.moduleConstants[i].angleMotorConstants.encoderConversionFactor = 28.125;
                  kSwerveConstants.moduleConstants[i].angleMotorConstants.subsystemName = "Swerve Module " + i + " Angle Motor";
-                 kSwerveConstants.moduleConstants[i].angleMotorConstants.createShuffleboard = false;
+                 kSwerveConstants.moduleConstants[i].angleMotorConstants.enableLogging = true;
                  kSwerveConstants.moduleConstants[i].angleMotorConstants.controlConstants = ControlConstants.createPID(0.01, 0, 0.005, 0);
              }
 
@@ -122,6 +134,7 @@ public class Robot extends TimedRobot {
              kSwerveControllerConstants.driverFieldRelative = true;
              kSwerveControllerConstants.pathConstraints = new PathConstraints(5, 10, 8, 16);
              kSwerveControllerConstants.robotConfig = new RobotConfig(50, 20, new ModuleConfig(0.04, 5, 1, DCMotor.getKrakenX60(1), 60, 4), 0.7);
+             kSwerveControllerConstants.rotationPIDContinuousConnections = Pair.of(-180.0, 180.0);
          }
 
          public static final PathFollowingController kPathFollowingController =
@@ -183,6 +196,20 @@ public class Robot extends TimedRobot {
     NinjasSimulatedController shooter;
     CommandPS5Controller _controller = new CommandPS5Controller(0);
     public Robot() {
+        boolean replayLastGame = false;
+        if (!(replayLastGame && isSimulation())) {
+            Logger.addDataReceiver(new WPILOGWriter()); // Log to a USB stick ("/U/logs")
+            Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
+            new PowerDistribution(1, ModuleType.kRev); // Enables power distribution logging
+        } else {
+            setUseTiming(false); // Run as fast as possible
+            String logPath = LogFileUtil.findReplayLog(); // Pull the replay log from AdvantageScope (or prompt the user)
+            Logger.setReplaySource(new WPILOGReader(logPath)); // Read replay log
+            Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim"))); // Save outputs to a new log
+        }
+
+        Logger.start(); // Start logging! No more data receivers, replay sources, or metadata values may be added.
+        
 //    MainControllerConstants c = new MainControllerConstants();
 //    c.main.id = 30;
 //    c.controlConstants = ControlConstants.createTorqueCurrent(7.5, 0);
@@ -192,7 +219,7 @@ public class Robot extends TimedRobot {
 
         SwerveIO.setConstants(SwerveConstants.kSwerveConstants);
         RobotStateWithSwerve.setInstance(new RobotState(), SwerveConstants.kSwerveConstants.kinematics, false, (o) -> 0, 45);
-//        SwerveController.setConstants(SwerveConstants.kSwerveControllerConstants, SwerveIO.getInstance());
+        SwerveController.setConstants(SwerveConstants.kSwerveControllerConstants, SwerveIO.getInstance());
 
         StateMachineIO.setInstance(new StateMachineIO<st>(false) {
             @Override
@@ -305,11 +332,11 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopPeriodic() {
         SwerveIO.getInstance().drive(new ChassisSpeeds(-_controller.getLeftY() * 5, -_controller.getLeftX() * 5, -_controller.getRightX() * 11), false);
-        SwerveIO.getInstance().periodic();
+//        SwerveIO.getInstance().periodic();
 //        shooter.periodic();
 
 //        SwerveController.getInstance().Demand.driverInput = new ChassisSpeeds(-_controller.getLeftY(), -_controller.getLeftX(), -_controller.getRightX());
-//        SwerveController.getInstance().periodic();
+        SwerveController.getInstance().periodic();
     }
 
     @Override

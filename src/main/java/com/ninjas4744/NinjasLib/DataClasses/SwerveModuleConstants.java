@@ -10,11 +10,11 @@ public class SwerveModuleConstants<T extends NinjasController> {
     public int canCoderID;
     public Class<T> driveControllerType;
     public Class<T> angleControllerType;
-    public boolean createShuffleboard;
+    public boolean enableLogging;
     public boolean invertCANCoder;
     public double CANCoderOffset;
 
-    public SwerveModuleConstants(int moduleNumber, MainControllerConstants driveMotorConstants, MainControllerConstants angleMotorConstants, double maxModuleSpeed, int canCoderID, Class<T> driveControllerType, Class<T> angleControllerType, boolean createShuffleboard, boolean invertCANCoder, double CANCoderOffset) {
+    public SwerveModuleConstants(int moduleNumber, MainControllerConstants driveMotorConstants, MainControllerConstants angleMotorConstants, double maxModuleSpeed, int canCoderID, Class<T> driveControllerType, Class<T> angleControllerType, boolean enableLogging, boolean invertCANCoder, double CANCoderOffset) {
         this.moduleNumber = moduleNumber;
         this.driveMotorConstants = driveMotorConstants;
         this.angleMotorConstants = angleMotorConstants;
@@ -22,7 +22,7 @@ public class SwerveModuleConstants<T extends NinjasController> {
         this.canCoderID = canCoderID;
         this.driveControllerType = driveControllerType;
         this.angleControllerType = angleControllerType;
-        this.createShuffleboard = createShuffleboard;
+        this.enableLogging = enableLogging;
         this.invertCANCoder = invertCANCoder;
         this.CANCoderOffset = CANCoderOffset;
     }

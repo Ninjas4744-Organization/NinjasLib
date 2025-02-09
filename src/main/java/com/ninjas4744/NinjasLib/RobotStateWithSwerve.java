@@ -17,14 +17,12 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
+import org.littletonrobotics.junction.Logger;
 
 public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<StateEnum>{
     private AHRS navX;
     private Pigeon2 pigeon;
     private SwerveDrivePoseEstimator poseEstimator;
-    private final StructPublisher<Pose2d> _robotPosePublisher = NetworkTableInstance.getDefault()
-        .getStructTopic("Robot Pose", Pose2d.struct)
-        .publish();
     private SwerveDriveKinematics _kinematics;
     private boolean _gyroInverted;
     private FOMCalculator _fomCalculator;
@@ -55,14 +53,14 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<State
 
     @Override
     protected void init(){
-        if(pigeonID != -1)
-            pigeon = new Pigeon2(pigeonID);
-        else
-            navX = new AHRS(AHRS.NavXComType.kMXP_SPI);
-
         if(!isSimulated()){
             poseEstimator = new SwerveDrivePoseEstimator(_kinematics, getGyroYaw(),
                 ((Swerve)SwerveIO.getInstance()).getModulePositions(), new Pose2d());
+
+            if(pigeonID != -1)
+                pigeon = new Pigeon2(pigeonID);
+            else
+                navX = new AHRS(AHRS.NavXComType.kMXP_SPI);
         }else{
             poseEstimator = new SwerveDrivePoseEstimator(_kinematics, new Rotation2d(),
                 new SwerveModulePosition[]{
@@ -91,7 +89,7 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<State
      * @param pose - the pose to set the robot pose to
      */
     public void setRobotPose(Pose2d pose) {
-        _robotPosePublisher.set(pose);
+        Logger.recordOutput("Robot Pose", pose);
 
         if(!isSimulated())
             poseEstimator.resetPosition(getGyroYaw(), ((Swerve)SwerveIO.getInstance()).getModulePositions(), pose);
@@ -110,7 +108,8 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<State
      */
     public void updateRobotPose(SwerveModulePosition[] modulePositions) {
         poseEstimator.update(getGyroYaw(), modulePositions);
-        _robotPosePublisher.set(getRobotPose());
+//        _robotPosePublisher.set(getRobotPose());
+        Logger.recordOutput("Robot Pose", getRobotPose());
     }
 
     /**
@@ -131,7 +130,7 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<State
             );
         }
 
-        _robotPosePublisher.set(getRobotPose());
+        Logger.recordOutput("Robot Pose", getRobotPose());
     }
 
     /**

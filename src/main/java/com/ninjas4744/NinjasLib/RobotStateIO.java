@@ -4,6 +4,7 @@ import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
+import org.littletonrobotics.junction.Logger;
 
 public abstract class RobotStateIO<StateEnum> {
     protected static RobotStateIO _instance;
@@ -38,6 +39,7 @@ public abstract class RobotStateIO<StateEnum> {
      */
     public void setRobotState(StateEnum state) {
         System.out.println("[Robot State Change] " + _robotState.toString() + " -> " + state.toString());
+        Logger.recordOutput("Robot State", _robotState.toString());
         _robotState = state;
     }
 

@@ -106,8 +106,6 @@ public class NinjasSparkMaxController extends NinjasController {
 
 	@Override
 	public void periodic() {
-		super.periodic();
-
 		switch (_constants.controlConstants.type) {
 			case PROFILED_PID:
 				isCurrentlyPiding = true;
@@ -137,5 +135,7 @@ public class NinjasSparkMaxController extends NinjasController {
 		if (!isCurrentlyPiding && _controlState != ControlState.PERCENT_OUTPUT)
 			_PIDFController.reset(new TrapezoidProfile.State(getPosition(), getVelocity()));
 		isCurrentlyPiding = false;
+
+		super.periodic();
 	}
 }

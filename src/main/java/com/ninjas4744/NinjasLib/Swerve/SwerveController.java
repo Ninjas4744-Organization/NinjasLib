@@ -17,6 +17,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import org.littletonrobotics.junction.Logger;
 
 import java.util.List;
 
@@ -84,15 +85,15 @@ public class SwerveController {
                 constants.drivePIDConstants.D);
         _yPID.setIZone(constants.drivePIDConstants.IZone);
 
-        if(!constants.swerveConstants.createShuffleBoard)
-            return;
+//        if(!constants.swerveConstants.createShuffleBoard)
+//            return;
 
-        Shuffleboard.getTab("Swerve").addBoolean("Drive Assist Finished", this::isDriveAssistFinished);
-        Shuffleboard.getTab("Swerve").addNumber("Driver Input X", () -> Demand.driverInput.vxMetersPerSecond);
-        Shuffleboard.getTab("Swerve").addNumber("Driver Input Y", () -> Demand.driverInput.vyMetersPerSecond);
-        Shuffleboard.getTab("Swerve").addNumber("Driver Input Omega", () -> Demand.driverInput.omegaRadiansPerSecond);
-        Shuffleboard.getTab("Swerve").addString("State", () -> _state.toString());
-        Shuffleboard.getTab("Swerve").addString("Previous State", () -> _previousState.toString());
+//        Shuffleboard.getTab("Swerve").addBoolean("Drive Assist Finished", this::isDriveAssistFinished);
+//        Shuffleboard.getTab("Swerve").addNumber("Driver Input X", () -> Demand.driverInput.vxMetersPerSecond);
+//        Shuffleboard.getTab("Swerve").addNumber("Driver Input Y", () -> Demand.driverInput.vyMetersPerSecond);
+//        Shuffleboard.getTab("Swerve").addNumber("Driver Input Omega", () -> Demand.driverInput.omegaRadiansPerSecond);
+//        Shuffleboard.getTab("Swerve").addString("State", () -> _state.toString());
+//        Shuffleboard.getTab("Swerve").addString("Previous State", () -> _previousState.toString());
     }
 
     /**
@@ -328,5 +329,13 @@ public class SwerveController {
         }
 
         _swerve.periodic();
+
+        if(!_constants.swerveConstants.enableLogging)
+            return;
+
+        Logger.recordOutput("Swerve/Driver Input", Demand.driverInput);
+        Logger.recordOutput("Swerve/Drive Assist Finished", isDriveAssistFinished());
+        Logger.recordOutput("Swerve/State", _state.toString());
+        Logger.recordOutput("Swerve/Previous State", _previousState.toString());
     }
 }

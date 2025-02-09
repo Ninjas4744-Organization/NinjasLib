@@ -36,6 +36,6 @@ public class SwerveConstants {
     /** Swerve kinematics class used for calculating swerve movement */
     public SwerveDriveKinematics kinematics;
 
-    /** Whether to create shuffleboard tabs for the swerve*/
-    public boolean createShuffleBoard;
+    /** Whether to log swerve data to advantage scope */
+    public boolean enableLogging;
 }
