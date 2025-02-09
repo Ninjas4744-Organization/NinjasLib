@@ -54,13 +54,13 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<State
     @Override
     protected void init(){
         if(!isSimulated()){
-            poseEstimator = new SwerveDrivePoseEstimator(_kinematics, getGyroYaw(),
-                ((Swerve)SwerveIO.getInstance()).getModulePositions(), new Pose2d());
-
             if(pigeonID != -1)
                 pigeon = new Pigeon2(pigeonID);
             else
                 navX = new AHRS(AHRS.NavXComType.kMXP_SPI);
+
+            poseEstimator = new SwerveDrivePoseEstimator(_kinematics, getGyroYaw(),
+                ((Swerve)SwerveIO.getInstance()).getModulePositions(), new Pose2d());
         }else{
             poseEstimator = new SwerveDrivePoseEstimator(_kinematics, new Rotation2d(),
                 new SwerveModulePosition[]{
