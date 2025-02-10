@@ -39,7 +39,7 @@ public abstract class RobotStateIO<StateEnum> {
      */
     public void setRobotState(StateEnum state) {
         System.out.println("[Robot State Change] " + _robotState.toString() + " -> " + state.toString());
-        Logger.recordOutput("Robot State", _robotState.toString());
+        Logger.recordOutput("Robot State", state.toString());
         _robotState = state;
     }
 
