@@ -112,6 +112,6 @@ public class NinjasTalonFXController extends NinjasController {
 
     @Override
     public void setEncoder(double position) {
-        _main.setPosition(position);
+        _main.setPosition(position / _constants.encoderConversionFactor);
     }
 }

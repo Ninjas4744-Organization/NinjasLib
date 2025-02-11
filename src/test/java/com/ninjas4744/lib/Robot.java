@@ -1,12 +1,11 @@
 package com.ninjas4744.lib;
 
+import com.ninjas4744.NinjasLib.Controllers.NinjasSimulatedController;
+import com.ninjas4744.NinjasLib.Controllers.NinjasTalonFXController;
+import com.ninjas4744.NinjasLib.DataClasses.*;
 import com.ninjas4744.NinjasLib.RobotStateIO;
 import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
 import com.ninjas4744.NinjasLib.StateMachineIO;
-import com.ninjas4744.NinjasLib.Controllers.NinjasSimulatedController;
-import com.ninjas4744.NinjasLib.Controllers.NinjasSparkMaxController;
-import com.ninjas4744.NinjasLib.Controllers.NinjasTalonFXController;
-import com.ninjas4744.NinjasLib.DataClasses.*;
 import com.ninjas4744.NinjasLib.Subsystems.StateMachineMotoredSubsystem;
 import com.ninjas4744.NinjasLib.Swerve.SwerveController;
 import com.ninjas4744.NinjasLib.Swerve.SwerveIO;
@@ -18,6 +17,7 @@ import com.pathplanner.lib.controllers.PathFollowingController;
 import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -26,7 +26,6 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
-import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 
@@ -81,47 +80,59 @@ public class Robot extends LoggedRobot {
 
      public class SwerveConstants {
          public static final com.ninjas4744.NinjasLib.DataClasses.SwerveConstants kSwerveConstants = new com.ninjas4744.NinjasLib.DataClasses.SwerveConstants();
-         static{
+         static {
              kSwerveConstants.openLoop = true;
              kSwerveConstants.trackWidth = 0.62;
              kSwerveConstants.wheelBase = 0.62;
              kSwerveConstants.kinematics = new SwerveDriveKinematics(
-               new Translation2d(kSwerveConstants.wheelBase / 2.0, kSwerveConstants.trackWidth / 2.0),
-               new Translation2d(kSwerveConstants.wheelBase / 2.0, -kSwerveConstants.trackWidth / 2.0),
-               new Translation2d(-kSwerveConstants.wheelBase / 2.0, kSwerveConstants.trackWidth / 2.0),
-               new Translation2d(-kSwerveConstants.wheelBase / 2.0, -kSwerveConstants.trackWidth / 2.0)
+                     new Translation2d(kSwerveConstants.wheelBase / 2.0, kSwerveConstants.trackWidth / 2.0),
+                     new Translation2d(kSwerveConstants.wheelBase / 2.0, -kSwerveConstants.trackWidth / 2.0),
+                     new Translation2d(-kSwerveConstants.wheelBase / 2.0, kSwerveConstants.trackWidth / 2.0),
+                     new Translation2d(-kSwerveConstants.wheelBase / 2.0, -kSwerveConstants.trackWidth / 2.0)
              );
 
              kSwerveConstants.maxSpeed = 5;
              kSwerveConstants.maxAngularVelocity = 10.7;
-             kSwerveConstants.speedLimit = 2.5;
-             kSwerveConstants.rotationSpeedLimit = 6;
+             kSwerveConstants.speedLimit = 5;
+             kSwerveConstants.rotationSpeedLimit = 10.7;
              kSwerveConstants.accelerationLimit = 10;
              kSwerveConstants.rotationAccelerationLimit = 54;
-             kSwerveConstants.enableLogging = true;
 
+             kSwerveConstants.enableLogging = true;
              kSwerveConstants.moduleConstants = new SwerveModuleConstants[4];
-             for(int i = 0; i < 4; i++){
-                 kSwerveConstants.moduleConstants[i] = new SwerveModuleConstants<>(i, new MainControllerConstants(), new MainControllerConstants(), kSwerveConstants.maxSpeed, 40 + i, NinjasSparkMaxController.class, NinjasSparkMaxController.class, true, false, 0);
+
+             for (int i = 0; i < 4; i++) {
+                 kSwerveConstants.moduleConstants[i] = new SwerveModuleConstants<>(i,
+                         new MainControllerConstants(),
+                         new MainControllerConstants(),
+                         kSwerveConstants.maxSpeed,
+                         6 + i,
+                         NinjasTalonFXController.class,
+                         NinjasTalonFXController.class,
+                         true,
+                         false,
+                         0);
+
                  kSwerveConstants.moduleConstants[i].driveMotorConstants.main.id = 10 + i * 2;
-                 kSwerveConstants.moduleConstants[i].driveMotorConstants.main.inverted = true;
-                 kSwerveConstants.moduleConstants[i].driveMotorConstants.currentLimit = 50;
-                 kSwerveConstants.moduleConstants[i].driveMotorConstants.encoderConversionFactor = 0.0521545447;
+                 kSwerveConstants.moduleConstants[i].driveMotorConstants.currentLimit = 68;
+                 kSwerveConstants.moduleConstants[i].driveMotorConstants.encoderConversionFactor = 0.056267331109070916;
                  kSwerveConstants.moduleConstants[i].driveMotorConstants.subsystemName = "Swerve Module " + i + " Drive Motor";
                  kSwerveConstants.moduleConstants[i].driveMotorConstants.enableLogging = true;
+                 kSwerveConstants.moduleConstants[i].driveMotorConstants.controlConstants = ControlConstants.createTorqueCurrent(5, 0.1);
 
                  kSwerveConstants.moduleConstants[i].angleMotorConstants.main.id = 11 + i * 2;
+                 kSwerveConstants.moduleConstants[i].angleMotorConstants.main.inverted = false;
                  kSwerveConstants.moduleConstants[i].angleMotorConstants.currentLimit = 50;
-                 kSwerveConstants.moduleConstants[i].angleMotorConstants.encoderConversionFactor = 28.125;
+                 kSwerveConstants.moduleConstants[i].angleMotorConstants.encoderConversionFactor = 19.2;
                  kSwerveConstants.moduleConstants[i].angleMotorConstants.subsystemName = "Swerve Module " + i + " Angle Motor";
                  kSwerveConstants.moduleConstants[i].angleMotorConstants.enableLogging = true;
-                 kSwerveConstants.moduleConstants[i].angleMotorConstants.controlConstants = ControlConstants.createPID(0.01, 0, 0.005, 0);
+                 kSwerveConstants.moduleConstants[i].angleMotorConstants.controlConstants = ControlConstants.createPID(1, 0, 0, 0);
              }
 
-             kSwerveConstants.moduleConstants[0].CANCoderOffset = 0.493652;
-             kSwerveConstants.moduleConstants[1].CANCoderOffset = -0.359375;
-             kSwerveConstants.moduleConstants[2].CANCoderOffset = -0.270752;
-             kSwerveConstants.moduleConstants[3].CANCoderOffset = -0.134277;
+             kSwerveConstants.moduleConstants[0].CANCoderOffset = -0.290039;
+             kSwerveConstants.moduleConstants[1].CANCoderOffset = 0.226562;
+             kSwerveConstants.moduleConstants[2].CANCoderOffset = 0.235596;
+             kSwerveConstants.moduleConstants[3].CANCoderOffset = 0.274170;
          }
 
          public static final SwerveControllerConstants kSwerveControllerConstants = new SwerveControllerConstants();
@@ -198,7 +209,7 @@ public class Robot extends LoggedRobot {
     public Robot() {
         boolean replayLastGame = false;
         if (!(replayLastGame && isSimulation())) {
-            Logger.addDataReceiver(new WPILOGWriter()); // Log to a USB stick ("/U/logs")
+//            Logger.addDataReceiver(new WPILOGWriter()); // Log to a USB stick ("/U/logs")
             Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
             new PowerDistribution(1, ModuleType.kRev); // Enables power distribution logging
         } else {
@@ -229,8 +240,8 @@ public class Robot extends LoggedRobot {
 
             @Override
             protected void setEndConditionMap() {
-                addEndCondition(st.hey, new StateEndCondition<>(() -> true, st.hey));
-                addEndCondition(st.hey, new StateEndCondition<>(() -> true, st.hey));
+//                addEndCondition(st.hey, new StateEndCondition<>(() -> true, st.hey));
+//                addEndCondition(st.hey, new StateEndCondition<>(() -> true, st.hey));
             }
 
             @Override
@@ -285,7 +296,7 @@ public class Robot extends LoggedRobot {
     @Override
     public void robotPeriodic() {
         CommandScheduler.getInstance().run();
-
+        SwerveController.getInstance().periodic();
 //        shooterAngle.periodic();
 //    _shooter.periodic();
 //    System.out.println(VisionIO.getInstance().getVisionEstimations()[0].closestTagDist);
@@ -331,12 +342,13 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void teleopPeriodic() {
-        SwerveIO.getInstance().drive(new ChassisSpeeds(-_controller.getLeftY() * 5, -_controller.getLeftX() * 5, -_controller.getRightX() * 11), false);
+//        SwerveIO.getInstance().drive(new ChassisSpeeds(-_controller.getLeftY() * 5, -_controller.getLeftX() * 5, -_controller.getRightX() * 11), false);
+        SwerveController.getInstance().Demand.driverInput = new ChassisSpeeds(-MathUtil.applyDeadband(_controller.getLeftY(), 0.1) * 2, -MathUtil.applyDeadband(_controller.getLeftX(), 0.1) * 2, -MathUtil.applyDeadband(_controller.getRightX(), 0.1) * 4);
+        SwerveController.getInstance().setState(SwerveDemand.SwerveState.DEFAULT);
 //        SwerveIO.getInstance().periodic();
 //        shooter.periodic();
 
 //        SwerveController.getInstance().Demand.driverInput = new ChassisSpeeds(-_controller.getLeftY(), -_controller.getLeftX(), -_controller.getRightX());
-        SwerveController.getInstance().periodic();
     }
 
     @Override

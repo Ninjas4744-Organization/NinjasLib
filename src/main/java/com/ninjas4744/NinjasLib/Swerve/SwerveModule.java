@@ -99,7 +99,7 @@ public class SwerveModule {
         double targetAngle = currentAngle + angleDiff;
 
         System.out.println("Encoder: " + angleMotor.getPosition() + " -> Absolute: " + targetAngle);
-        if (Math.abs(angleDiff) > 2) angleMotor.setEncoder(targetAngle);
+        angleMotor.setEncoder(targetAngle);
     }
 
     public Rotation2d getCanCoder() {
