@@ -5,11 +5,11 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ninjas4744.NinjasLib.Controllers.*;
 import com.ninjas4744.NinjasLib.DataClasses.SwerveModuleConstants;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Units;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import org.littletonrobotics.junction.Logger;
 
 public class SwerveModule {
@@ -85,8 +85,13 @@ public class SwerveModule {
         else driveMotor.setVelocity(desiredState.speedMetersPerSecond);
 
         //Angle
-        // Prevent rotating module if speed is less then 1%. Prevents Jittering.
-        Rotation2d angle = (Math.abs(desiredState.speedMetersPerSecond) <= (maxModuleSpeed * 0.01)) ? lastAngle : desiredState.angle;
+        // Prevent rotating module if speed is less than 3%. Prevents jittering.
+        Rotation2d angle = (Math.abs(desiredState.speedMetersPerSecond) <= (maxModuleSpeed * 0.03)) ? lastAngle : desiredState.angle;
+        //Prevent jumping from -180 to 180
+        double errorBound = (180 - -180) / 2.0;
+        double error = MathUtil.inputModulus(angle.getDegrees() - angleMotor.getPosition(), -errorBound, errorBound);
+        angle = Rotation2d.fromDegrees(angleMotor.getPosition() + error);
+        //Rotate
         angleMotor.setPosition(angle.getDegrees());
         lastAngle = angle;
     }

@@ -343,7 +343,7 @@ public class Robot extends LoggedRobot {
     @Override
     public void teleopPeriodic() {
 //        SwerveIO.getInstance().drive(new ChassisSpeeds(-_controller.getLeftY() * 5, -_controller.getLeftX() * 5, -_controller.getRightX() * 11), false);
-        SwerveController.getInstance().Demand.driverInput = new ChassisSpeeds(-MathUtil.applyDeadband(_controller.getLeftY(), 0.1) * 2, -MathUtil.applyDeadband(_controller.getLeftX(), 0.1) * 2, -MathUtil.applyDeadband(_controller.getRightX(), 0.1) * 4);
+        SwerveController.getInstance().Demand.driverInput = new ChassisSpeeds(-MathUtil.applyDeadband(_controller.getLeftY(), 0.1) * 0.4, -MathUtil.applyDeadband(_controller.getLeftX(), 0.1) * 0.4, -MathUtil.applyDeadband(_controller.getRightX(), 0.1) * 0.25);
         SwerveController.getInstance().setState(SwerveDemand.SwerveState.DEFAULT);
 //        SwerveIO.getInstance().periodic();
 //        shooter.periodic();
