@@ -4,6 +4,7 @@ import com.ctre.phoenix6.configs.*;
 import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ninjas4744.NinjasLib.DataClasses.MainControllerConstants;
 
 public class NinjasTalonFXController extends NinjasController {
@@ -26,7 +27,8 @@ public class NinjasTalonFXController extends NinjasController {
               .withInverted(
                 constants.main.inverted
                   ? InvertedValue.CounterClockwise_Positive
-                  : InvertedValue.Clockwise_Positive))
+                  : InvertedValue.Clockwise_Positive)
+                    .withNeutralMode(constants.isBrakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast))
             .withMotionMagic(new MotionMagicConfigs()
               .withMotionMagicAcceleration(constants.controlConstants.Acceleration)
               .withMotionMagicCruiseVelocity(constants.controlConstants.CruiseVelocity))
@@ -45,7 +47,7 @@ public class NinjasTalonFXController extends NinjasController {
         _followers = new TalonFX[constants.followers.length];
         for (int i = 0; i < _followers.length; i++) {
             _followers[i] = new TalonFX(constants.followers[i].id);
-            _followers[i].getConfigurator().apply(new TalonFXConfiguration());
+            _followers[i].getConfigurator().apply(new TalonFXConfiguration().MotorOutput.withNeutralMode(constants.isBrakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast));
             _followers[i].setControl(new Follower(constants.main.id, constants.followers[i].inverted));
         }
     }

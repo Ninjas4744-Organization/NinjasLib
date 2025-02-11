@@ -4,6 +4,9 @@ public class MainControllerConstants {
 	/** Controller constants for the main controller in the subsystem */
 	public ControllerConstants main = new ControllerConstants();
 
+	/** Whether the neutral mode of the controller should be brake or coast(in brake mode setting motor to 0 makes a sudden stop, in coast mode setting motor to 0 makes it free and slowly climb down to zero due to friction */
+	public boolean isBrakeMode = true;
+
 	/** Controller constants for the controllers that follow the main controller in the subsystem */
 	public ControllerConstants[] followers = new ControllerConstants[0];
 
