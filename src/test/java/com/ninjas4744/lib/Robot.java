@@ -14,11 +14,17 @@ import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.controllers.PathFollowingController;
+import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.Waypoint;
+import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Pair;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -32,6 +38,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import java.io.IOException;
 import java.util.List;
 
+import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -144,8 +151,18 @@ public class Robot extends LoggedRobot {
              kSwerveControllerConstants.driveAssistThreshold = 2;
              kSwerveControllerConstants.driverFieldRelative = true;
              kSwerveControllerConstants.pathConstraints = new PathConstraints(5, 10, 8, 16);
-             kSwerveControllerConstants.robotConfig = new RobotConfig(50, 20, new ModuleConfig(0.04, 5, 1, DCMotor.getKrakenX60(1), 60, 4), 0.7);
-             kSwerveControllerConstants.rotationPIDContinuousConnections = Pair.of(-180.0, 180.0);
+
+             try {
+                kSwerveControllerConstants.robotConfig = RobotConfig.fromGUISettings();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (ParseException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }//new RobotConfig(50, 20, new ModuleConfig(0.04, 5, 1, DCMotor.getKrakenX60(1), 60, 4), 0.7);
+             
+            kSwerveControllerConstants.rotationPIDContinuousConnections = Pair.of(-180.0, 180.0);
          }
 
          public static final PathFollowingController kPathFollowingController =
@@ -291,6 +308,25 @@ public class Robot extends LoggedRobot {
 //            SwerveController.getInstance().setState(SwerveDemand.SwerveState.DEFAULT);
 //            SwerveController.getInstance().setState(SwerveDemand.SwerveState.DRIVE_ASSIST);
 //        }));
+
+        List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(
+                new Pose2d(0, 0, Rotation2d.kZero),
+                new Pose2d(0.15, 0, Rotation2d.kZero)
+        );
+
+        PathPlannerPath path = new PathPlannerPath(
+                waypoints,
+                SwerveConstants.kSwerveControllerConstants.pathConstraints,
+                null,
+                new GoalEndState(0.01, Rotation2d.kZero));
+
+        PathPlannerTrajectory traj = new PathPlannerTrajectory(
+                path,
+                SwerveIO.getInstance().getChassisSpeeds(false),
+                Rotation2d.kZero,
+                SwerveConstants.kSwerveControllerConstants.robotConfig);
+
+        System.out.println();
     }
 
     @Override

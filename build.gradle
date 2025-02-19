@@ -1,6 +1,6 @@
 plugins {
     id "java"
-    id "edu.wpi.first.GradleRIO" version "2025.2.1"
+    id "edu.wpi.first.GradleRIO" version "2025.3.1"
     id "idea"
     id 'maven-publish'
 }
@@ -8,7 +8,7 @@ plugins {
 apply plugin: 'java'
 apply plugin: 'maven-publish'
 group = 'com.github.Ninjas4744-Organization'
-version = '0.45'
+version = '0.46'
 
 def javaVersion = JavaVersion.VERSION_17
 
@@ -17,7 +17,7 @@ java {
     targetCompatibility = javaVersion
 }
 
-def ROBOT_MAIN_CLASS = "com.ninjas4744.NinjasLib.Main"
+def ROBOT_MAIN_CLASS = "com.ninjas4744.lib.Main"
 
 // Define my targets (RoboRIO) and artifacts (deployable files)
 // This is added by GradleRIO's backing project DeployUtils.

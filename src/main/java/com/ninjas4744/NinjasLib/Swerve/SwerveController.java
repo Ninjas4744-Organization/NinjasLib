@@ -4,7 +4,6 @@ import com.ninjas4744.NinjasLib.DataClasses.SwerveControllerConstants;
 import com.ninjas4744.NinjasLib.DataClasses.SwerveDemand;
 import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
 import com.pathplanner.lib.path.GoalEndState;
-import com.pathplanner.lib.path.IdealStartingState;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.Waypoint;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
@@ -13,10 +12,8 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import org.littletonrobotics.junction.Logger;
 
 import java.util.List;
@@ -26,14 +23,13 @@ public class SwerveController {
     private final PIDController _xPID;
     private final PIDController _yPID;
     private final PIDController _axisPID;
-    // private final Timer pathfindingTimer = new Timer();
-    // private PathPlannerTrajectory pathfindingCurrentTraj = null;
     private final SwerveControllerConstants _constants;
     private final SwerveIO _swerve;
 
     private final Timer _driveAssistTimer = new Timer();
     private Pose2d _driveAssistTargetPose;
     private PathPlannerTrajectory _driveAssistTrajectory;
+    // private boolean isDriveAssistPID = false;
 
     public final SwerveDemand Demand;
     private SwerveDemand.SwerveState _state;
@@ -214,18 +210,25 @@ public class SwerveController {
     public ChassisSpeeds driveAssist(Pose2d targetPose) {
         if (targetPose != _driveAssistTargetPose) {
             _driveAssistTargetPose = targetPose;
-            startingDriveAssist(_driveAssistTargetPose);
+            
+            // if(RobotStateWithSwerve.getInstance().getDistanceTo(targetPose).getNorm() > 0.2){
+            //     isDriveAssistPID = false;
+                startingDriveAssist(_driveAssistTargetPose);
+            // }
+            // else
+            //     isDriveAssistPID = true;
         }
 
-        return calculateDriveAssist();
+        // if(!isDriveAssistPID)
+            return calculateDriveAssist();
+        // else{
+        //     Translation2d pid = pidTo(targetPose.getTranslation());
+        //     return new ChassisSpeeds(pid.getX(), pid.getY(), lookAtTarget(targetPose, Rotation2d.kZero));
+        // }
     }
 
     private ChassisSpeeds calculateDriveAssist() {
         PathPlannerTrajectoryState desiredState = _driveAssistTrajectory.sample(_driveAssistTimer.get());
-
-//        Rotation2d heading = desiredState.;
-//        double xFeedforward = desiredState.linearVelocity * heading.getCos();
-//        double yFeedforward = desiredState.linearVelocity * heading.getSin();
 
         double thetaFeedback = lookAt(desiredState.pose.getRotation().getDegrees(), 1);
         Translation2d feedback = pidTo(desiredState.pose.getTranslation());
