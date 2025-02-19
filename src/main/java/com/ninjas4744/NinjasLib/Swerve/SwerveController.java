@@ -208,7 +208,7 @@ public class SwerveController {
      * @return Calculated chassis speeds, field relative
      */
     public ChassisSpeeds driveAssist(Pose2d targetPose) {
-        if (targetPose != _driveAssistTargetPose) {
+        if (!targetPose.equals(_driveAssistTargetPose)) {
             _driveAssistTargetPose = targetPose;
             
             // if(RobotStateWithSwerve.getInstance().getDistanceTo(targetPose).getNorm() > 0.2){
