@@ -46,7 +46,7 @@ public class NinjasTalonFXController extends NinjasController {
               .withKV(constants.controlConstants.V)
               .withKG(constants.controlConstants.G)
               .withGravityType(GravityTypeValue.Arm_Cosine))
-                  .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(constants.encoderConversionFactor)));
+                  .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(1 / constants.encoderConversionFactor)));
 
         _followers = new TalonFX[constants.followers.length];
         for (int i = 0; i < _followers.length; i++) {
