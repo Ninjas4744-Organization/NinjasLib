@@ -1,5 +1,7 @@
 package com.ninjas4744.NinjasLib.DataClasses;
 
+import com.ctre.phoenix6.signals.GravityTypeValue;
+
 /** Proportional Integral Derivative Feedforward, constants for combining PID and Feedforward */
 public class ControlConstants {
 	public enum SmartControlType{
@@ -45,6 +47,16 @@ public class ControlConstants {
 	public double V = 0;
 
 	/**
+	 * How much voltage to overcome gravity
+	 */
+	public double G = 0;
+
+	/**
+	 * Whether the gravity on the subsystem is like an elevator or line an arm. This will only affect kG if you gave it a number
+	 */
+	public GravityTypeValue GravityType = GravityTypeValue.Elevator_Static;
+
+	/**
 	 * the max velocity the feedforward should reach, this is the velocity the PIDF will be most of
 	 * the way
 	 */
@@ -68,17 +80,18 @@ public class ControlConstants {
 		return constants;
 	}
 
-	public static ControlConstants createProfile(double CruiseVelocity, double Acceleration, double V, double S) {
+	public static ControlConstants createProfile(double CruiseVelocity, double Acceleration, double V, double S, double G) {
 		ControlConstants constants = new ControlConstants();
 		constants.type = SmartControlType.PROFILE;
 		constants.CruiseVelocity = CruiseVelocity;
 		constants.Acceleration = Acceleration;
 		constants.V = V;
 		constants.S = S;
+		constants.G=G;
 		return constants;
 	}
 
-	public static ControlConstants createProfiledPID(double P, double I, double D, double IZone, double CruiseVelocity, double Acceleration, double V, double S) {
+	public static ControlConstants createProfiledPID(double P, double I, double D, double IZone, double CruiseVelocity, double Acceleration, double V, double S, double G) {
 		ControlConstants constants = new ControlConstants();
 		constants.type = SmartControlType.PROFILED_PID;
 		constants.P = P;
@@ -89,6 +102,7 @@ public class ControlConstants {
 		constants.Acceleration = Acceleration;
 		constants.V = V;
 		constants.S = S;
+		constants.G=G;
 		return constants;
 	}
 

@@ -3,6 +3,7 @@ package com.ninjas4744.NinjasLib.Controllers;
 import com.ctre.phoenix6.configs.*;
 import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ninjas4744.NinjasLib.DataClasses.MainControllerConstants;
@@ -42,7 +43,10 @@ public class NinjasTalonFXController extends NinjasController {
               .withKI(constants.controlConstants.I)
               .withKD(constants.controlConstants.D)
               .withKS(constants.controlConstants.S)
-              .withKV(constants.controlConstants.V)));
+              .withKV(constants.controlConstants.V)
+              .withKG(constants.controlConstants.G)
+              .withGravityType(GravityTypeValue.Arm_Cosine))
+                  .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(constants.encoderConversionFactor)));
 
         _followers = new TalonFX[constants.followers.length];
         for (int i = 0; i < _followers.length; i++) {
@@ -65,15 +69,15 @@ public class NinjasTalonFXController extends NinjasController {
 
         switch (_constants.controlConstants.type) {
             case PROFILED_PID, PROFILE:
-                _main.setControl(new MotionMagicVoltage(position / _constants.encoderConversionFactor));
+                _main.setControl(new MotionMagicVoltage(position));
                 break;
 
             case PID:
-                _main.setControl(new PositionVoltage(position / _constants.encoderConversionFactor));
+                _main.setControl(new PositionVoltage(position));
                 break;
 
             case TORQUE_CURRENT:
-                _main.setControl(new PositionTorqueCurrentFOC(position / _constants.encoderConversionFactor));
+                _main.setControl(new PositionTorqueCurrentFOC(position));
                 break;
         }
     }
@@ -84,36 +88,40 @@ public class NinjasTalonFXController extends NinjasController {
 
         switch (_constants.controlConstants.type) {
             case PROFILED_PID, PROFILE:
-                _main.setControl(new MotionMagicVelocityVoltage(velocity / _constants.encoderConversionFactor));
+                _main.setControl(new MotionMagicVelocityVoltage(velocity));
                 break;
 
             case PID:
-                _main.setControl(new VelocityVoltage(velocity / _constants.encoderConversionFactor));
+                _main.setControl(new VelocityVoltage(velocity));
                 break;
 
             case TORQUE_CURRENT:
-                _main.setControl(new VelocityTorqueCurrentFOC(velocity / _constants.encoderConversionFactor));
+                _main.setControl(new VelocityTorqueCurrentFOC(velocity));
                 break;
         }
     }
 
     @Override
     public double getPosition() {
-        return _main.getPosition().getValueAsDouble() * _constants.encoderConversionFactor;
+        return _main.getPosition().getValueAsDouble();
     }
 
     @Override
     public double getVelocity() {
-        return _main.getVelocity().getValueAsDouble() * _constants.encoderConversionFactor;
+        return _main.getVelocity().getValueAsDouble();
     }
 
     @Override
     public double getOutput() {
         return _main.get();
     }
+    @Override
+    public double getCurrent() {
+        return _main.getStatorCurrent().getValueAsDouble();
+    }
 
     @Override
     public void setEncoder(double position) {
-        _main.setPosition(position / _constants.encoderConversionFactor);
+        _main.setPosition(position);
     }
 }

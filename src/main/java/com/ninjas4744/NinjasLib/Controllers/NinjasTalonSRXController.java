@@ -2,7 +2,9 @@ package com.ninjas4744.NinjasLib.Controllers;
 
 import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix6.StatusSignal;
 import com.ninjas4744.NinjasLib.DataClasses.MainControllerConstants;
+import edu.wpi.first.units.measure.Current;
 
 public class NinjasTalonSRXController extends NinjasController {
 	private final TalonSRX _main;
@@ -91,6 +93,12 @@ public class NinjasTalonSRXController extends NinjasController {
 	public double getOutput() {
 		return _main.getMotorOutputPercent();
 	}
+
+	@Override
+	public double getCurrent() {
+		return _main.getBusVoltage();
+	}
+
 
 	@Override
 	public void setEncoder(double position) {
