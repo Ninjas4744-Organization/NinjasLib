@@ -106,11 +106,11 @@ public class Swerve extends SwerveIO {
 
         RobotStateWithSwerve.getInstance().updateRobotPose(getModulePositions());
 
-        if(!_constants.enableLogging)
-            return;
-
         for (SwerveModule module : _modules)
             module.periodic();
+
+        if(!_constants.enableLogging)
+            return;
 
         Logger.recordOutput("Swerve/Current Velocity", getChassisSpeeds(true));
         Logger.recordOutput("Swerve/Wanted Velocity", ChassisSpeeds.fromRobotRelativeSpeeds(_robotRelativeSpeeds, RobotStateWithSwerve.getInstance().getGyroYaw()));

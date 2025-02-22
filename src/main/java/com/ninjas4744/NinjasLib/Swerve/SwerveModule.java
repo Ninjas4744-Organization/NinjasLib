@@ -130,6 +130,9 @@ public class SwerveModule {
     }
 
     public void periodic() {
+        driveMotor.periodic();
+        angleMotor.periodic();
+
         if(!_constants.enableLogging)
             return;
 

@@ -115,6 +115,7 @@ public class NinjasTalonFXController extends NinjasController {
     public double getOutput() {
         return _main.get();
     }
+
     @Override
     public double getCurrent() {
         return _main.getStatorCurrent().getValueAsDouble();
@@ -122,6 +123,6 @@ public class NinjasTalonFXController extends NinjasController {
 
     @Override
     public void setEncoder(double position) {
-        _main.setPosition(position);
+        _main.setPosition(position / _constants.encoderConversionFactor);
     }
 }
