@@ -97,14 +97,14 @@ public class SwerveModule {
     }
 
     public void resetToAbsolute() {
-        double absolutePosition = getCanCoder().getDegrees() % 360;
-        double currentAngle = angleMotor.getPosition();
+        double absolutePosition = ((getCanCoder().getDegrees() + 540) % 360) - 180;
+//        double currentAngle = angleMotor.getPosition();
 
-        double angleDiff = ((absolutePosition - currentAngle + 540) % 360) - 180;  // Normalize to [-180, 180]
-        double targetAngle = currentAngle + angleDiff;
+//        double angleDiff = ((absolutePosition - currentAngle + 540) % 360) - 180;  // Normalize to [-180, 180]
+//        double targetAngle = currentAngle + angleDiff;
 
-        System.out.println("Encoder: " + angleMotor.getPosition() + " -> Absolute: " + targetAngle);
-        angleMotor.setEncoder(targetAngle);
+        System.out.println("Encoder: " + angleMotor.getPosition() + " -> Absolute: " + absolutePosition);
+        angleMotor.setEncoder(absolutePosition);
     }
 
     public Rotation2d getCanCoder() {

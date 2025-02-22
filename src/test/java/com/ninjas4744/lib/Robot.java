@@ -4,8 +4,10 @@ import com.ninjas4744.NinjasLib.Controllers.NinjasSimulatedController;
 import com.ninjas4744.NinjasLib.Controllers.NinjasTalonFXController;
 import com.ninjas4744.NinjasLib.DataClasses.*;
 import com.ninjas4744.NinjasLib.RobotStateIO;
+import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
 import com.ninjas4744.NinjasLib.StateMachineIO;
 import com.ninjas4744.NinjasLib.Subsystems.StateMachineMotoredSubsystem;
+import com.ninjas4744.NinjasLib.Swerve.SwerveIO;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
@@ -15,6 +17,7 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -121,7 +124,7 @@ public class Robot extends LoggedRobot {
                  kSwerveConstants.moduleConstants[i].angleMotorConstants.encoderConversionFactor = 19.2;
                  kSwerveConstants.moduleConstants[i].angleMotorConstants.subsystemName = "Swerve Module " + i + " Angle Motor";
                  kSwerveConstants.moduleConstants[i].angleMotorConstants.enableLogging = true;
-                 kSwerveConstants.moduleConstants[i].angleMotorConstants.controlConstants = ControlConstants.createPID(1, 0, 0, 0);
+                 kSwerveConstants.moduleConstants[i].angleMotorConstants.controlConstants = ControlConstants.createPID(4 / 19.2, 0, 0, 0);
              }
 
              kSwerveConstants.moduleConstants[0].CANCoderOffset = -0.290039;
@@ -202,7 +205,7 @@ public class Robot extends LoggedRobot {
          }
      }
 
-     public class RobotState extends RobotStateIO<st> {
+     public class RobotState extends RobotStateWithSwerve<st> {
         public RobotState(){
             _robotState = st.hey;
         }
@@ -238,26 +241,6 @@ public class Robot extends LoggedRobot {
 //        RobotStateWithSwerve.setInstance(new RobotState(), SwerveConstants.kSwerveConstants.kinematics, false, (o) -> 0, 45);
 //        SwerveController.setConstants(SwerveConstants.kSwerveControllerConstants, SwerveIO.getInstance());
 
-        RobotStateIO.setInstance(new RobotState());
-        StateMachineIO.setInstance(new StateMachineIO<st>(false) {
-            @Override
-            protected boolean canChangeRobotState(st currentState, st wantedState) {
-                return true;
-            }
-
-            @Override
-            protected void setEndConditionMap() {
-//                addEndCondition(st.hey, new StateEndCondition<>(() -> true, st.hey));
-//                addEndCondition(st.hey, new StateEndCondition<>(() -> true, st.hey));
-            }
-
-            @Override
-            protected void setFunctionMaps() {
-
-            }
-        });
-
-//
 //        VisionConstants kVisionConstants = new VisionConstants();
 //        kVisionConstants.cameras = Map.of(
 //          "Front", new Transform3d(0.28 - 0.11 - 0.2, 0.105, -0.055, new Rotation3d(0, 30, 0)));
@@ -316,6 +299,26 @@ public class Robot extends LoggedRobot {
 //                Rotation2d.kZero,
 //                SwerveConstants.kSwerveControllerConstants.robotConfig);
 
+        SwerveIO.setConstants(SwerveConstants.kSwerveConstants);
+        RobotStateWithSwerve.setInstance(new RobotState(), SwerveConstants.kSwerveConstants.kinematics, false, (o) -> 0, 45);
+        StateMachineIO.setInstance(new StateMachineIO<st>(false) {
+            @Override
+            protected boolean canChangeRobotState(st currentState, st wantedState) {
+                return true;
+            }
+
+            @Override
+            protected void setEndConditionMap() {
+//                addEndCondition(st.hey, new StateEndCondition<>(() -> true, st.hey));
+//                addEndCondition(st.hey, new StateEndCondition<>(() -> true, st.hey));
+            }
+
+            @Override
+            protected void setFunctionMaps() {
+
+            }
+        });
+
         MainControllerConstants c = new MainControllerConstants();
         c.main.id = 30;
         c.controlConstants = ControlConstants.createPID(1, 0, 0, 0);
@@ -328,7 +331,7 @@ public class Robot extends LoggedRobot {
 
         _controller.cross().onTrue(Commands.runOnce(() -> _yes.setPosition(1)));
         _controller.circle().onTrue(Commands.runOnce(() -> _yes.setPosition(0)));
-        _controller.square().onTrue(Commands.runOnce(() -> _yes.resetEncoder()));
+        _controller.square().onTrue(Commands.runOnce(() -> _yes.setEncoder(0.5)));
     }
 
     @Override
@@ -381,10 +384,10 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void teleopPeriodic() {
-//        SwerveIO.getInstance().drive(new ChassisSpeeds(-_controller.getLeftY() * 5, -_controller.getLeftX() * 5, -_controller.getRightX() * 11), false);
+        SwerveIO.getInstance().drive(new ChassisSpeeds(-_controller.getLeftY() * 5, -_controller.getLeftX() * 5, -_controller.getRightX() * 11), false);
 //        SwerveController.getInstance().Demand.driverInput = new ChassisSpeeds(-MathUtil.applyDeadband(_controller.getLeftY(), 0.1) * 0.4, -MathUtil.applyDeadband(_controller.getLeftX(), 0.1) * 0.4, -MathUtil.applyDeadband(_controller.getRightX(), 0.1) * 0.25);
 //        SwerveController.getInstance().setState(SwerveDemand.SwerveState.DEFAULT);
-//        SwerveIO.getInstance().periodic();
+        SwerveIO.getInstance().periodic();
 //        shooter.periodic();
 
 //        SwerveController.getInstance().Demand.driverInput = new ChassisSpeeds(-_controller.getLeftY(), -_controller.getLeftX(), -_controller.getRightX());
