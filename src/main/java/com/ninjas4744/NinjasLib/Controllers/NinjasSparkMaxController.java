@@ -100,6 +100,11 @@ public class NinjasSparkMaxController extends NinjasController {
 	}
 
 	@Override
+	public double getCurrent() {
+		return _main.getOutputCurrent();
+	}
+
+	@Override
 	public void setEncoder(double position) {
 		_main.getEncoder().setPosition(position);
 	}

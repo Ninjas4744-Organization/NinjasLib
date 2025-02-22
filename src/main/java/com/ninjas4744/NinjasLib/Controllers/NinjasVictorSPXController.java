@@ -57,6 +57,11 @@ public class NinjasVictorSPXController extends NinjasController {
 	}
 
 	@Override
+	public double getCurrent() {
+		return _main.getBusVoltage();
+	}
+
+	@Override
 	public void setEncoder(double position) {
 		throw new UnsupportedOperationException("No encoder on VictorSPX");
 	}

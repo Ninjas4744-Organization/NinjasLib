@@ -4,35 +4,23 @@ import com.ninjas4744.NinjasLib.Controllers.NinjasSimulatedController;
 import com.ninjas4744.NinjasLib.Controllers.NinjasTalonFXController;
 import com.ninjas4744.NinjasLib.DataClasses.*;
 import com.ninjas4744.NinjasLib.RobotStateIO;
-import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
 import com.ninjas4744.NinjasLib.StateMachineIO;
 import com.ninjas4744.NinjasLib.Subsystems.StateMachineMotoredSubsystem;
-import com.ninjas4744.NinjasLib.Swerve.SwerveController;
-import com.ninjas4744.NinjasLib.Swerve.SwerveIO;
-import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.controllers.PathFollowingController;
-import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
-import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.path.Waypoint;
-import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Pair;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 
 import java.io.IOException;
@@ -214,7 +202,7 @@ public class Robot extends LoggedRobot {
          }
      }
 
-     public class RobotState extends RobotStateWithSwerve<st> {
+     public class RobotState extends RobotStateIO<st> {
         public RobotState(){
             _robotState = st.hey;
         }
@@ -222,6 +210,7 @@ public class Robot extends LoggedRobot {
 
     NinjasSimulatedController shooterAngle;
     NinjasSimulatedController shooter;
+    NinjasTalonFXController _yes;
     CommandPS5Controller _controller = new CommandPS5Controller(0);
     public Robot() {
         boolean replayLastGame = false;
@@ -245,10 +234,11 @@ public class Robot extends LoggedRobot {
 //
 //    _controller.cross().whileTrue(Commands.startEnd(() -> _shooter.setVelocity(100), () -> _shooter.stop()));
 
-        SwerveIO.setConstants(SwerveConstants.kSwerveConstants);
-        RobotStateWithSwerve.setInstance(new RobotState(), SwerveConstants.kSwerveConstants.kinematics, false, (o) -> 0, 45);
-        SwerveController.setConstants(SwerveConstants.kSwerveControllerConstants, SwerveIO.getInstance());
+//        SwerveIO.setConstants(SwerveConstants.kSwerveConstants);
+//        RobotStateWithSwerve.setInstance(new RobotState(), SwerveConstants.kSwerveConstants.kinematics, false, (o) -> 0, 45);
+//        SwerveController.setConstants(SwerveConstants.kSwerveControllerConstants, SwerveIO.getInstance());
 
+        RobotStateIO.setInstance(new RobotState());
         StateMachineIO.setInstance(new StateMachineIO<st>(false) {
             @Override
             protected boolean canChangeRobotState(st currentState, st wantedState) {
@@ -309,30 +299,43 @@ public class Robot extends LoggedRobot {
 //            SwerveController.getInstance().setState(SwerveDemand.SwerveState.DRIVE_ASSIST);
 //        }));
 
-        List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(
-                new Pose2d(0, 0, Rotation2d.kZero),
-                new Pose2d(0.15, 0, Rotation2d.kZero)
-        );
+//        List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(
+//                new Pose2d(0, 0, Rotation2d.kZero),
+//                new Pose2d(0.15, 0, Rotation2d.kZero)
+//        );
+//
+//        PathPlannerPath path = new PathPlannerPath(
+//                waypoints,
+//                SwerveConstants.kSwerveControllerConstants.pathConstraints,
+//                null,
+//                new GoalEndState(0.01, Rotation2d.kZero));
+//
+//        PathPlannerTrajectory traj = new PathPlannerTrajectory(
+//                path,
+//                SwerveIO.getInstance().getChassisSpeeds(false),
+//                Rotation2d.kZero,
+//                SwerveConstants.kSwerveControllerConstants.robotConfig);
 
-        PathPlannerPath path = new PathPlannerPath(
-                waypoints,
-                SwerveConstants.kSwerveControllerConstants.pathConstraints,
-                null,
-                new GoalEndState(0.01, Rotation2d.kZero));
+        MainControllerConstants c = new MainControllerConstants();
+        c.main.id = 30;
+        c.controlConstants = ControlConstants.createPID(1, 0, 0, 0);
+        c.encoderConversionFactor = 1 / 10.0;
+        c.positionGoalTolerance = 0.1;
+        c.subsystemName = "yes";
+        c.currentLimit = 40;
+        _yes = new NinjasTalonFXController(c);
+        _yes.resetEncoder();
 
-        PathPlannerTrajectory traj = new PathPlannerTrajectory(
-                path,
-                SwerveIO.getInstance().getChassisSpeeds(false),
-                Rotation2d.kZero,
-                SwerveConstants.kSwerveControllerConstants.robotConfig);
-
-        System.out.println();
+        _controller.cross().onTrue(Commands.runOnce(() -> _yes.setPosition(1)));
+        _controller.circle().onTrue(Commands.runOnce(() -> _yes.setPosition(0)));
+        _controller.square().onTrue(Commands.runOnce(() -> _yes.resetEncoder()));
     }
 
     @Override
     public void robotPeriodic() {
         CommandScheduler.getInstance().run();
-        SwerveController.getInstance().periodic();
+        _yes.periodic();
+//        SwerveController.getInstance().periodic();
 //        shooterAngle.periodic();
 //    _shooter.periodic();
 //    System.out.println(VisionIO.getInstance().getVisionEstimations()[0].closestTagDist);
@@ -379,8 +382,8 @@ public class Robot extends LoggedRobot {
     @Override
     public void teleopPeriodic() {
 //        SwerveIO.getInstance().drive(new ChassisSpeeds(-_controller.getLeftY() * 5, -_controller.getLeftX() * 5, -_controller.getRightX() * 11), false);
-        SwerveController.getInstance().Demand.driverInput = new ChassisSpeeds(-MathUtil.applyDeadband(_controller.getLeftY(), 0.1) * 0.4, -MathUtil.applyDeadband(_controller.getLeftX(), 0.1) * 0.4, -MathUtil.applyDeadband(_controller.getRightX(), 0.1) * 0.25);
-        SwerveController.getInstance().setState(SwerveDemand.SwerveState.DEFAULT);
+//        SwerveController.getInstance().Demand.driverInput = new ChassisSpeeds(-MathUtil.applyDeadband(_controller.getLeftY(), 0.1) * 0.4, -MathUtil.applyDeadband(_controller.getLeftX(), 0.1) * 0.4, -MathUtil.applyDeadband(_controller.getRightX(), 0.1) * 0.25);
+//        SwerveController.getInstance().setState(SwerveDemand.SwerveState.DEFAULT);
 //        SwerveIO.getInstance().periodic();
 //        shooter.periodic();
 

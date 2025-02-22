@@ -86,7 +86,6 @@ public abstract class NinjasController {
 	 */
 	public void setPercent(double percent) {
 		_controlState = ControlState.PERCENT_OUTPUT;
-		_goal = percent;
 	}
 
 	/**
@@ -142,6 +141,11 @@ public abstract class NinjasController {
 	public abstract double getOutput();
 
 	/**
+	 * @return the current the motor is taking
+	 */
+	public abstract double getCurrent();
+
+	/**
 	 * Sets the position in the encoder so it thinks it is at that position
 	 *
 	 * @param position the position to set the encoder to
@@ -194,6 +198,7 @@ public abstract class NinjasController {
 		Logger.recordOutput(_constants.subsystemName + "/Position", getPosition());
 		Logger.recordOutput(_constants.subsystemName + "/Velocity", getVelocity());
 		Logger.recordOutput(_constants.subsystemName + "/Output", getOutput());
+		Logger.recordOutput(_constants.subsystemName+"/Current", getCurrent());
 		Logger.recordOutput(_constants.subsystemName + "/Goal", getGoal());
 		Logger.recordOutput(_constants.subsystemName + "/Control State", _controlState.toString());
 		Logger.recordOutput(_constants.subsystemName + "/Control Type", _constants.controlConstants.type == SmartControlType.NONE ? "N/A" : _constants.controlConstants.type.toString());

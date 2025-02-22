@@ -105,6 +105,11 @@ public class NinjasSimulatedController extends NinjasController {
     }
 
     @Override
+    public double getCurrent() {
+        return 0;
+    }
+
+    @Override
     public void setEncoder(double position) {
         _position = position;
     }
