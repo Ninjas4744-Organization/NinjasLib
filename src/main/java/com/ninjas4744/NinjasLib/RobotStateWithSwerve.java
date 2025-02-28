@@ -9,10 +9,7 @@ import com.studica.frc.AHRS;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -79,8 +76,16 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<State
         return poseEstimator.getEstimatedPosition();
     }
 
-    public Translation2d getDistanceTo(Pose2d other){
-        return other.getTranslation().minus(getRobotPose().getTranslation());
+    public double getDistance(Pose2d other){
+        return other.getTranslation().minus(getRobotPose().getTranslation()).getNorm();
+    }
+
+    public Transform2d getTransform(Pose2d other){
+//        return other.minus(getRobotPose());
+        return new Transform2d(
+            other.getTranslation().minus(getRobotPose().getTranslation()),
+            other.getRotation().minus(getRobotPose().getRotation())
+        );
     }
 
     /**

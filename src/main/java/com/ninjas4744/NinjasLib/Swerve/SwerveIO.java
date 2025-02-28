@@ -53,19 +53,6 @@ public abstract class SwerveIO {
         drive(new ChassisSpeeds(0, 0, 0), false);
     }
 
-    /**
-     * Convert percent chassis speeds to m/s chassis speeds
-     * @param percent the percent chassis speeds to convert
-     * @return the m/s chassis speeds to give the swerve
-     */
-    public ChassisSpeeds fromPercent(ChassisSpeeds percent) {
-        return new ChassisSpeeds(
-            percent.vxMetersPerSecond * _constants.maxSpeed,
-            percent.vyMetersPerSecond * _constants.maxSpeed,
-            percent.omegaRadiansPerSecond * _constants.maxAngularVelocity
-        );
-    }
-
     public void setAccelerationLimit(double accelerationLimit){
         _constants.accelerationLimit = accelerationLimit;
 

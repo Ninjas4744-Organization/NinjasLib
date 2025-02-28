@@ -1,7 +1,7 @@
 package com.ninjas4744.NinjasLib.Swerve;
 
 import com.ninjas4744.NinjasLib.DataClasses.SwerveControllerConstants;
-import com.ninjas4744.NinjasLib.DataClasses.SwerveDemand;
+import com.ninjas4744.NinjasLib.DataClasses.SwerveInput;
 import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -29,11 +29,10 @@ public class SwerveController {
     private final Timer _driveAssistTimer = new Timer();
     private Pose2d _driveAssistTargetPose;
     private PathPlannerTrajectory _driveAssistTrajectory;
-    // private boolean isDriveAssistPID = false;
 
-    public final SwerveDemand Demand;
-    private SwerveDemand.SwerveState _state;
-    private SwerveDemand.SwerveState _previousState;
+    private SwerveInput _lastInput;
+    private String _state;
+    private String _previousState;
 
     private static SwerveController _instance = null;
 
@@ -51,9 +50,9 @@ public class SwerveController {
         _constants = constants;
         _swerve = swerve;
 
-        _state = SwerveDemand.SwerveState.DEFAULT;
-        _previousState = SwerveDemand.SwerveState.DEFAULT;
-        Demand = new SwerveDemand();
+        _state = "";
+        _previousState = "";
+        _lastInput = new SwerveInput(new ChassisSpeeds(), false, "");
 
         _anglePID = new PIDController(
             constants.rotationPIDConstants.P,
@@ -80,23 +79,13 @@ public class SwerveController {
                 constants.drivePIDConstants.I,
                 constants.drivePIDConstants.D);
         _yPID.setIZone(constants.drivePIDConstants.IZone);
-
-//        if(!constants.swerveConstants.createShuffleBoard)
-//            return;
-
-//        Shuffleboard.getTab("Swerve").addBoolean("Drive Assist Finished", this::isDriveAssistFinished);
-//        Shuffleboard.getTab("Swerve").addNumber("Driver Input X", () -> Demand.driverInput.vxMetersPerSecond);
-//        Shuffleboard.getTab("Swerve").addNumber("Driver Input Y", () -> Demand.driverInput.vyMetersPerSecond);
-//        Shuffleboard.getTab("Swerve").addNumber("Driver Input Omega", () -> Demand.driverInput.omegaRadiansPerSecond);
-//        Shuffleboard.getTab("Swerve").addString("State", () -> _state.toString());
-//        Shuffleboard.getTab("Swerve").addString("Previous State", () -> _previousState.toString());
     }
 
     /**
      * Makes the swerve use PID to look at the given angle
      *
-     * @param angle - the angle to look at
-     * @param roundToAngle - the angle jumps to round to, for example 45 degrees will make it round
+     * @param angle the angle to look at
+     * @param roundToAngle the angle jumps to round to, for example 45 degrees will make it round
      *     the given angle to the nearest 0, 45, 90, 135... it rounds the angle only if the rounded
      *     angle is close enough to the given angle so for example if the given angle is 28 and the
      *     rounded angle is 45 it won't round. if you write 1 as the roundToAngle there will be no
@@ -127,7 +116,7 @@ public class SwerveController {
     }
 
     public double lookAtTarget(Pose2d target, Rotation2d offset) {
-        Translation2d lookAtTranslation = RobotStateWithSwerve.getInstance().getDistanceTo(target).rotateBy(offset);
+        Translation2d lookAtTranslation = RobotStateWithSwerve.getInstance().getTransform(target).getTranslation().rotateBy(offset);
         return lookAt(lookAtTranslation, 1);
     }
 
@@ -137,7 +126,7 @@ public class SwerveController {
             _yPID.calculate(RobotStateWithSwerve.getInstance().getRobotPose().getY(), target.getY()));
     }
 
-    private ChassisSpeeds pathfindTo(Pose2d pose, ChassisSpeeds driverInput) {
+    public ChassisSpeeds pathfindTo(Pose2d pose, ChassisSpeeds driverInput) {
         return new ChassisSpeeds(0, 0, 0);
 //        Pathfinding.setGoalPosition(pose.getTranslation());
 //        Pathfinding.setStartPosition(RobotStateWithSwerve.getInstance().getRobotPose().getTranslation());
@@ -178,7 +167,7 @@ public class SwerveController {
      * @param driverInput    the driver controller input
      * @param isXDriverInput whether to let the driver drive along the axis by the x of the joystick input or the y
      */
-    private ChassisSpeeds lockAxis(Rotation2d angle, Pose2d point, ChassisSpeeds driverInput, boolean isXDriverInput, boolean invertDriverInput) {
+    public ChassisSpeeds lockAxis(Rotation2d angle, Pose2d point, ChassisSpeeds driverInput, boolean isXDriverInput, boolean invertDriverInput) {
         Translation2d axis = new Translation2d(-1, angle);
         Translation2d perpendicularAxis = axis.rotateBy(Rotation2d.fromDegrees(90));
         Translation2d robotPose = RobotStateWithSwerve.getInstance().getRobotPose().getTranslation();
@@ -186,7 +175,7 @@ public class SwerveController {
         double a = -axis.getY();
         double b = axis.getX();
 //        double c = -phase * Math.sqrt(a * a + b * b);
-        double c = - a * point.getX() - b * point.getY();
+        double c = -a * point.getX() - b * point.getY();
         double error = -(a * robotPose.getX() + b * robotPose.getY() + c) / Math.sqrt(a * a + b * b);
         Translation2d pid = perpendicularAxis.times(_axisPID.calculate(-error));
 
@@ -207,24 +196,13 @@ public class SwerveController {
      * @param targetPose - given target
      * @return Calculated chassis speeds, field relative
      */
-    public ChassisSpeeds driveAssist(Pose2d targetPose) {
-        if (!targetPose.equals(_driveAssistTargetPose)) {
+    public ChassisSpeeds driveAssist(Pose2d targetPose, boolean createPath) {
+        if (createPath) {
             _driveAssistTargetPose = targetPose;
-            
-            // if(RobotStateWithSwerve.getInstance().getDistanceTo(targetPose).getNorm() > 0.2){
-            //     isDriveAssistPID = false;
-                startingDriveAssist(_driveAssistTargetPose);
-            // }
-            // else
-            //     isDriveAssistPID = true;
+            startingDriveAssist(_driveAssistTargetPose);
         }
 
-        // if(!isDriveAssistPID)
-            return calculateDriveAssist();
-        // else{
-        //     Translation2d pid = pidTo(targetPose.getTranslation());
-        //     return new ChassisSpeeds(pid.getX(), pid.getY(), lookAtTarget(targetPose, Rotation2d.kZero));
-        // }
+        return calculateDriveAssist();
     }
 
     private ChassisSpeeds calculateDriveAssist() {
@@ -237,7 +215,7 @@ public class SwerveController {
     }
 
     private void startingDriveAssist(Pose2d targetPose) {
-        Rotation2d dir = RobotStateWithSwerve.getInstance().getDistanceTo(targetPose).getAngle();
+        Rotation2d dir = RobotStateWithSwerve.getInstance().getTransform(targetPose).getTranslation().getAngle();
         List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(
             new Pose2d(RobotStateWithSwerve.getInstance().getRobotPose().getX(), RobotStateWithSwerve.getInstance().getRobotPose().getY(), dir),
             new Pose2d(targetPose.getX(), targetPose.getY(), dir)
@@ -262,83 +240,72 @@ public class SwerveController {
      * @return Whether the path following was finished, will return false if not started
      */
     public boolean isDriveAssistFinished() {
-        return _driveAssistTrajectory != null && _driveAssistTimer.get() > _driveAssistTrajectory.getTotalTimeSeconds();
+        return _driveAssistTimer.get() > _driveAssistTrajectory.getTotalTimeSeconds();
+    }
+
+    /**
+     * Drives the swerve according to input. Ignores input if type isn't equals to swerve state, so you can spam inputs and only the right one will be used.
+     * @param input the swerve input to drive according to
+     * @see #setState(String)
+     * @see #lookAt(double, double)
+     * @see #lookAtTarget(Pose2d, Rotation2d)
+     * @see #pidTo(Translation2d)
+     * @see #lockAxis(Rotation2d, Pose2d, ChassisSpeeds, boolean, boolean)
+     * @see #pathfindTo(Pose2d, ChassisSpeeds)
+     * @see #driveAssist(Pose2d, boolean)
+     */
+    public void setControl(SwerveInput input) {
+        if(input.getType().equals(_state)){
+            _lastInput = input;
+            _swerve.drive(input.getChassisSpeeds(), input.isFieldRelative());
+        }
     }
 
     /**
      * Set the current state of the swerve, so it will work according
      * @param state the wanted state
      */
-    public void setState(SwerveDemand.SwerveState state) {
+    public void setState(String state) {
         _previousState = _state;
         _state = state;
-
-        if(state != SwerveDemand.SwerveState.DRIVE_ASSIST){
-            _driveAssistTargetPose = null;
-            _driveAssistTrajectory = null;
-            _driveAssistTimer.stop();
-            _driveAssistTimer.reset();
-        }
     }
 
     /**
      * @return the current state of the swerve
      */
-    public SwerveDemand.SwerveState getState() {
+    public String getState() {
         return _state;
     }
 
     /**
      * @return the previous state of the swerve, the state it was before changing it
      */
-    public SwerveDemand.SwerveState getPreviousState() {
+    public String getPreviousState() {
         return _previousState;
     }
 
+    /**
+     * Convert percent chassis speeds to m/s chassis speeds
+     * @param percent the percent chassis speeds to convert
+     * @return the m/s chassis speeds to give the swerve
+     */
+    public ChassisSpeeds fromPercent(ChassisSpeeds percent) {
+        return new ChassisSpeeds(
+            percent.vxMetersPerSecond * _constants.swerveConstants.maxSpeed,
+            percent.vyMetersPerSecond * _constants.swerveConstants.maxSpeed,
+            percent.omegaRadiansPerSecond * _constants.swerveConstants.maxAngularVelocity
+        );
+    }
+
     public void periodic() {
-        ChassisSpeeds driverInput = _swerve.fromPercent(Demand.driverInput);
-
-        switch (_state) {
-            case DEFAULT:
-                _swerve.drive(driverInput, _constants.driverFieldRelative);
-                break;
-
-            case DRIVE_ASSIST:
-                if((!isDriveAssistFinished() || Demand.targetPose != _driveAssistTargetPose) && RobotStateWithSwerve.getInstance().getDistanceTo(Demand.targetPose).getNorm() <= _constants.driveAssistThreshold)
-                    _swerve.drive(driveAssist(Demand.targetPose), true);
-                else
-                    _swerve.drive(driverInput, _constants.driverFieldRelative);
-                break;
-
-            case LOOK_AT_TARGET:
-                _swerve.drive(
-                    new ChassisSpeeds(
-                        driverInput.vxMetersPerSecond,
-                        driverInput.vyMetersPerSecond,
-                        lookAtTarget(Demand.targetPose, Demand.angleOffset)), true);
-                break;
-
-            case PATHFINDING:
-                _swerve.drive(pathfindTo(Demand.targetPose, driverInput), true);
-                break;
-
-            case VELOCITY:
-                _swerve.drive(Demand.velocity, Demand.fieldRelative);
-                break;
-
-            case LOCKED_AXIS:
-                _swerve.drive(lockAxis(Demand.angle, Demand.point, driverInput, Demand.isXDriverInput, Demand.invertDriverInput), true);
-                break;
-        }
-
         _swerve.periodic();
 
         if(!_constants.swerveConstants.enableLogging)
             return;
 
-        Logger.recordOutput("Swerve/Driver Input", Demand.driverInput);
+        Logger.recordOutput("Swerve/Input", _lastInput.getChassisSpeeds());
         Logger.recordOutput("Swerve/Drive Assist Finished", isDriveAssistFinished());
-        Logger.recordOutput("Swerve/State", _state.toString());
-        Logger.recordOutput("Swerve/Previous State", _previousState.toString());
+        Logger.recordOutput("Swerve/State", _state);
+        Logger.recordOutput("Swerve/Previous State", _previousState);
     }
 }
