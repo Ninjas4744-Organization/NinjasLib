@@ -124,13 +124,15 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<State
      */
     public void updateRobotPose(VisionOutput visionEstimation) {
         if (visionEstimation.hasTargets){
+            double[] fom = _fomCalculator.calculateFOM(visionEstimation);
+
             poseEstimator.addVisionMeasurement(
                 visionEstimation.robotPose,
                 visionEstimation.timestamp,
                 new Matrix<>(Nat.N3(), Nat.N1(), new double[] {
-                    _fomCalculator.calculateFOM(visionEstimation),
-                    _fomCalculator.calculateFOM(visionEstimation),
-                    _fomCalculator.calculateFOM(visionEstimation),
+                    fom[0],
+                    fom[1],
+                    fom[2],
                 })
             );
         }

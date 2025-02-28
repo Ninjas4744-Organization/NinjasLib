@@ -140,7 +140,6 @@ public class Robot extends LoggedRobot {
              kSwerveControllerConstants.rotationPIDConstants = ControlConstants.createPID(0.057, 0.09, 0.003, 10);
              kSwerveControllerConstants.axisLockPIDConstants = ControlConstants.createPID(0.14, 0, 0, 0);
              kSwerveControllerConstants.driveAssistThreshold = 2;
-             kSwerveControllerConstants.driverFieldRelative = true;
              kSwerveControllerConstants.pathConstraints = new PathConstraints(5, 10, 8, 16);
 
              try {

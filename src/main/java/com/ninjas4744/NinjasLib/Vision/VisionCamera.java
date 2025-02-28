@@ -14,129 +14,130 @@ import java.util.List;
 import java.util.Optional;
 
 public class VisionCamera {
-	private final PhotonCamera _camera;
-	private final PhotonPoseEstimator _estimator;
-	private List<PhotonTrackedTarget> _targets;
-	private final VisionOutput _output;
-	private final List<Integer> _ignoredTags;
-	private final VisionConstants _constants;
-	private boolean disconnected = false;
+    private final PhotonCamera _camera;
+    private final PhotonPoseEstimator _estimator;
+    private List<PhotonTrackedTarget> _targets;
+    private final VisionOutput _output;
+    private final List<Integer> _ignoredTags;
+    private final VisionConstants _constants;
+    private boolean disconnected = false;
 
-	/**
-	 * @param name Name of the camera.
-	 * @param cameraPose Location of the camera on the robot (from center, positive x forward,
-	 *     positive y left, and positive angle is counterclockwise).
-	 */
-	public VisionCamera(String name, Transform3d cameraPose, VisionConstants constants) {
-		_constants = constants;
+    /**
+     * @param name Name of the camera.
+     * @param cameraPose Location of the camera on the robot (from center, positive x forward,
+     *     positive y left, and positive angle is counterclockwise).
+     */
+    public VisionCamera(String name, Transform3d cameraPose, VisionConstants constants) {
+        _constants = constants;
 
-		_camera = new PhotonCamera(name);
+        _camera = new PhotonCamera(name);
 
-		_estimator = new PhotonPoseEstimator(
-			_constants.fieldLayoutGetter.getFieldLayout(List.of()),
-				PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
-				cameraPose);
-		_estimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
+        _estimator = new PhotonPoseEstimator(
+                _constants.fieldLayoutGetter.getFieldLayout(List.of()),
+                PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
+                cameraPose);
+        _estimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
 
-		_output = new VisionOutput();
+        _output = new VisionOutput();
+        _output.cameraName = name;
 
-		_ignoredTags = new ArrayList<>();
-	}
-
-	/**
-	 * Updates the results of this camera, should run on periodic
-	 * @return The vision output of this camera
-	 */
-	public VisionOutput Update() {
-		if(disconnected)
-			return _output;
-
-    PhotonPipelineResult result;
-    try {
-			List<PhotonPipelineResult> results = _camera.getAllUnreadResults();
-			if(results.isEmpty())
-				return _output;
-			result = results.get(results.size() - 1);
-    } catch (Exception e) {
-      System.out.println("Camera " + getName() + " disconnected");
-      System.out.println(e.getMessage());
-
-			disconnected = true;
-      _output.hasTargets = false;
-	  	_output.amountOfTargets = 0;
-
-      return _output;
+        _ignoredTags = new ArrayList<>();
     }
 
-		_estimator.setFieldTags(_constants.fieldLayoutGetter.getFieldLayout(_ignoredTags));
-		Optional<EstimatedRobotPose> currentPose = _estimator.update(result);
+    /**
+     * Updates the results of this camera, should run on periodic
+     * @return The vision output of this camera
+     */
+    public VisionOutput Update() {
+        if(disconnected)
+            return _output;
 
-		_output.hasTargets = result.hasTargets();
-		_output.amountOfTargets = result.getTargets().size();
-		if (currentPose.isEmpty()) return _output;
+        PhotonPipelineResult result;
+        try {
+            List<PhotonPipelineResult> results = _camera.getAllUnreadResults();
+            if(results.isEmpty())
+                return _output;
+            result = results.get(results.size() - 1);
+        } catch (Exception e) {
+            System.out.println("Camera " + getName() + " disconnected");
+            System.out.println(e.getMessage());
 
-		_targets = currentPose.get().targetsUsed;
-		findMinMax(_output);
+            disconnected = true;
+            _output.hasTargets = false;
+            _output.amountOfTargets = 0;
 
-		if (_output.maxAmbiguity < _constants.maxAmbiguity || _output.closestTagDist < _constants.maxDistance) {
-			_output.timestamp = currentPose.get().timestampSeconds;
-			_output.robotPose = currentPose.get().estimatedPose.toPose2d();
-		} else{
-			_output.hasTargets = false;
-			_output.amountOfTargets = 0;
-		}
+            return _output;
+        }
 
-		return _output;
-	}
+        _estimator.setFieldTags(_constants.fieldLayoutGetter.getFieldLayout(_ignoredTags));
+        Optional<EstimatedRobotPose> currentPose = _estimator.update(result);
 
-	private void findMinMax(VisionOutput output) {
-		output.closestTagDist = Double.MAX_VALUE;
-		output.farthestTagDist = 0;
-		output.maxAmbiguity = 0;
+        _output.hasTargets = result.hasTargets();
+        _output.amountOfTargets = result.getTargets().size();
+        if (currentPose.isEmpty()) return _output;
 
-		for (PhotonTrackedTarget target : _targets) {
-			double distance = target.getBestCameraToTarget().getTranslation().getNorm();
-			double ambiguity = target.getPoseAmbiguity();
+        _targets = currentPose.get().targetsUsed;
+        findMinMax(_output);
 
-			if (distance < output.closestTagDist) {
-				output.closestTagDist = distance;
-				output.closestTag =
-					_constants.fieldLayoutGetter.getFieldLayout(_ignoredTags).getTags().get(target.getFiducialId() - 1);
-			}
+        if (_output.maxAmbiguity < _constants.maxAmbiguity && _output.closestTagDist < _constants.maxDistance) {
+            _output.timestamp = currentPose.get().timestampSeconds;
+            _output.robotPose = currentPose.get().estimatedPose.toPose2d();
+        } else{
+            _output.hasTargets = false;
+            _output.amountOfTargets = 0;
+        }
 
-			if (distance > output.farthestTagDist) {
-				output.farthestTagDist = distance;
-				output.farthestTag =
-					_constants.fieldLayoutGetter.getFieldLayout(_ignoredTags).getTags().get(target.getFiducialId() - 1);
-			}
+        return _output;
+    }
 
-			if (ambiguity > output.maxAmbiguity) {
-				output.maxAmbiguity = ambiguity;
-				output.maxAmbiguityTag =
-					_constants.fieldLayoutGetter.getFieldLayout(_ignoredTags).getTags().get(target.getFiducialId() - 1);
-			}
-		}
-	}
+    private void findMinMax(VisionOutput output) {
+        output.closestTagDist = Double.MAX_VALUE;
+        output.farthestTagDist = 0;
+        output.maxAmbiguity = 0;
 
-	/**
-	 * @return The PhotonCamera that is being used by this VisionCamera
-	 */
-	public PhotonCamera getCamera() {
-		return _camera;
-	}
+        for (PhotonTrackedTarget target : _targets) {
+            double distance = target.getBestCameraToTarget().getTranslation().getNorm();
+            double ambiguity = target.getPoseAmbiguity();
 
-	/**
-	 * @return name of the camera
-	 */
-	public String getName() {
-		return _camera.getName();
-	}
+            if (distance < output.closestTagDist) {
+                output.closestTagDist = distance;
+                output.closestTag =
+                        _constants.fieldLayoutGetter.getFieldLayout(_ignoredTags).getTags().get(target.getFiducialId() - 1);
+            }
 
-	/**
-	 * Adds an apriltag to the ignored apriltags list. If the camera sees a tag in the ignored list, it ignores it.
-	 * @param id the id of the apriltag to ignore
-	 */
-	public void ignoreTag(int id) {
-		_ignoredTags.add(id);
-	}
+            if (distance > output.farthestTagDist) {
+                output.farthestTagDist = distance;
+                output.farthestTag =
+                        _constants.fieldLayoutGetter.getFieldLayout(_ignoredTags).getTags().get(target.getFiducialId() - 1);
+            }
+
+            if (ambiguity > output.maxAmbiguity) {
+                output.maxAmbiguity = ambiguity;
+                output.maxAmbiguityTag =
+                        _constants.fieldLayoutGetter.getFieldLayout(_ignoredTags).getTags().get(target.getFiducialId() - 1);
+            }
+        }
+    }
+
+    /**
+     * @return The PhotonCamera that is being used by this VisionCamera
+     */
+    public PhotonCamera getCamera() {
+        return _camera;
+    }
+
+    /**
+     * @return name of the camera
+     */
+    public String getName() {
+        return _camera.getName();
+    }
+
+    /**
+     * Adds an apriltag to the ignored apriltags list. If the camera sees a tag in the ignored list, it ignores it.
+     * @param id the id of the apriltag to ignore
+     */
+    public void ignoreTag(int id) {
+        _ignoredTags.add(id);
+    }
 }

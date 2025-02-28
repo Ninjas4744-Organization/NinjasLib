@@ -24,7 +24,6 @@ public class NinjasTalonSRXController extends NinjasController {
 		_main.configMotionCruiseVelocity(
 				constants.controlConstants.CruiseVelocity * constants.encoderConversionFactor / 10);
 		_main.configMotionAcceleration(constants.controlConstants.Acceleration * constants.encoderConversionFactor / 10);
-
 		_main.configForwardSoftLimitEnable(constants.isMaxSoftLimit);
 		_main.configReverseSoftLimitEnable(constants.isMinSoftLimit);
 		_main.configForwardSoftLimitThreshold(constants.maxSoftLimit);

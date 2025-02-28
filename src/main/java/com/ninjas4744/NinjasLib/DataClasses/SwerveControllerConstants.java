@@ -8,9 +8,6 @@ public class SwerveControllerConstants {
     /** Regular swerve constants */
     public SwerveConstants swerveConstants;
 
-    /** When using swerve controller statemachine, should the driver input be interpreted relative to the field or the robot */
-    public boolean driverFieldRelative;
-
     /** Swerve auto driving PID constants */
     public ControlConstants drivePIDConstants;
 

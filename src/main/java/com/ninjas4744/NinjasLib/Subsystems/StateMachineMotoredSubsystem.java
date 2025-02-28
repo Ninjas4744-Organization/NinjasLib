@@ -71,6 +71,13 @@ public abstract class StateMachineMotoredSubsystem<StateEnum> extends StateMachi
     }
 
     /**
+     * @return The current of the controller
+     */
+    public double getCurrent(){
+        return controller().getCurrent();
+    }
+
+    /**
      * Runs the motor at the given percent.
      *
      * @param percent - how much to power the motor between -1 and 1

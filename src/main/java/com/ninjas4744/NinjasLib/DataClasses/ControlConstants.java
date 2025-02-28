@@ -57,16 +57,18 @@ public class ControlConstants {
 	public GravityTypeValue GravityType = GravityTypeValue.Elevator_Static;
 
 	/**
-	 * the max velocity the feedforward should reach, this is the velocity the PIDF will be most of
-	 * the way
+	 * the max velocity the profile should reach
 	 */
 	public double CruiseVelocity = 0;
 
 	/**
-	 * the acceleration in which the feedforward should increase it velocity until cruise velocity
+	 * the acceleration in which the profile should increase its velocity until cruise velocity
 	 * reached
 	 */
 	public double Acceleration = 0;
+
+	/** the rate of acceleration change in the profile */
+	public double Jerk = 0;
 
 	public SmartControlType type = SmartControlType.NONE;
 
@@ -80,18 +82,19 @@ public class ControlConstants {
 		return constants;
 	}
 
-	public static ControlConstants createProfile(double CruiseVelocity, double Acceleration, double V, double S, double G) {
+	public static ControlConstants createProfile(double CruiseVelocity, double Acceleration, double Jerk, double V, double S, double G) {
 		ControlConstants constants = new ControlConstants();
 		constants.type = SmartControlType.PROFILE;
 		constants.CruiseVelocity = CruiseVelocity;
 		constants.Acceleration = Acceleration;
+		constants.Jerk=Jerk;
 		constants.V = V;
 		constants.S = S;
 		constants.G=G;
 		return constants;
 	}
 
-	public static ControlConstants createProfiledPID(double P, double I, double D, double IZone, double CruiseVelocity, double Acceleration, double V, double S, double G) {
+	public static ControlConstants createProfiledPID(double P, double I, double D, double IZone, double CruiseVelocity, double Acceleration, double Jerk, double V, double S, double G) {
 		ControlConstants constants = new ControlConstants();
 		constants.type = SmartControlType.PROFILED_PID;
 		constants.P = P;
@@ -100,6 +103,7 @@ public class ControlConstants {
 		constants.IZone = IZone;
 		constants.CruiseVelocity = CruiseVelocity;
 		constants.Acceleration = Acceleration;
+		constants.Jerk=Jerk;
 		constants.V = V;
 		constants.S = S;
 		constants.G=G;

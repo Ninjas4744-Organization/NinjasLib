@@ -33,4 +33,7 @@ public class VisionOutput {
 
 	/** How many targets the camera detected */
 	public int amountOfTargets;
+
+	/** The name of the camera */
+	public String cameraName;
 }
