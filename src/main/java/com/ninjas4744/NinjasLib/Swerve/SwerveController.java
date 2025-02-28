@@ -1,7 +1,6 @@
 package com.ninjas4744.NinjasLib.Swerve;
 
 import com.ninjas4744.NinjasLib.DataClasses.SwerveControllerConstants;
-import com.ninjas4744.NinjasLib.DataClasses.SwerveInput;
 import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -30,7 +29,7 @@ public class SwerveController {
     private Pose2d _driveAssistTargetPose;
     private PathPlannerTrajectory _driveAssistTrajectory;
 
-    private SwerveInput _lastInput;
+    private ChassisSpeeds _lastInput;
     private String _state;
     private String _previousState;
 
@@ -52,7 +51,7 @@ public class SwerveController {
 
         _state = "";
         _previousState = "";
-        _lastInput = new SwerveInput(new ChassisSpeeds(), false, "");
+        _lastInput = new ChassisSpeeds();
 
         _anglePID = new PIDController(
             constants.rotationPIDConstants.P,
@@ -240,12 +239,11 @@ public class SwerveController {
      * @return Whether the path following was finished, will return false if not started
      */
     public boolean isDriveAssistFinished() {
-        return _driveAssistTimer.get() > _driveAssistTrajectory.getTotalTimeSeconds();
+        return _driveAssistTrajectory != null && _driveAssistTimer.get() > _driveAssistTrajectory.getTotalTimeSeconds();
     }
 
     /**
      * Drives the swerve according to input. Ignores input if type isn't equals to swerve state, so you can spam inputs and only the right one will be used.
-     * @param input the swerve input to drive according to
      * @see #setState(String)
      * @see #lookAt(double, double)
      * @see #lookAtTarget(Pose2d, Rotation2d)
@@ -254,10 +252,10 @@ public class SwerveController {
      * @see #pathfindTo(Pose2d, ChassisSpeeds)
      * @see #driveAssist(Pose2d, boolean)
      */
-    public void setControl(SwerveInput input) {
-        if(input.getType().equals(_state)){
-            _lastInput = input;
-            _swerve.drive(input.getChassisSpeeds(), input.isFieldRelative());
+    public void setControl(ChassisSpeeds chassisSpeeds, boolean fieldRelative, String type) {
+        if(type.equals(_state)){
+            _lastInput = chassisSpeeds;
+            _swerve.drive(chassisSpeeds, fieldRelative);
         }
     }
 
@@ -303,7 +301,7 @@ public class SwerveController {
         if(!_constants.swerveConstants.enableLogging)
             return;
 
-        Logger.recordOutput("Swerve/Input", _lastInput.getChassisSpeeds());
+        Logger.recordOutput("Swerve/Input", _lastInput);
         Logger.recordOutput("Swerve/Drive Assist Finished", isDriveAssistFinished());
         Logger.recordOutput("Swerve/State", _state);
         Logger.recordOutput("Swerve/Previous State", _previousState);
