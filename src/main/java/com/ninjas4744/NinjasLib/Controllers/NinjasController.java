@@ -2,10 +2,8 @@ package com.ninjas4744.NinjasLib.Controllers;
 
 import com.ninjas4744.NinjasLib.DataClasses.ControlConstants.SmartControlType;
 import com.ninjas4744.NinjasLib.DataClasses.MainControllerConstants;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.DigitalInput;
 import org.littletonrobotics.junction.Logger;
-
-import java.util.Map;
 
 public abstract class NinjasController {
 	public enum ControlState {
@@ -17,6 +15,7 @@ public abstract class NinjasController {
 	protected ControlState _controlState = ControlState.PERCENT_OUTPUT;
 	protected MainControllerConstants _constants;
 	protected double _goal = 0;
+	private DigitalInput limitSwitch;
 
 	/**
 	 * Creates a new Ninjas controller
@@ -25,6 +24,10 @@ public abstract class NinjasController {
 	 */
 	public NinjasController(MainControllerConstants constants) {
 		_constants = constants;
+
+		if(constants.isLimitSwitch){
+			limitSwitch = new DigitalInput(constants.limitSwitchID);
+		}
 	}
 
 	/**
@@ -141,6 +144,11 @@ public abstract class NinjasController {
 		return false;
 	}
 
+	public boolean getLimitState() {
+		return _constants.isLimitSwitch && (_constants.limitSwitchInverted != limitSwitch.get());
+	}
+
+
 	/** Runs controller periodic tasks, run it on the subsystem periodic */
 	public void periodic() {
 		if(!_constants.enableLogging)
@@ -151,6 +159,7 @@ public abstract class NinjasController {
 		Logger.recordOutput(_constants.subsystemName + "/Output", getOutput());
 		Logger.recordOutput(_constants.subsystemName+"/Current", getCurrent());
 		Logger.recordOutput(_constants.subsystemName + "/Goal", getGoal());
+		Logger.recordOutput(_constants.subsystemName + "/Limit Switch State", getLimitState());
 		Logger.recordOutput(_constants.subsystemName + "/Control State", _controlState.toString());
 		Logger.recordOutput(_constants.subsystemName + "/Control Type", _constants.controlConstants.type == SmartControlType.NONE ? "N/A" : _constants.controlConstants.type.toString());
 	}

@@ -52,4 +52,11 @@ public class MainControllerConstants {
 
 	/** The up soft limit, makes the system unable to move above it */
 	public double maxSoftLimit = 0;
+
+	/** Whether there is a limit switch related to the motor*/
+	public boolean isLimitSwitch = false;
+
+	public int limitSwitchID;
+
+	public boolean limitSwitchInverted = false;
 }
