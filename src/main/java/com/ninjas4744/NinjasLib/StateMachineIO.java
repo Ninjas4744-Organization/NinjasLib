@@ -1,21 +1,19 @@
 package com.ninjas4744.NinjasLib;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import com.ninjas4744.NinjasLib.DataClasses.StateEndCondition;
 import com.ninjas4744.NinjasLib.Subsystems.StateMachineSubsystem;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<StateEnum> {
     private static StateMachineIO _instance;
 //    private final Map<StateEnum, List<StateEndCondition<StateEnum>>> _endConditionMap;
-    private final Map<StateEnum, List<Command>> _CommandMap;
-
+    private final Map<StateEnum, Command> _commandMap;
+    private Command _currentCommand;
 
     public static StateMachineIO getInstance() {
         if(_instance == null)
@@ -29,7 +27,7 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
 
     protected StateMachineIO(boolean paused) {
         super(paused);
-        _CommandMap= new HashMap<>();
+        _commandMap = new HashMap<>();
 //        _endConditionMap = new HashMap<>();
 
         if(!paused)
@@ -42,11 +40,8 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
     public void setTriggerForSimulationTesting(Trigger trigger) {
         trigger.onTrue(Commands.runOnce(
             () -> {
-                if(!RobotStateIO.isSimulated())
-                    return;
-
-                if(_endConditionMap.get(RobotStateIO.getInstance().getRobotState()) != null)
-                    changeRobotState(_endConditionMap.get(RobotStateIO.getInstance().getRobotState()).get(0).nextState);
+                if(RobotStateIO.isSimulated())
+                    _currentCommand.end(false);
             })
         );
     }
@@ -58,8 +53,18 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
      * @param wantedState - the state to change the robot state to
      */
     public void changeRobotState(StateEnum wantedState){
-        if(canChangeRobotState((StateEnum) RobotStateIO.getInstance().getRobotState(), wantedState))
+        if(canChangeRobotState((StateEnum) RobotStateIO.getInstance().getRobotState(), wantedState)){
             RobotStateIO.getInstance().setRobotState(wantedState);
+
+            if(_commandMap.get(wantedState) != null){
+                if(_currentCommand != null)
+                    _currentCommand.cancel();
+
+                _currentCommand = _commandMap.get(wantedState);
+                _currentCommand.schedule();
+            }
+        }
+
     }
 
     /**
@@ -73,33 +78,30 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
     /**
      * Set in this function the end condition for each state with _endConditionMap
      */
-    protected abstract void setEndConditionMap();
+//    protected abstract void setEndConditionMap();
     protected abstract void setCommandMap();
 
 
-    protected void addEndCondition(StateEnum state, StateEndCondition<StateEnum> endCondition) {
-        if(!_endConditionMap.containsKey(state))
-            _endConditionMap.put(state, new ArrayList<>(List.of(endCondition)));
-        else
-            _endConditionMap.get(state).add(endCondition);
-    }
-    protected void addCommand(StateEnum state, Command newCommand) {
-        if(!_endConditionMap.containsKey(state))
-            _endConditionMap.put(state, new ArrayList<>(List.of(endCondition)));
-        else
-            _endConditionMap.get(state).add(endCondition);
+//    protected void addEndCondition(StateEnum state, StateEndCondition<StateEnum> endCondition) {
+//        if(!_endConditionMap.containsKey(state))
+//            _endConditionMap.put(state, new ArrayList<>(List.of(endCondition)));
+//        else
+//            _endConditionMap.get(state).add(endCondition);
+//    }
+    protected void addCommand(StateEnum state, Command command) {
+        if(!_commandMap.containsKey(state))
+            _commandMap.put(state, command);
     }
 
     @Override
     public void periodic() {
         super.periodic();
-
-        if(_endConditionMap.get(RobotStateIO.getInstance().getRobotState()) == null)
-            return;
-
-        for(StateEndCondition<StateEnum> endCondition : _endConditionMap.get(RobotStateIO.getInstance().getRobotState())){
-            if (endCondition.condition.getAsBoolean())
-                changeRobotState(endCondition.nextState);
-        }
+//        if(_endConditionMap.get(RobotStateIO.getInstance().getRobotState()) == null)
+//            return;
+//
+//        for(StateEndCondition<StateEnum> endCondition : _endConditionMap.get(RobotStateIO.getInstance().getRobotState())){
+//            if (endCondition.condition.getAsBoolean())
+//                changeRobotState(endCondition.nextState);
+//        }
     }
 }
