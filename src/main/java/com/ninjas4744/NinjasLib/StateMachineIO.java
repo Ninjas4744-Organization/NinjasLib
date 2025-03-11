@@ -1,5 +1,6 @@
 package com.ninjas4744.NinjasLib;
 
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import com.ninjas4744.NinjasLib.DataClasses.StateEndCondition;
@@ -12,7 +13,9 @@ import java.util.Map;
 
 public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<StateEnum> {
     private static StateMachineIO _instance;
-    private final Map<StateEnum, List<StateEndCondition<StateEnum>>> _endConditionMap;
+//    private final Map<StateEnum, List<StateEndCondition<StateEnum>>> _endConditionMap;
+    private final Map<StateEnum, List<Command>> _CommandMap;
+
 
     public static StateMachineIO getInstance() {
         if(_instance == null)
@@ -26,10 +29,14 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
 
     protected StateMachineIO(boolean paused) {
         super(paused);
-        _endConditionMap = new HashMap<>();
+        _CommandMap= new HashMap<>();
+//        _endConditionMap = new HashMap<>();
 
         if(!paused)
-            setEndConditionMap();
+//            setEndConditionMap();
+            setCommandMap();
+
+
     }
 
     public void setTriggerForSimulationTesting(Trigger trigger) {
@@ -67,8 +74,16 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
      * Set in this function the end condition for each state with _endConditionMap
      */
     protected abstract void setEndConditionMap();
+    protected abstract void setCommandMap();
+
 
     protected void addEndCondition(StateEnum state, StateEndCondition<StateEnum> endCondition) {
+        if(!_endConditionMap.containsKey(state))
+            _endConditionMap.put(state, new ArrayList<>(List.of(endCondition)));
+        else
+            _endConditionMap.get(state).add(endCondition);
+    }
+    protected void addCommand(StateEnum state, Command newCommand) {
         if(!_endConditionMap.containsKey(state))
             _endConditionMap.put(state, new ArrayList<>(List.of(endCondition)));
         else
