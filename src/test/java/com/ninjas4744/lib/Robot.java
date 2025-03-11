@@ -299,7 +299,7 @@ public class Robot extends LoggedRobot {
 //                SwerveConstants.kSwerveControllerConstants.robotConfig);
 
         SwerveIO.setConstants(SwerveConstants.kSwerveConstants);
-        RobotStateWithSwerve.setInstance(new RobotState(), SwerveConstants.kSwerveConstants.kinematics, false, (o) -> 0, 45);
+        RobotStateWithSwerve.setInstance(new RobotState(), SwerveConstants.kSwerveConstants.kinematics, false, (o) -> new double[0], 45);
         StateMachineIO.setInstance(new StateMachineIO<st>(false) {
             @Override
             protected boolean canChangeRobotState(st currentState, st wantedState) {
@@ -307,10 +307,14 @@ public class Robot extends LoggedRobot {
             }
 
             @Override
-            protected void setEndConditionMap() {
-//                addEndCondition(st.hey, new StateEndCondition<>(() -> true, st.hey));
-//                addEndCondition(st.hey, new StateEndCondition<>(() -> true, st.hey));
+            protected void setCommandMap() {
+                addCommand(st.hey,Commands.runOnce(() -> {}));
             }
+//            @Override
+//            protected void setEndConditionMap() {
+////                addEndCondition(st.hey, new StateEndCondition<>(() -> true, st.hey));
+////                addEndCondition(st.hey, new StateEndCondition<>(() -> true, st.hey));
+//            }
 
             @Override
             protected void setFunctionMaps() {

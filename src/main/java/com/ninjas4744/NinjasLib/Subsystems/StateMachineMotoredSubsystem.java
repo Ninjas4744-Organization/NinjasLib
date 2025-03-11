@@ -22,7 +22,7 @@ public abstract class StateMachineMotoredSubsystem<StateEnum> extends StateMachi
             setController();
     }
 
-    public NinjasController controller() {
+    protected NinjasController controller() {
         if (RobotStateIO.isSimulated())
             return _simulatedController;
         else
