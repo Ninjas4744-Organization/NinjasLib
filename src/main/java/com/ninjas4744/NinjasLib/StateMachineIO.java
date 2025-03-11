@@ -11,7 +11,6 @@ import java.util.Map;
 
 public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<StateEnum> {
     private static StateMachineIO _instance;
-//    private final Map<StateEnum, List<StateEndCondition<StateEnum>>> _endConditionMap;
     private final Map<StateEnum, Command> _commandMap;
     private Command _currentCommand;
 
@@ -28,13 +27,9 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
     protected StateMachineIO(boolean paused) {
         super(paused);
         _commandMap = new HashMap<>();
-//        _endConditionMap = new HashMap<>();
 
         if(!paused)
-//            setEndConditionMap();
             setCommandMap();
-
-
     }
 
     public void setTriggerForSimulationTesting(Trigger trigger) {
@@ -47,10 +42,10 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
     }
 
     /**
-     * Sets the state of the robot to the given state only if possible. For example if the current
-     * state is AMP_OUTAKE_READY it cannot change to PREPARE_AMP_OUTAKE
+     * Sets the state of the robot to the given state only if possible
      *
      * @param wantedState - the state to change the robot state to
+     * @see #canChangeRobotState(StateEnum, StateEnum)
      */
     public void changeRobotState(StateEnum wantedState){
         if(canChangeRobotState((StateEnum) RobotStateIO.getInstance().getRobotState(), wantedState)){
@@ -76,32 +71,17 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
     protected abstract boolean canChangeRobotState(StateEnum currentState, StateEnum wantedState);
 
     /**
-     * Set in this function the end condition for each state with _endConditionMap
+     * Set in this function the command to run in each state
+     * @see #addCommand(StateEnum, Command)
      */
-//    protected abstract void setEndConditionMap();
     protected abstract void setCommandMap();
 
-
-//    protected void addEndCondition(StateEnum state, StateEndCondition<StateEnum> endCondition) {
-//        if(!_endConditionMap.containsKey(state))
-//            _endConditionMap.put(state, new ArrayList<>(List.of(endCondition)));
-//        else
-//            _endConditionMap.get(state).add(endCondition);
-//    }
+    /**
+     * adds a command to the commands hashmap. The command will run when robot switches to the given state
+     * @param state the state in which to run the command
+     * @param command the command to run when switching to the state
+     */
     protected void addCommand(StateEnum state, Command command) {
-        if(!_commandMap.containsKey(state))
-            _commandMap.put(state, command);
-    }
-
-    @Override
-    public void periodic() {
-        super.periodic();
-//        if(_endConditionMap.get(RobotStateIO.getInstance().getRobotState()) == null)
-//            return;
-//
-//        for(StateEndCondition<StateEnum> endCondition : _endConditionMap.get(RobotStateIO.getInstance().getRobotState())){
-//            if (endCondition.condition.getAsBoolean())
-//                changeRobotState(endCondition.nextState);
-//        }
+        _commandMap.put(state, command);
     }
 }

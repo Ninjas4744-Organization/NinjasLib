@@ -15,7 +15,7 @@ public abstract class NinjasController {
 	protected ControlState _controlState = ControlState.PERCENT_OUTPUT;
 	protected MainControllerConstants _constants;
 	protected double _goal = 0;
-	private DigitalInput limitSwitch;
+	private DigitalInput _limitSwitch;
 
 	/**
 	 * Creates a new Ninjas controller
@@ -26,7 +26,7 @@ public abstract class NinjasController {
 		_constants = constants;
 
 		if(constants.isLimitSwitch){
-			limitSwitch = new DigitalInput(constants.limitSwitchID);
+			_limitSwitch = new DigitalInput(constants.limitSwitchID);
 		}
 	}
 
@@ -75,9 +75,7 @@ public abstract class NinjasController {
 	 * @see #setPosition(double)
 	 * @see #setVelocity(double)
 	 */
-	public void stop() {
-		setPercent(0);
-	}
+	public abstract void stop();
 
 	/**
 	 * @return the position of the controller
@@ -144,22 +142,29 @@ public abstract class NinjasController {
 		return false;
 	}
 
-	public boolean getLimitState() {
-		return _constants.isLimitSwitch && (_constants.limitSwitchInverted != limitSwitch.get());
+	/**
+	 * @return Whether the limit switch of the system is clicked now
+	 */
+	public boolean getLimit() {
+		return _constants.isLimitSwitch && (_constants.limitSwitchInverted != _limitSwitch.get());
 	}
-
 
 	/** Runs controller periodic tasks, run it on the subsystem periodic */
 	public void periodic() {
+		if(getLimit() && Math.signum(getOutput()) == _constants.limitSwitchDirection){
+			resetEncoder();
+			stop();
+		}
+
 		if(!_constants.enableLogging)
 			return;
 
 		Logger.recordOutput(_constants.subsystemName + "/Position", getPosition());
 		Logger.recordOutput(_constants.subsystemName + "/Velocity", getVelocity());
 		Logger.recordOutput(_constants.subsystemName + "/Output", getOutput());
-		Logger.recordOutput(_constants.subsystemName+"/Current", getCurrent());
+		Logger.recordOutput(_constants.subsystemName + "/Current", getCurrent());
 		Logger.recordOutput(_constants.subsystemName + "/Goal", getGoal());
-		Logger.recordOutput(_constants.subsystemName + "/Limit Switch State", getLimitState());
+		Logger.recordOutput(_constants.subsystemName + "/Limit Switch", getLimit());
 		Logger.recordOutput(_constants.subsystemName + "/Control State", _controlState.toString());
 		Logger.recordOutput(_constants.subsystemName + "/Control Type", _constants.controlConstants.type == SmartControlType.NONE ? "N/A" : _constants.controlConstants.type.toString());
 	}
