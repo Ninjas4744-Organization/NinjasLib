@@ -22,14 +22,14 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
 
     public static void setInstance(StateMachineIO instance) {
         _instance = instance;
+
+        if(!_instance._paused)
+            _instance.setCommandMap();
     }
 
     protected StateMachineIO(boolean paused) {
         super(paused);
         _commandMap = new HashMap<>();
-
-        if(!paused)
-            setCommandMap();
     }
 
     public void setTriggerForSimulationTesting(Trigger trigger) {
