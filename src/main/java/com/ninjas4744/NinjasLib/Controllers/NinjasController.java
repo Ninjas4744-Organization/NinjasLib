@@ -98,7 +98,7 @@ public abstract class NinjasController {
 	public abstract double getCurrent();
 
 	/**
-	 * Sets the position in the encoder so it thinks it is at that position
+	 * Sets the position in the encoder,so it thinks it is at that position
 	 *
 	 * @param position the position to set the encoder to
 	 */
@@ -130,7 +130,7 @@ public abstract class NinjasController {
 	}
 
 	/**
-	 * @return whether or not the controller is at the goal, the target of PIDF / PID / Motion Magic...
+	 * @return whether the controller is at the goal, the target of PIDF / PID / Motion Magic...
 	 *     Will return false if not in position or velocity control
 	 */
 	public boolean atGoal() {
@@ -151,9 +151,10 @@ public abstract class NinjasController {
 
 	/** Runs controller periodic tasks, run it on the subsystem periodic */
 	public void periodic() {
-		if(getLimit() && Math.signum(getOutput()) == _constants.limitSwitchDirection){
+		if(getLimit()){
 			resetEncoder();
-			stop();
+			if (Math.signum(getOutput()) == _constants.limitSwitchDirection)
+				stop();
 		}
 
 		if(!_constants.enableLogging)
