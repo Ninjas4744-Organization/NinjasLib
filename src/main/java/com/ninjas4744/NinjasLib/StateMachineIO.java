@@ -59,7 +59,6 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
                 _currentCommand.schedule();
             }
         }
-
     }
 
     /**

@@ -11,7 +11,7 @@ import java.util.HashMap;
 public abstract class VisionIO extends SubsystemBase {
 	private static VisionIO _instance;
 	protected HashMap<String, VisionOutput> _outputs;
-	protected VisionCamera[] _cameras;
+	protected PhotonVisionCamera[] _cameras;
 
 	public static VisionIO getInstance() {
 		if (_instance == null)
@@ -29,9 +29,9 @@ public abstract class VisionIO extends SubsystemBase {
 	protected VisionIO(VisionConstants constants) {
 		String[] camerasNames = constants.cameras.keySet().toArray(new String[0]);
 
-		_cameras = new VisionCamera[camerasNames.length];
+		_cameras = new PhotonVisionCamera[camerasNames.length];
 		for (int i = 0; i < constants.cameras.size(); i++)
-			_cameras[i] = new VisionCamera(camerasNames[i], constants.cameras.get(camerasNames[i]), constants);
+			_cameras[i] = new PhotonVisionCamera(camerasNames[i], constants.cameras.get(camerasNames[i]), constants);
 
 		_outputs = new HashMap<>();
 		for (String name : camerasNames)
@@ -40,7 +40,7 @@ public abstract class VisionIO extends SubsystemBase {
 
 	@Override
 	public void periodic() {
-		for (VisionCamera camera : _cameras)
+		for (PhotonVisionCamera camera : _cameras)
 			_outputs.put(camera.getName(), camera.Update());
 	}
 
@@ -119,6 +119,6 @@ public abstract class VisionIO extends SubsystemBase {
 	}
 
 	public void ignoreTag(int id) {
-		for (VisionCamera camera : _cameras) camera.ignoreTag(id);
+		for (PhotonVisionCamera camera : _cameras) camera.ignoreTag(id);
 	}
 }

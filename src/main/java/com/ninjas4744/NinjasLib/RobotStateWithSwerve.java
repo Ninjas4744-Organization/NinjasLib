@@ -8,6 +8,7 @@ import com.ninjas4744.NinjasLib.Swerve.SwerveIO;
 import com.studica.frc.AHRS;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -113,7 +114,6 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<State
      */
     public void updateRobotPose(SwerveModulePosition[] modulePositions) {
         poseEstimator.update(getGyroYaw(), modulePositions);
-//        _robotPosePublisher.set(getRobotPose());
         Logger.recordOutput("Robot Pose", getRobotPose());
     }
 
@@ -129,11 +129,11 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<State
             poseEstimator.addVisionMeasurement(
                 visionEstimation.robotPose,
                 visionEstimation.timestamp,
-                new Matrix<>(Nat.N3(), Nat.N1(), new double[] {
+                VecBuilder.fill(
                     fom[0],
                     fom[1],
-                    fom[2],
-                })
+                    fom[2]
+                )
             );
         }
 
