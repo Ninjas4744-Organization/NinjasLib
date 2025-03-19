@@ -11,7 +11,8 @@ import java.util.HashMap;
 public abstract class VisionIO extends SubsystemBase {
 	private static VisionIO _instance;
 	protected HashMap<String, VisionOutput> _outputs;
-	protected PhotonVisionCamera[] _cameras;
+	protected VisionCamera[] _cameras;
+	protected HashMap<String, Integer> _cameraNameToIndex;
 
 	public static VisionIO getInstance() {
 		if (_instance == null)
@@ -30,8 +31,13 @@ public abstract class VisionIO extends SubsystemBase {
 		String[] camerasNames = constants.cameras.keySet().toArray(new String[0]);
 
 		_cameras = new PhotonVisionCamera[camerasNames.length];
-		for (int i = 0; i < constants.cameras.size(); i++)
-			_cameras[i] = new PhotonVisionCamera(camerasNames[i], constants.cameras.get(camerasNames[i]), constants);
+		for (int i = 0; i < constants.cameras.size(); i++){
+			_cameraNameToIndex.put(camerasNames[i], i);
+			if(constants.cameras.get(camerasNames[i]).getSecond() == VisionConstants.CameraType.PhotonVision)
+				_cameras[i] = new PhotonVisionCamera(camerasNames[i], constants.cameras.get(camerasNames[i]).getFirst(), constants);
+			else
+				_cameras[i] = new LimelightVisionCamera(camerasNames[i], constants.cameras.get(camerasNames[i]).getFirst(), constants);
+		}
 
 		_outputs = new HashMap<>();
 		for (String name : camerasNames)
@@ -40,7 +46,7 @@ public abstract class VisionIO extends SubsystemBase {
 
 	@Override
 	public void periodic() {
-		for (PhotonVisionCamera camera : _cameras)
+		for (VisionCamera camera : _cameras)
 			_outputs.put(camera.getName(), camera.Update());
 	}
 
@@ -118,7 +124,19 @@ public abstract class VisionIO extends SubsystemBase {
 		return false;
 	}
 
+	/**
+	 * If any camera sees this apriltag it will ignore it and not count it in the vision processing
+	 * @param id ID of the apriltag to ignore
+	 */
 	public void ignoreTag(int id) {
-		for (PhotonVisionCamera camera : _cameras) camera.ignoreTag(id);
+		for (VisionCamera camera : _cameras) camera.ignoreTag(id);
+	}
+
+	/**
+	 * @param name The name of the camera
+	 * @return Vision camera processor
+	 */
+	public VisionCamera getCamera(String name){
+		return _cameras[_cameraNameToIndex.get(name)];
 	}
 }

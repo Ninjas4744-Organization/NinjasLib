@@ -43,6 +43,10 @@ public class LimelightVisionCamera extends VisionCamera<LimelightHelpers> {
         if (!_output.hasTargets)
             return _output;
 
+        for (var target : results.targets_Fiducials)
+            if(!_tags.containsKey((int)target.fiducialID))
+                return _output;
+
         findMinMax(results);
 
         if (_output.maxAmbiguity < _constants.maxAmbiguity && _output.closestTagDist < _constants.maxDistance) {

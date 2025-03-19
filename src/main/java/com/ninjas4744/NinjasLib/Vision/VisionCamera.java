@@ -28,7 +28,7 @@ public abstract class VisionCamera<T> {
         _output.cameraName = name;
 
         _ignoredTags = new ArrayList<>();
-        fillTagsMaps();
+        fillTagsMap();
     }
 
     /**
@@ -53,10 +53,10 @@ public abstract class VisionCamera<T> {
      */
     public void ignoreTag(int id) {
         _ignoredTags.add(id);
-        fillTagsMaps();
+        fillTagsMap();
     }
 
-    private void fillTagsMaps(){
+    private void fillTagsMap(){
         _tags = new HashMap<>();
         for(AprilTag tag : _constants.fieldLayoutGetter.getFieldLayout(_ignoredTags).getTags())
             _tags.put(tag.ID, tag);

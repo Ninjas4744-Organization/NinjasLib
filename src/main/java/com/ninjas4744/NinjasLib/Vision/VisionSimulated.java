@@ -18,13 +18,14 @@ public class VisionSimulated extends VisionIO {
 		super(constants);
 
 		_robotPoseSupplier = constants.simulationConstants.robotPoseSupplier;
-
 		_visionSystemSim.addAprilTags(constants.fieldLayoutGetter.getFieldLayout(List.of()));
-
         PhotonCameraSim[] _simulatedCameras = new PhotonCameraSim[_cameras.length];
         SimCameraProperties[] _cameraProperties = new SimCameraProperties[_cameras.length];
 
 		for (int i = 0; i < _cameras.length; i++) {
+			if(constants.cameras.get(_cameras[i].getName()).getSecond() == VisionConstants.CameraType.Limelight)
+				continue;
+
 			_cameraProperties[i] = new SimCameraProperties();
 			_cameraProperties[i].setCalibration(
 					constants.simulationConstants.resolutionWidth,
@@ -36,12 +37,12 @@ public class VisionSimulated extends VisionIO {
 			_cameraProperties[i].setAvgLatencyMs(constants.simulationConstants.averageLatency);
 			_cameraProperties[i].setLatencyStdDevMs(constants.simulationConstants.latencyStdDev);
 
-			_simulatedCameras[i] = new PhotonCameraSim(_cameras[i].getCamera(), _cameraProperties[i]);
+			_simulatedCameras[i] = new PhotonCameraSim(((PhotonVisionCamera)_cameras[i]).getCamera(), _cameraProperties[i]);
 			_simulatedCameras[i].enableRawStream(true);
 			_simulatedCameras[i].enableProcessedStream(true);
 			_simulatedCameras[i].enableDrawWireframe(true);
 
-			_visionSystemSim.addCamera(_simulatedCameras[i], constants.cameras.get(_cameras[i].getName()));
+			_visionSystemSim.addCamera(_simulatedCameras[i], constants.cameras.get(_cameras[i].getName()).getFirst());
 		}
 	}
 
