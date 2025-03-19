@@ -31,6 +31,7 @@ public abstract class VisionIO extends SubsystemBase {
 		String[] camerasNames = constants.cameras.keySet().toArray(new String[0]);
 
 		_cameras = new PhotonVisionCamera[camerasNames.length];
+		_cameraNameToIndex = new HashMap<>();
 		for (int i = 0; i < constants.cameras.size(); i++){
 			_cameraNameToIndex.put(camerasNames[i], i);
 			if(constants.cameras.get(camerasNames[i]).getSecond() == VisionConstants.CameraType.PhotonVision)
