@@ -56,7 +56,7 @@ public class MainControllerConstants {
 	/** Whether there is a limit switch related to the motor*/
 	public boolean isLimitSwitch = false;
 
-	/** Id of limit switch used in the system */
+	/** ID of limit switch used in the system */
 	public int limitSwitchID = 0;
 
 	/** Whether the limit switch is inverted(false when clicked) */
@@ -64,4 +64,22 @@ public class MainControllerConstants {
 
 	/** the direction of movement in which the limit will be clicked, for example if an elevator goes down when given minus and the limit switch is at the bottom then this value should be -1 */
 	public int limitSwitchDirection = -1;
+
+	/** Whether to automatically stop the motor and reset the encoder when limit is clicked */
+	public boolean limitSwitchAutoStopReset = true;
+
+	public static class ControllerConstants {
+		/**
+		 * The ID of the controller, chosen in the device's configuration software- Phoenix Tuner X / Rev
+		 * Hardware Client
+		 */
+		public int id;
+
+		/**
+		 * Whether or not to invert the output of this controller, IF this controller is a FOLLOWER it
+		 * will invert the main controller's output so if the main controller is inverted and this
+		 * follower is inverted it will be inverted twice so not inverted
+		 */
+		public boolean inverted = false;
+	}
 }

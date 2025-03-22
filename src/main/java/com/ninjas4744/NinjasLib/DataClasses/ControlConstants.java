@@ -82,7 +82,7 @@ public class ControlConstants {
 		return constants;
 	}
 
-	public static ControlConstants createProfile(double CruiseVelocity, double Acceleration, double Jerk, double V, double S, double G) {
+	public static ControlConstants createProfile(double CruiseVelocity, double Acceleration, double Jerk, double V, double S, double G, GravityTypeValue GravityType) {
 		ControlConstants constants = new ControlConstants();
 		constants.type = SmartControlType.PROFILE;
 		constants.CruiseVelocity = CruiseVelocity;
@@ -90,11 +90,12 @@ public class ControlConstants {
 		constants.Jerk=Jerk;
 		constants.V = V;
 		constants.S = S;
-		constants.G=G;
+		constants.G = G;
+		constants.GravityType = GravityType;
 		return constants;
 	}
 
-	public static ControlConstants createProfiledPID(double P, double I, double D, double IZone, double CruiseVelocity, double Acceleration, double Jerk, double V, double S, double G) {
+	public static ControlConstants createProfiledPID(double P, double I, double D, double IZone, double CruiseVelocity, double Acceleration, double Jerk, double V, double S, double G, GravityTypeValue GravityType) {
 		ControlConstants constants = new ControlConstants();
 		constants.type = SmartControlType.PROFILED_PID;
 		constants.P = P;
@@ -106,7 +107,7 @@ public class ControlConstants {
 		constants.Jerk=Jerk;
 		constants.V = V;
 		constants.S = S;
-		constants.G=G;
+		constants.GravityType = GravityType;
 		return constants;
 	}
 
