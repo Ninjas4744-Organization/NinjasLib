@@ -1,8 +1,6 @@
 package com.ninjas4744.NinjasLib;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import com.ninjas4744.NinjasLib.Subsystems.StateMachineSubsystem;
 
@@ -11,8 +9,8 @@ import java.util.Map;
 
 public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<StateEnum> {
     private static StateMachineIO _instance;
-    private final Map<StateEnum, Command> _commandMap;
-    private Command _currentCommand;
+    protected final Map<StateEnum, Command> _commandMap;
+    protected Command _currentCommand;
 
     public static StateMachineIO getInstance() {
         if(_instance == null)
@@ -33,12 +31,13 @@ public abstract class StateMachineIO<StateEnum> extends StateMachineSubsystem<St
     }
 
     public void setTriggerForSimulationTesting(Trigger trigger) {
-        trigger.onTrue(Commands.runOnce(
-            () -> {
-                if(RobotStateIO.isSimulated())
-                    _currentCommand.end(false);
-            })
-        );
+        //Work In Progress
+//        trigger.onTrue(Commands.runOnce(
+//            () -> {
+//                if(RobotStateIO.isSimulated())
+//                    _currentCommand.
+//            })
+//        );
     }
 
     /**
