@@ -42,6 +42,11 @@ public class NinjasVictorSPXController extends NinjasController {
 	}
 
 	@Override
+	public void stop() {
+		_main.set(VictorSPXControlMode.PercentOutput, 0);
+	}
+
+	@Override
 	public double getPosition() {
 		throw new UnsupportedOperationException("No encoder on VictorSPX");
 	}

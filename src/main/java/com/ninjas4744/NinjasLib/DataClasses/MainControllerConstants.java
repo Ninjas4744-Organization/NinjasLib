@@ -52,4 +52,16 @@ public class MainControllerConstants {
 
 	/** The up soft limit, makes the system unable to move above it */
 	public double maxSoftLimit = 0;
+
+	/** Whether there is a limit switch related to the motor*/
+	public boolean isLimitSwitch = false;
+
+	/** Id of limit switch used in the system */
+	public int limitSwitchID = 0;
+
+	/** Whether the limit switch is inverted(false when clicked) */
+	public boolean limitSwitchInverted = false;
+
+	/** the direction of movement in which the limit will be clicked, for example if an elevator goes down when given minus and the limit switch is at the bottom then this value should be -1 */
+	public int limitSwitchDirection = -1;
 }

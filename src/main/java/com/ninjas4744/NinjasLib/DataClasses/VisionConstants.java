@@ -1,5 +1,6 @@
 package com.ninjas4744.NinjasLib.DataClasses;
 
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import com.ninjas4744.NinjasLib.Vision.FieldLayoutGetter;
@@ -8,11 +9,16 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public class VisionConstants {
-    public Map<String, Transform3d> cameras;
+    public Map<String, Pair<Transform3d, CameraType>> cameras;
     public double maxAmbiguity;
     public double maxDistance;
     public FieldLayoutGetter fieldLayoutGetter;
     public SimulationConstants simulationConstants;
+
+    public enum CameraType{
+        PhotonVision,
+        Limelight
+    }
 
     public static class SimulationConstants {
         public int resolutionWidth;

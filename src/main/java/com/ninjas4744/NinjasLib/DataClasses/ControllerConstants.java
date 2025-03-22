@@ -12,5 +12,5 @@ public class ControllerConstants {
 	 * will invert the main controller's output so if the main controller is inverted and this
 	 * follower is inverted it will be inverted twice so not inverted
 	 */
-	public boolean inverted;
+	public boolean inverted = false;
 }

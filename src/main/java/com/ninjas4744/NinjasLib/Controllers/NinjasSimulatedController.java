@@ -90,6 +90,11 @@ public class NinjasSimulatedController extends NinjasController {
     }
 
     @Override
+    public void stop() {
+        _output = 0;
+    }
+
+    @Override
     public double getPosition() {
         return _position * _constants.encoderConversionFactor;
     }

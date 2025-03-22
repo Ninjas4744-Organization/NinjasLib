@@ -103,6 +103,11 @@ public class NinjasTalonFXController extends NinjasController {
     }
 
     @Override
+    public void stop() {
+        _main.stopMotor();
+    }
+
+    @Override
     public double getPosition() {
         return _main.getPosition().getValueAsDouble();
     }

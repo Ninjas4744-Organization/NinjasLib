@@ -85,6 +85,11 @@ public class NinjasSparkMaxController extends NinjasController {
 	}
 
 	@Override
+	public void stop() {
+		_main.stopMotor();
+	}
+
+	@Override
 	public double getPosition() {
 		return _main.getEncoder().getPosition();
 	}

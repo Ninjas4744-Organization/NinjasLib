@@ -79,6 +79,11 @@ public class NinjasTalonSRXController extends NinjasController {
 	}
 
 	@Override
+	public void stop() {
+		_main.set(TalonSRXControlMode.PercentOutput, 0);
+	}
+
+	@Override
 	public double getPosition() {
 		return _main.getSelectedSensorPosition() * _constants.encoderConversionFactor;
 	}

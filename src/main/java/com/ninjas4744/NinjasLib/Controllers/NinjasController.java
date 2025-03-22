@@ -2,10 +2,8 @@ package com.ninjas4744.NinjasLib.Controllers;
 
 import com.ninjas4744.NinjasLib.DataClasses.ControlConstants.SmartControlType;
 import com.ninjas4744.NinjasLib.DataClasses.MainControllerConstants;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.DigitalInput;
 import org.littletonrobotics.junction.Logger;
-
-import java.util.Map;
 
 public abstract class NinjasController {
 	public enum ControlState {
@@ -17,6 +15,7 @@ public abstract class NinjasController {
 	protected ControlState _controlState = ControlState.PERCENT_OUTPUT;
 	protected MainControllerConstants _constants;
 	protected double _goal = 0;
+	private DigitalInput _limitSwitch;
 
 	/**
 	 * Creates a new Ninjas controller
@@ -25,6 +24,10 @@ public abstract class NinjasController {
 	 */
 	public NinjasController(MainControllerConstants constants) {
 		_constants = constants;
+
+		if(constants.isLimitSwitch){
+			_limitSwitch = new DigitalInput(constants.limitSwitchID);
+		}
 	}
 
 	/**
@@ -72,9 +75,7 @@ public abstract class NinjasController {
 	 * @see #setPosition(double)
 	 * @see #setVelocity(double)
 	 */
-	public void stop() {
-		setPercent(0);
-	}
+	public abstract void stop();
 
 	/**
 	 * @return the position of the controller
@@ -97,7 +98,7 @@ public abstract class NinjasController {
 	public abstract double getCurrent();
 
 	/**
-	 * Sets the position in the encoder so it thinks it is at that position
+	 * Sets the position in the encoder,so it thinks it is at that position
 	 *
 	 * @param position the position to set the encoder to
 	 */
@@ -129,7 +130,7 @@ public abstract class NinjasController {
 	}
 
 	/**
-	 * @return whether or not the controller is at the goal, the target of PIDF / PID / Motion Magic...
+	 * @return whether the controller is at the goal, the target of PIDF / PID / Motion Magic...
 	 *     Will return false if not in position or velocity control
 	 */
 	public boolean atGoal() {
@@ -141,16 +142,30 @@ public abstract class NinjasController {
 		return false;
 	}
 
+	/**
+	 * @return Whether the limit switch of the system is clicked now
+	 */
+	public boolean getLimit() {
+		return _constants.isLimitSwitch && (_constants.limitSwitchInverted != _limitSwitch.get());
+	}
+
 	/** Runs controller periodic tasks, run it on the subsystem periodic */
 	public void periodic() {
+		if(getLimit()){
+			resetEncoder();
+			if (Math.signum(getOutput()) == _constants.limitSwitchDirection)
+				stop();
+		}
+
 		if(!_constants.enableLogging)
 			return;
 
 		Logger.recordOutput(_constants.subsystemName + "/Position", getPosition());
 		Logger.recordOutput(_constants.subsystemName + "/Velocity", getVelocity());
 		Logger.recordOutput(_constants.subsystemName + "/Output", getOutput());
-		Logger.recordOutput(_constants.subsystemName+"/Current", getCurrent());
+		Logger.recordOutput(_constants.subsystemName + "/Current", getCurrent());
 		Logger.recordOutput(_constants.subsystemName + "/Goal", getGoal());
+		Logger.recordOutput(_constants.subsystemName + "/Limit Switch", getLimit());
 		Logger.recordOutput(_constants.subsystemName + "/Control State", _controlState.toString());
 		Logger.recordOutput(_constants.subsystemName + "/Control Type", _constants.controlConstants.type == SmartControlType.NONE ? "N/A" : _constants.controlConstants.type.toString());
 	}
