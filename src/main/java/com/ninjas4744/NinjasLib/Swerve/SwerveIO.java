@@ -2,7 +2,10 @@ package com.ninjas4744.NinjasLib.Swerve;
 
 import com.ninjas4744.NinjasLib.DataClasses.SwerveConstants;
 import com.ninjas4744.NinjasLib.RobotStateIO;
+import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
 public abstract class SwerveIO {
@@ -30,6 +33,10 @@ public abstract class SwerveIO {
 
     protected SwerveIO(SwerveConstants constants){
         _constants = constants;
+
+        _xAccelerationLimit = new SlewRateLimiter(constants.accelerationLimit);
+        _yAccelerationLimit = new SlewRateLimiter(constants.accelerationLimit);
+        _0AccelerationLimit = new SlewRateLimiter(constants.rotationAccelerationLimit);
     }
 
     /**
@@ -37,7 +44,25 @@ public abstract class SwerveIO {
      * @param drive Chassis speeds to drive according to
      * @param fieldRelative Whether to move to robot relative to the field or the robot
      */
-    public abstract void drive(ChassisSpeeds drive, boolean fieldRelative);
+    public void drive(ChassisSpeeds drive, boolean fieldRelative) {
+        ChassisSpeeds fieldRelativeSpeeds = fieldRelative ? drive : ChassisSpeeds.fromRobotRelativeSpeeds(drive, RobotStateWithSwerve.getInstance().getGyroYaw());
+
+        Translation2d currentVelocity = new Translation2d(getChassisSpeeds(true).vxMetersPerSecond, getChassisSpeeds(true).vyMetersPerSecond);
+        Translation2d wantedVelocity = new Translation2d(fieldRelativeSpeeds.vxMetersPerSecond, fieldRelativeSpeeds.vyMetersPerSecond);
+        wantedVelocity = SwerveUtils.limitForwardAcceleration(currentVelocity, SwerveUtils.limitSkidAcceleration(currentVelocity, wantedVelocity, _constants.maxSkidAcceleration), _constants.maxAcceleration, _constants.maxSpeed);
+
+        ChassisSpeeds robotRelativeSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(wantedVelocity.getX(), wantedVelocity.getY(), drive.omegaRadiansPerSecond, RobotStateWithSwerve.getInstance().getGyroYaw());
+
+        robotRelativeSpeeds = new ChassisSpeeds(
+                _xAccelerationLimit.calculate(MathUtil.clamp(robotRelativeSpeeds.vxMetersPerSecond, -_constants.speedLimit, _constants.speedLimit)),
+                _yAccelerationLimit.calculate(MathUtil.clamp(robotRelativeSpeeds.vyMetersPerSecond, -_constants.speedLimit, _constants.speedLimit)),
+                _0AccelerationLimit.calculate(MathUtil.clamp(robotRelativeSpeeds.omegaRadiansPerSecond, -_constants.rotationSpeedLimit, _constants.rotationSpeedLimit))
+        );
+
+        driveO(robotRelativeSpeeds);
+    }
+
+    protected abstract void driveO(ChassisSpeeds robotRelativeSpeeds);
 
     /**
      * Get the velocity and angular velocity of the swerve

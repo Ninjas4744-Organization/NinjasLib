@@ -2,19 +2,16 @@ package com.ninjas4744.NinjasLib.Swerve;
 
 import com.ninjas4744.NinjasLib.DataClasses.SwerveConstants;
 import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import org.littletonrobotics.junction.Logger;
 
 public class Swerve extends SwerveIO {
     private final SwerveModule[] _modules;
     private final SwerveDriveKinematics _kinematics;
-    private ChassisSpeeds _robotRelativeSpeeds = new ChassisSpeeds();
+    private ChassisSpeeds _wantedSpeeds = new ChassisSpeeds();
 
     protected Swerve(SwerveConstants constants) {
         super(constants);
@@ -28,33 +25,13 @@ public class Swerve extends SwerveIO {
             new SwerveModule(constants.moduleConstants[3])
         };
 
-        _xAccelerationLimit = new SlewRateLimiter(constants.accelerationLimit);
-        _yAccelerationLimit = new SlewRateLimiter(constants.accelerationLimit);
-        _0AccelerationLimit = new SlewRateLimiter(constants.rotationAccelerationLimit);
-
         resetModulesToAbsolute();
-
-//        if(!constants.createShuffleBoard)
-//            return;
-
-//        Shuffleboard.getTab("Swerve").addNumber("Wanted Vx", () -> _robotRelativeSpeeds.vxMetersPerSecond);
-//        Shuffleboard.getTab("Swerve").addNumber("Wanted Vy", () -> _robotRelativeSpeeds.vyMetersPerSecond);
-//        Shuffleboard.getTab("Swerve").addNumber("Wanted V0", () -> _robotRelativeSpeeds.omegaRadiansPerSecond);
-//
-//        Shuffleboard.getTab("Swerve").addNumber("Current Vx", () -> getChassisSpeeds(false).vxMetersPerSecond);
-//        Shuffleboard.getTab("Swerve").addNumber("Current Vy", () -> getChassisSpeeds(false).vyMetersPerSecond);
-//        Shuffleboard.getTab("Swerve").addNumber("Current V0", () -> getChassisSpeeds(false).omegaRadiansPerSecond);
     }
 
     @Override
-    public void drive(ChassisSpeeds drive, boolean fieldRelative) {
-        _robotRelativeSpeeds = fieldRelative ? ChassisSpeeds.fromFieldRelativeSpeeds(drive, RobotStateWithSwerve.getInstance().getGyroYaw()) : drive;
-        _robotRelativeSpeeds = new ChassisSpeeds(
-            _xAccelerationLimit.calculate(MathUtil.clamp(_robotRelativeSpeeds.vxMetersPerSecond, -_constants.speedLimit, _constants.speedLimit)),
-            _yAccelerationLimit.calculate(MathUtil.clamp(_robotRelativeSpeeds.vyMetersPerSecond, -_constants.speedLimit, _constants.speedLimit)),
-            _0AccelerationLimit.calculate(MathUtil.clamp(_robotRelativeSpeeds.omegaRadiansPerSecond, -_constants.rotationSpeedLimit, _constants.rotationSpeedLimit))
-        );
-        setModuleStates(_kinematics.toSwerveModuleStates(_robotRelativeSpeeds), _constants.openLoop);
+    public void driveO(ChassisSpeeds robotRelativeSpeeds) {
+        _wantedSpeeds = robotRelativeSpeeds;
+        setModuleStates(_kinematics.toSwerveModuleStates(_wantedSpeeds), _constants.openLoop);
     }
 
     /**
@@ -113,6 +90,6 @@ public class Swerve extends SwerveIO {
             return;
 
         Logger.recordOutput("Swerve/Current Velocity", getChassisSpeeds(true));
-        Logger.recordOutput("Swerve/Wanted Velocity", ChassisSpeeds.fromRobotRelativeSpeeds(_robotRelativeSpeeds, RobotStateWithSwerve.getInstance().getGyroYaw()));
+        Logger.recordOutput("Swerve/Wanted Velocity", ChassisSpeeds.fromRobotRelativeSpeeds(_wantedSpeeds, RobotStateWithSwerve.getInstance().getGyroYaw()));
     }
 }

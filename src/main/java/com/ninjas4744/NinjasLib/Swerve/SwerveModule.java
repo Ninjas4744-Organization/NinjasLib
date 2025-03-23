@@ -78,7 +78,7 @@ public class SwerveModule {
     }
 
     public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop) {
-        desiredState = optimize(desiredState, getState().angle);
+        desiredState = SwerveUtils.optimizeModuleState(desiredState, getState().angle);
 
         //Drive
         if (isOpenLoop) driveMotor.setPercent(desiredState.speedMetersPerSecond / maxModuleSpeed);
@@ -110,23 +110,6 @@ public class SwerveModule {
     public Rotation2d getCanCoder() {
         canCoder.getAbsolutePosition().refresh();
         return Rotation2d.fromDegrees(canCoder.getAbsolutePosition().getValue().in(Units.Degrees));
-    }
-
-    public static SwerveModuleState optimize(SwerveModuleState desiredState, Rotation2d currentAngle) {
-        double currentDegrees = currentAngle.getDegrees();
-        double targetDegrees = desiredState.angle.getDegrees();
-
-        double delta = targetDegrees - currentDegrees;
-        delta = (delta + 360) % 360;  // Normalize delta to [0, 360)
-
-        if (delta > 180) delta -= 360;  // Adjust to [-180, 180)
-
-        if (Math.abs(delta) > 90) {
-            targetDegrees += delta > 0 ? -180 : 180;
-            desiredState = new SwerveModuleState(-desiredState.speedMetersPerSecond, Rotation2d.fromDegrees(targetDegrees));
-        }
-
-        return new SwerveModuleState(desiredState.speedMetersPerSecond, Rotation2d.fromDegrees((targetDegrees + 360) % 360));
     }
 
     public void periodic() {
