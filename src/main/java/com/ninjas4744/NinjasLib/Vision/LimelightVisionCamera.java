@@ -3,6 +3,8 @@ package com.ninjas4744.NinjasLib.Vision;
 import com.ninjas4744.NinjasLib.DataClasses.VisionConstants;
 import com.ninjas4744.NinjasLib.DataClasses.VisionOutput;
 import com.ninjas4744.NinjasLib.RobotStateIO;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DriverStation;
 
@@ -35,23 +37,26 @@ public class LimelightVisionCamera extends VisionCamera<LimelightHelpers> {
      */
     @Override
     public VisionOutput Update() {
-        LimelightHelpers.LimelightResults results = LimelightHelpers.getLatestResults(cameraName);
+        LimelightHelpers.PoseEstimate estimation = LimelightHelpers.getBotPoseEstimate_wpiBlue("");
 
-        _output.hasTargets = results.valid;
-        _output.amountOfTargets = results.targets_Fiducials.length;
+        if(estimation == null)
+            return _output;
+
+        _output.hasTargets = estimation.tagCount > 0;
+        _output.amountOfTargets = estimation.tagCount;
 
         if (!_output.hasTargets)
             return _output;
 
-        for (var target : results.targets_Fiducials)
-            if(!_tags.containsKey((int)target.fiducialID))
+        for (var target : estimation.rawFiducials)
+            if(!_tags.containsKey(target.id))
                 return _output;
 
-        findMinMax(results);
+        findMinMax(estimation);
 
         if (_output.maxAmbiguity < _constants.maxAmbiguity && _output.closestTagDist < _constants.maxDistance) {
-            _output.robotPose = RobotStateIO.getAlliance() == DriverStation.Alliance.Blue ? LimelightHelpers.getBotPose2d_wpiBlue(cameraName) : LimelightHelpers.getBotPose2d_wpiRed(cameraName);
-            _output.timestamp = results.timestamp_RIOFPGA_capture;
+            _output.robotPose = estimation.pose;
+            _output.timestamp = estimation.timestampSeconds;
         } else {
             _output.hasTargets = false;
             _output.amountOfTargets = 0;
@@ -60,22 +65,22 @@ public class LimelightVisionCamera extends VisionCamera<LimelightHelpers> {
         return _output;
     }
 
-    private void findMinMax(LimelightHelpers.LimelightResults results){
+    private void findMinMax(LimelightHelpers.PoseEstimate estimation){
         _output.closestTagDist = Double.MAX_VALUE;
         _output.farthestTagDist = 0;
         _output.maxAmbiguity = 0;
 
-        for (var target : results.targets_Fiducials) {
-            double distance = target.getCameraPose_TargetSpace2D().getTranslation().getNorm();
+        for (var target : estimation.rawFiducials) {
+            double distance = target.distToCamera;
 
             if (distance < _output.closestTagDist) {
                 _output.closestTagDist = distance;
-                _output.closestTag = _tags.get((int)target.fiducialID);
+                _output.closestTag = _tags.get(target.id);
             }
 
             if (distance > _output.farthestTagDist) {
                 _output.farthestTagDist = distance;
-                _output.farthestTag = _tags.get((int)target.fiducialID);
+                _output.farthestTag = _tags.get(target.id);
             }
         }
     }

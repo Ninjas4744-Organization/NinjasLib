@@ -1,13 +1,12 @@
-package com.ninjas4744.lib;
+package com.ninjas4744.NinjasLib;
 
 import com.ninjas4744.NinjasLib.Controllers.NinjasSimulatedController;
 import com.ninjas4744.NinjasLib.Controllers.NinjasTalonFXController;
 import com.ninjas4744.NinjasLib.DataClasses.*;
-import com.ninjas4744.NinjasLib.RobotStateIO;
-import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
-import com.ninjas4744.NinjasLib.StateMachineIO;
 import com.ninjas4744.NinjasLib.Subsystems.StateMachineMotoredSubsystem;
 import com.ninjas4744.NinjasLib.Swerve.SwerveIO;
+import com.ninjas4744.NinjasLib.Vision.LimelightHelpers;
+import com.ninjas4744.NinjasLib.Vision.VisionIO;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
@@ -16,18 +15,23 @@ import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Pair;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.LogFileUtil;
@@ -322,6 +326,13 @@ public class Robot extends LoggedRobot {
             }
         });
 
+        VisionConstants v = new VisionConstants();
+        v.cameras = Map.of("", Pair.of(new Transform3d(0, 0, 0, Rotation3d.kZero), VisionConstants.CameraType.Limelight));
+        v.fieldLayoutGetter = this::getFieldLayout;
+        v.maxAmbiguity = 6;
+        v.maxDistance = 6;
+        VisionIO.setConstants(v);
+
         MainControllerConstants c = new MainControllerConstants();
         c.main.id = 30;
         c.controlConstants = ControlConstants.createPID(1, 0, 0, 0);
@@ -341,6 +352,8 @@ public class Robot extends LoggedRobot {
     public void robotPeriodic() {
         CommandScheduler.getInstance().run();
         _yes.periodic();
+//        System.out.println(Arrays.toString(LimelightHelpers.getBotPose("")));
+//        SmartDashboard.putString("Smegma", Arrays.toString(LimelightHelpers.getBotPose("")));
 //        SwerveController.getInstance().periodic();
 //        shooterAngle.periodic();
 //    _shooter.periodic();
