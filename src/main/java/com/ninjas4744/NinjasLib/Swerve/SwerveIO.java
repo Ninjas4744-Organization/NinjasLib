@@ -49,7 +49,7 @@ public abstract class SwerveIO {
 
         Translation2d currentVelocity = new Translation2d(getChassisSpeeds(true).vxMetersPerSecond, getChassisSpeeds(true).vyMetersPerSecond);
         Translation2d wantedVelocity = new Translation2d(fieldRelativeSpeeds.vxMetersPerSecond, fieldRelativeSpeeds.vyMetersPerSecond);
-        wantedVelocity = SwerveUtils.limitForwardAcceleration(currentVelocity, SwerveUtils.limitSkidAcceleration(currentVelocity, wantedVelocity, _constants.maxSkidAcceleration), _constants.maxAcceleration, _constants.maxSpeed);
+//        wantedVelocity = SwerveUtils.limitForwardAcceleration(currentVelocity, SwerveUtils.limitSkidAcceleration(currentVelocity, wantedVelocity, _constants.maxSkidAcceleration), _constants.maxAcceleration, _constants.maxSpeed);
 
         ChassisSpeeds robotRelativeSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(wantedVelocity.getX(), wantedVelocity.getY(), drive.omegaRadiansPerSecond, RobotStateWithSwerve.getInstance().getGyroYaw());
 
