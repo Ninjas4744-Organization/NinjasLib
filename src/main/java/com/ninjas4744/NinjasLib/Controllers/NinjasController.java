@@ -16,6 +16,7 @@ public abstract class NinjasController {
     protected MainControllerConstants _constants;
     protected double _goal = 0;
     private DigitalInput _limitSwitch;
+    private boolean _preLimit = false;
 
     /**
      * Creates a new Ninjas controller
@@ -151,11 +152,11 @@ public abstract class NinjasController {
 
     /** Runs controller periodic tasks, run it on the subsystem periodic */
     public void periodic() {
-        if(_constants.limitSwitchAutoStopReset && getLimit()){
+        if(_constants.limitSwitchAutoStopReset && getLimit() && !_preLimit)
             resetEncoder();
-            if (Math.signum(getOutput()) == _constants.limitSwitchDirection)
-                stop();
-        }
+        if(_constants.limitSwitchAutoStopReset && getLimit() && Math.signum(getOutput()) == _constants.limitSwitchDirection)
+            stop();
+        _preLimit = getLimit();
 
         if(!_constants.enableLogging)
             return;
