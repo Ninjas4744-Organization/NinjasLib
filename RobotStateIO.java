@@ -1,4 +1,4 @@
-package com.ninjas4744.NinjasLib;
+package frc.lib.NinjasLib;
 
 import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.wpilibj.DriverStation;

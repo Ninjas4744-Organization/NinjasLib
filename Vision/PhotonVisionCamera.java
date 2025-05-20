@@ -1,8 +1,8 @@
-package com.ninjas4744.NinjasLib.Vision;
+package frc.lib.NinjasLib.Vision;
 
-import com.ninjas4744.NinjasLib.DataClasses.VisionConstants;
-import com.ninjas4744.NinjasLib.DataClasses.VisionOutput;
 import edu.wpi.first.math.geometry.Transform3d;
+import frc.lib.NinjasLib.DataClasses.VisionConstants;
+import frc.lib.NinjasLib.DataClasses.VisionOutput;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;

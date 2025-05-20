@@ -1,4 +1,4 @@
-package com.ninjas4744.NinjasLib.DataClasses;
+package frc.lib.NinjasLib.DataClasses;
 
 @FunctionalInterface
 public interface FOMCalculator {

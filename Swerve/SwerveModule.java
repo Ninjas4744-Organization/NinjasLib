@@ -1,15 +1,18 @@
-package com.ninjas4744.NinjasLib.Swerve;
+package frc.lib.NinjasLib.Swerve;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
-import com.ninjas4744.NinjasLib.Controllers.*;
-import com.ninjas4744.NinjasLib.DataClasses.SwerveModuleConstants;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Units;
+import frc.lib.NinjasLib.Controllers.NinjasController;
+import frc.lib.NinjasLib.Controllers.NinjasSparkMaxController;
+import frc.lib.NinjasLib.Controllers.NinjasTalonFXController;
+import frc.lib.NinjasLib.Controllers.NinjasTalonSRXController;
+import frc.lib.NinjasLib.DataClasses.SwerveModuleConstants;
 import org.littletonrobotics.junction.Logger;
 
 public class SwerveModule {

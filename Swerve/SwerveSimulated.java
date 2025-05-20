@@ -1,10 +1,10 @@
-package com.ninjas4744.NinjasLib.Swerve;
+package frc.lib.NinjasLib.Swerve;
 
-import com.ninjas4744.NinjasLib.DataClasses.SwerveConstants;
-import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import frc.lib.NinjasLib.DataClasses.SwerveConstants;
+import frc.lib.NinjasLib.RobotStateWithSwerve;
 
 public class SwerveSimulated extends SwerveIO {
     private ChassisSpeeds _wantedSpeeds = new ChassisSpeeds();

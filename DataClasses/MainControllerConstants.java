@@ -1,4 +1,4 @@
-package com.ninjas4744.NinjasLib.DataClasses;
+package frc.lib.NinjasLib.DataClasses;
 
 public class MainControllerConstants {
 	/** Controller constants for the main controller in the subsystem */

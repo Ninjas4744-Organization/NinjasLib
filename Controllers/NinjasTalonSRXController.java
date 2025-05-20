@@ -1,10 +1,8 @@
-package com.ninjas4744.NinjasLib.Controllers;
+package frc.lib.NinjasLib.Controllers;
 
 import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.ctre.phoenix6.StatusSignal;
-import com.ninjas4744.NinjasLib.DataClasses.MainControllerConstants;
-import edu.wpi.first.units.measure.Current;
+import frc.lib.NinjasLib.DataClasses.MainControllerConstants;
 
 public class NinjasTalonSRXController extends NinjasController {
 	private final TalonSRX _main;

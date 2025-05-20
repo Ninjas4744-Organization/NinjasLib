@@ -1,8 +1,8 @@
-package com.ninjas4744.NinjasLib.Controllers;
+package frc.lib.NinjasLib.Controllers;
 
-import com.ninjas4744.NinjasLib.DataClasses.ControlConstants.SmartControlType;
-import com.ninjas4744.NinjasLib.DataClasses.MainControllerConstants;
 import edu.wpi.first.wpilibj.DigitalInput;
+import frc.lib.NinjasLib.DataClasses.ControlConstants.SmartControlType;
+import frc.lib.NinjasLib.DataClasses.MainControllerConstants;
 import org.littletonrobotics.junction.Logger;
 
 public abstract class NinjasController {

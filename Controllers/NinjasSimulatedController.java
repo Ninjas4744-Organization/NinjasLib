@@ -1,11 +1,10 @@
-package com.ninjas4744.NinjasLib.Controllers;
+package frc.lib.NinjasLib.Controllers;
 
-import com.ninjas4744.NinjasLib.DataClasses.SimulatedControllerConstants;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.lib.NinjasLib.DataClasses.SimulatedControllerConstants;
 
 public class NinjasSimulatedController extends NinjasController {
     private double _maxVelocity;

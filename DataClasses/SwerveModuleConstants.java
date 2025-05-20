@@ -1,6 +1,6 @@
-package com.ninjas4744.NinjasLib.DataClasses;
+package frc.lib.NinjasLib.DataClasses;
 
-import com.ninjas4744.NinjasLib.Controllers.NinjasController;
+import frc.lib.NinjasLib.Controllers.NinjasController;
 
 public class SwerveModuleConstants<T extends NinjasController> {
     public int moduleNumber;

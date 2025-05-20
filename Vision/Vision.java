@@ -1,6 +1,6 @@
-package com.ninjas4744.NinjasLib.Vision;
+package frc.lib.NinjasLib.Vision;
 
-import com.ninjas4744.NinjasLib.DataClasses.VisionConstants;
+import frc.lib.NinjasLib.DataClasses.VisionConstants;
 
 public class Vision extends VisionIO {
     protected Vision(VisionConstants constants) {

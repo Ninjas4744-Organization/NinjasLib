@@ -1,20 +1,19 @@
-package com.ninjas4744.NinjasLib;
+package frc.lib.NinjasLib;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
-import com.ninjas4744.NinjasLib.DataClasses.FOMCalculator;
-import com.ninjas4744.NinjasLib.DataClasses.VisionOutput;
-import com.ninjas4744.NinjasLib.Swerve.Swerve;
-import com.ninjas4744.NinjasLib.Swerve.SwerveIO;
 import com.studica.frc.AHRS;
-import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
-import edu.wpi.first.math.geometry.*;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructPublisher;
+import frc.lib.NinjasLib.DataClasses.FOMCalculator;
+import frc.lib.NinjasLib.DataClasses.VisionOutput;
+import frc.lib.NinjasLib.Swerve.Swerve;
+import frc.lib.NinjasLib.Swerve.SwerveIO;
 import org.littletonrobotics.junction.Logger;
 
 public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<StateEnum>{

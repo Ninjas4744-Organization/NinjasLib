@@ -1,4 +1,4 @@
-package com.ninjas4744.NinjasLib.DataClasses;
+package frc.lib.NinjasLib.DataClasses;
 
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.path.PathConstraints;

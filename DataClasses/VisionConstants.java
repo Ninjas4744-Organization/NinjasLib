@@ -1,9 +1,9 @@
-package com.ninjas4744.NinjasLib.DataClasses;
+package frc.lib.NinjasLib.DataClasses;
 
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform3d;
-import com.ninjas4744.NinjasLib.Vision.FieldLayoutGetter;
+import frc.lib.NinjasLib.Vision.FieldLayoutGetter;
 
 import java.util.Map;
 import java.util.function.Supplier;

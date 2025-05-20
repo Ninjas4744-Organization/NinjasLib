@@ -1,10 +1,10 @@
-package com.ninjas4744.NinjasLib.Vision;
+package frc.lib.NinjasLib.Vision;
 
-import com.ninjas4744.NinjasLib.DataClasses.VisionConstants;
-import com.ninjas4744.NinjasLib.DataClasses.VisionOutput;
-import com.ninjas4744.NinjasLib.RobotStateIO;
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.NinjasLib.DataClasses.VisionConstants;
+import frc.lib.NinjasLib.DataClasses.VisionOutput;
+import frc.lib.NinjasLib.RobotStateIO;
 
 import java.util.HashMap;
 

@@ -1,12 +1,12 @@
-package com.ninjas4744.NinjasLib.Swerve;
+package frc.lib.NinjasLib.Swerve;
 
-import com.ninjas4744.NinjasLib.DataClasses.SwerveConstants;
-import com.ninjas4744.NinjasLib.RobotStateIO;
-import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import frc.lib.NinjasLib.DataClasses.SwerveConstants;
+import frc.lib.NinjasLib.RobotStateIO;
+import frc.lib.NinjasLib.RobotStateWithSwerve;
 
 public abstract class SwerveIO {
     private static SwerveIO _instance;

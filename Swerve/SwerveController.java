@@ -1,7 +1,5 @@
-package com.ninjas4744.NinjasLib.Swerve;
+package frc.lib.NinjasLib.Swerve;
 
-import com.ninjas4744.NinjasLib.DataClasses.SwerveControllerConstants;
-import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.Waypoint;
@@ -13,6 +11,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
+import frc.lib.NinjasLib.DataClasses.SwerveControllerConstants;
+import frc.lib.NinjasLib.RobotStateWithSwerve;
 import org.littletonrobotics.junction.Logger;
 
 import java.util.List;

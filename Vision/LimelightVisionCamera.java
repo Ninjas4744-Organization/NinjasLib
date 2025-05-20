@@ -1,12 +1,8 @@
-package com.ninjas4744.NinjasLib.Vision;
+package frc.lib.NinjasLib.Vision;
 
-import com.ninjas4744.NinjasLib.DataClasses.VisionConstants;
-import com.ninjas4744.NinjasLib.DataClasses.VisionOutput;
-import com.ninjas4744.NinjasLib.RobotStateIO;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.wpilibj.DriverStation;
+import frc.lib.NinjasLib.DataClasses.VisionConstants;
+import frc.lib.NinjasLib.DataClasses.VisionOutput;
 
 public class LimelightVisionCamera extends VisionCamera<LimelightHelpers> {
     private final String cameraName;

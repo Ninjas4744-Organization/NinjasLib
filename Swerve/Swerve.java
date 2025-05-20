@@ -1,11 +1,11 @@
-package com.ninjas4744.NinjasLib.Swerve;
+package frc.lib.NinjasLib.Swerve;
 
-import com.ninjas4744.NinjasLib.DataClasses.SwerveConstants;
-import com.ninjas4744.NinjasLib.RobotStateWithSwerve;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import frc.lib.NinjasLib.DataClasses.SwerveConstants;
+import frc.lib.NinjasLib.RobotStateWithSwerve;
 import org.littletonrobotics.junction.Logger;
 
 public class Swerve extends SwerveIO {

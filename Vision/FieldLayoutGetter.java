@@ -1,4 +1,4 @@
-package com.ninjas4744.NinjasLib.Vision;
+package frc.lib.NinjasLib.Vision;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 

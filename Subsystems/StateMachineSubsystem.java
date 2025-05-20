@@ -1,7 +1,7 @@
-package com.ninjas4744.NinjasLib.Subsystems;
+package frc.lib.NinjasLib.Subsystems;
 
-import com.ninjas4744.NinjasLib.RobotStateIO;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.NinjasLib.RobotStateIO;
 
 import java.util.HashMap;
 import java.util.Map;

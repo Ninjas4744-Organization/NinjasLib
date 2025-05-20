@@ -1,8 +1,8 @@
-package com.ninjas4744.NinjasLib;
+package frc.lib.NinjasLib;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import com.ninjas4744.NinjasLib.Subsystems.StateMachineSubsystem;
+import frc.lib.NinjasLib.Subsystems.StateMachineSubsystem;
 
 import java.util.HashMap;
 import java.util.Map;

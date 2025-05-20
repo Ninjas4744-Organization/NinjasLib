@@ -1,12 +1,5 @@
-package com.ninjas4744.NinjasLib;
+package frc.lib.NinjasLib;
 
-import com.ninjas4744.NinjasLib.Controllers.NinjasSimulatedController;
-import com.ninjas4744.NinjasLib.Controllers.NinjasTalonFXController;
-import com.ninjas4744.NinjasLib.DataClasses.*;
-import com.ninjas4744.NinjasLib.Subsystems.StateMachineMotoredSubsystem;
-import com.ninjas4744.NinjasLib.Swerve.SwerveIO;
-import com.ninjas4744.NinjasLib.Vision.LimelightHelpers;
-import com.ninjas4744.NinjasLib.Vision.VisionIO;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
@@ -23,16 +16,15 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
+import frc.lib.NinjasLib.Controllers.NinjasSimulatedController;
+import frc.lib.NinjasLib.Controllers.NinjasTalonFXController;
+import frc.lib.NinjasLib.DataClasses.*;
+import frc.lib.NinjasLib.Subsystems.StateMachineMotoredSubsystem;
+import frc.lib.NinjasLib.Swerve.SwerveIO;
+import frc.lib.NinjasLib.Vision.VisionIO;
 import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -40,6 +32,10 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 public class Robot extends LoggedRobot {
 //  NinjasController _shooter;
@@ -81,7 +77,7 @@ public class Robot extends LoggedRobot {
     }
 
      public class SwerveConstants {
-         public static final com.ninjas4744.NinjasLib.DataClasses.SwerveConstants kSwerveConstants = new com.ninjas4744.NinjasLib.DataClasses.SwerveConstants();
+         public static final frc.lib.NinjasLib.DataClasses.SwerveConstants kSwerveConstants = new frc.lib.NinjasLib.DataClasses.SwerveConstants();
          static {
              kSwerveConstants.openLoop = true;
              kSwerveConstants.trackWidth = 0.62;

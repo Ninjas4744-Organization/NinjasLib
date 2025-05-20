@@ -1,4 +1,4 @@
-package com.ninjas4744.NinjasLib.Controllers;
+package frc.lib.NinjasLib.Controllers;
 
 import com.ctre.phoenix6.configs.*;
 import com.ctre.phoenix6.controls.*;
@@ -6,7 +6,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.ninjas4744.NinjasLib.DataClasses.MainControllerConstants;
+import frc.lib.NinjasLib.DataClasses.MainControllerConstants;
 
 public class NinjasTalonFXController extends NinjasController {
     private final TalonFX _main;

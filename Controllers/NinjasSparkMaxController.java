@@ -1,12 +1,12 @@
-package com.ninjas4744.NinjasLib.Controllers;
+package frc.lib.NinjasLib.Controllers;
 
-import com.ninjas4744.NinjasLib.DataClasses.ControlConstants.SmartControlType;
-import com.ninjas4744.NinjasLib.DataClasses.MainControllerConstants;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.*;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import frc.lib.NinjasLib.DataClasses.ControlConstants.SmartControlType;
+import frc.lib.NinjasLib.DataClasses.MainControllerConstants;
 
 public class NinjasSparkMaxController extends NinjasController {
 	private final SparkMax _main;

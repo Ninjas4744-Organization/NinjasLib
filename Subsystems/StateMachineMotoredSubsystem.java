@@ -1,10 +1,10 @@
-package com.ninjas4744.NinjasLib.Subsystems;
+package frc.lib.NinjasLib.Subsystems;
 
-import com.ninjas4744.NinjasLib.Controllers.NinjasController;
-import com.ninjas4744.NinjasLib.Controllers.NinjasSimulatedController;
-import com.ninjas4744.NinjasLib.RobotStateIO;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.lib.NinjasLib.Controllers.NinjasController;
+import frc.lib.NinjasLib.Controllers.NinjasSimulatedController;
+import frc.lib.NinjasLib.RobotStateIO;
 
 public abstract class StateMachineMotoredSubsystem<StateEnum> extends StateMachineSubsystem<StateEnum> {
     protected NinjasController _controller;
