@@ -2,27 +2,22 @@ package frc.lib.NinjasLib;
 
 import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
+import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
 
-public abstract class RobotStateIO<StateEnum> {
-    protected static RobotStateIO _instance;
+public abstract class RobotStateBase<StateEnum> {
+    protected static RobotStateBase _instance;
     protected StateEnum _robotState;
 
-    public static RobotStateIO getInstance() {
+    public static RobotStateBase getInstance() {
         if(_instance == null)
             throw new RuntimeException("RobotStateIO not initialized. Initialize RobotStateIO by setInstance() first.");
         return _instance;
     }
 
-    public static void setInstance(RobotStateIO instance) {
+    public static void setInstance(RobotStateBase instance) {
         _instance = instance;
-        _instance.init();
-    }
-
-    protected void init(){
-
     }
 
     /**
@@ -35,7 +30,7 @@ public abstract class RobotStateIO<StateEnum> {
     /**
      * Sets the state of the robot to the given state
      *
-     * @param state - the state to set the robot state to
+     * @param state The state to set the robot state to
      */
     public void setRobotState(StateEnum state) {
         System.out.println("[Robot State Change] " + _robotState.toString() + " -> " + state.toString());
@@ -44,25 +39,20 @@ public abstract class RobotStateIO<StateEnum> {
     }
 
     /**
-     * @return Whether the robot is at simulation mode or deployed on a real robot
+     * @return Whether the robot is in the blue alliance or the red alliance
      */
-    public static boolean isSimulated() {
-        return TimedRobot.isSimulation();
-    }
-
-    public static boolean isAutonomous() {
-        return isSimulated() ? DriverStationSim.getAutonomous() : DriverStation.isAutonomous();
-    }
-
     public static DriverStation.Alliance getAlliance() {
-        return isSimulated()
+        return Robot.isSimulation()
             ? (DriverStationSim.getAllianceStationId().ordinal() > 3
             ? DriverStation.Alliance.Blue
             : DriverStation.Alliance.Red)
             : DriverStation.getAlliance().get();
     }
 
+    /**
+     * @return Which driver station the robot is in
+     */
     public AllianceStationID getAllianceStation() {
-        return isSimulated() ? DriverStationSim.getAllianceStationId() : DriverStation.getRawAllianceStation();
+        return Robot.isSimulation() ? DriverStationSim.getAllianceStationId() : DriverStation.getRawAllianceStation();
     }
 }

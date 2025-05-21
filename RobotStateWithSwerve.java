@@ -14,52 +14,42 @@ import frc.lib.NinjasLib.DataClasses.FOMCalculator;
 import frc.lib.NinjasLib.DataClasses.VisionOutput;
 import frc.lib.NinjasLib.Swerve.Swerve;
 import frc.lib.NinjasLib.Swerve.SwerveIO;
+import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
 
-public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<StateEnum>{
+public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<StateEnum> {
     private AHRS navX;
     private Pigeon2 pigeon;
     private SwerveDrivePoseEstimator poseEstimator;
-    private SwerveDriveKinematics _kinematics;
-    private boolean _gyroInverted;
-    private FOMCalculator _fomCalculator;
+    private SwerveDriveKinematics kinematics;
+    private boolean gyroInverted;
+    private FOMCalculator fomCalculator;
     private int pigeonID = -1;
-
     private Translation3d pigeonVelocity = new Translation3d();
 
-    public static void setInstance(RobotStateWithSwerve instance, SwerveDriveKinematics kinematics, boolean gyroInverted, FOMCalculator fomCalculator) {
-        _instance = instance;
-        instance._kinematics = kinematics;
-        instance._gyroInverted = gyroInverted;
-        instance._fomCalculator = fomCalculator;
-        instance.init();
-    }
-
-    public static void setInstance(RobotStateWithSwerve instance, SwerveDriveKinematics kinematics, boolean gyroInverted, FOMCalculator fomCalculator, int pigeonID) {
-        _instance = instance;
-        instance._kinematics = kinematics;
-        instance._gyroInverted = gyroInverted;
-        instance._fomCalculator = fomCalculator;
-        instance.pigeonID = pigeonID;
-        instance.init();
-    }
-
     public static RobotStateWithSwerve getInstance() {
-        return (RobotStateWithSwerve)RobotStateIO.getInstance();
+        return (RobotStateWithSwerve) RobotStateBase.getInstance();
     }
 
-    @Override
-    protected void init(){
-        if(!isSimulated()){
-            if(pigeonID != -1)
-                pigeon = new Pigeon2(pigeonID);
-            else
-                navX = new AHRS(AHRS.NavXComType.kMXP_SPI);
+    /**
+     * Create a new RobotStateWithSwerve with navX gyro sensor.
+     *
+     * @param kinematics    The swerve drive kinematics used in the swerve. Used to calculate odometry.
+     * @param gyroInverted  Whether to invert the returned angle of the gyro. Counterclockwise positive if not inverted.
+     * @param fomCalculator A function the gets a vision estimation from a camera and returns how much we don't trust its position.
+     */
+    public RobotStateWithSwerve(SwerveDriveKinematics kinematics, boolean gyroInverted, FOMCalculator fomCalculator) {
+        this.kinematics = kinematics;
+        this.gyroInverted = gyroInverted;
+        this.fomCalculator = fomCalculator;
 
-            poseEstimator = new SwerveDrivePoseEstimator(_kinematics, getGyroYaw(),
-                ((Swerve)SwerveIO.getInstance()).getModulePositions(), new Pose2d());
-        }else{
-            poseEstimator = new SwerveDrivePoseEstimator(_kinematics, new Rotation2d(),
+        if (Robot.isReal()) {
+            navX = new AHRS(AHRS.NavXComType.kMXP_SPI);
+
+            poseEstimator = new SwerveDrivePoseEstimator(kinematics, getGyroYaw(),
+                ((Swerve) SwerveIO.getInstance()).getModulePositions(), new Pose2d());
+        } else {
+            poseEstimator = new SwerveDrivePoseEstimator(kinematics, new Rotation2d(),
                 new SwerveModulePosition[]{
                     new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
                     new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
@@ -70,18 +60,55 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<State
     }
 
     /**
-     * @return position of the robot
+     * Create a new RobotStateWithSwerve with pigeon gyro sensor.
+     *
+     * @param kinematics    The swerve drive kinematics used in the swerve. Used to calculate odometry.
+     * @param gyroInverted  Whether to invert the returned angle of the gyro. Counterclockwise positive if not inverted.
+     * @param fomCalculator A function the gets a vision estimation from a camera and returns how much we don't trust its position.
+     * @param pigeonID      The pigeon gyro sensor CAN id.
+     */
+    public RobotStateWithSwerve(SwerveDriveKinematics kinematics, boolean gyroInverted, FOMCalculator fomCalculator, int pigeonID) {
+        this.kinematics = kinematics;
+        this.gyroInverted = gyroInverted;
+        this.fomCalculator = fomCalculator;
+        this.pigeonID = pigeonID;
+
+        if (Robot.isReal()) {
+            pigeon = new Pigeon2(pigeonID);
+
+            poseEstimator = new SwerveDrivePoseEstimator(kinematics, getGyroYaw(),
+                ((Swerve)SwerveIO.getInstance()).getModulePositions(), new Pose2d());
+        } else {
+            poseEstimator = new SwerveDrivePoseEstimator(kinematics, new Rotation2d(),
+                new SwerveModulePosition[]{
+                    new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
+                    new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
+                    new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
+                    new SwerveModulePosition(0, Rotation2d.fromDegrees(0))
+                }, new Pose2d());
+        }
+    }
+
+    /**
+     * @return 2D position of the robot on the field.
      */
     public Pose2d getRobotPose() {
         return poseEstimator.getEstimatedPosition();
     }
 
+    /**
+     * @param other Another pose to measure distance to.
+     * @return Distance between the robot and another pose. Meters.
+     */
     public double getDistance(Pose2d other){
         return other.getTranslation().minus(getRobotPose().getTranslation()).getNorm();
     }
 
+    /**
+     * @param other Another pose to measure transform to.
+     * @return Translation from robot to another pose including dx, dy, da. Field Relative.
+     */
     public Transform2d getTransform(Pose2d other){
-//        return other.minus(getRobotPose());
         return new Transform2d(
             other.getTranslation().minus(getRobotPose().getTranslation()),
             other.getRotation().minus(getRobotPose().getRotation())
@@ -89,27 +116,27 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<State
     }
 
     /**
-     * Set where the code thinks the robot is
+     * Set where the code thinks the robot is.
      *
-     * @param pose - the pose to set the robot pose to
+     * @param pose The pose to set the robot pose to.
      */
     public void setRobotPose(Pose2d pose) {
-        Logger.recordOutput("Robot Pose", pose);
-
-        if(!isSimulated())
+        if (Robot.isReal())
             poseEstimator.resetPosition(getGyroYaw(), ((Swerve)SwerveIO.getInstance()).getModulePositions(), pose);
         else
             poseEstimator.resetPosition(getGyroYaw(), new SwerveModulePosition[]{
                 new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
                 new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
                 new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
-                new SwerveModulePosition(0, Rotation2d.fromDegrees(0)) }, pose);
+                new SwerveModulePosition(0, Rotation2d.fromDegrees(0))}, pose);
+
+        Logger.recordOutput("Robot Pose", getRobotPose());
     }
 
     /**
-     * Updates the robot pose according to odometry parameters
+     * Updates the robot pose according to odometry parameters.
      *
-     * @param modulePositions - The current position of the swerve modules.
+     * @param modulePositions The current position of the swerve modules.
      */
     public void updateRobotPose(SwerveModulePosition[] modulePositions) {
         poseEstimator.update(getGyroYaw(), modulePositions);
@@ -117,17 +144,19 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<State
     }
 
     /**
-     * Updates the robot pose according to the given vision estimation
+     * Updates the robot pose according to given vision estimations.
      *
-     * @param visionEstimation - the estimation
+     * @param estimations The vision estimations.
      */
-    public void updateRobotPose(VisionOutput visionEstimation) {
-        if (visionEstimation.hasTargets){
-            double[] fom = _fomCalculator.calculateFOM(visionEstimation);
+    public void updateRobotPose(VisionOutput... estimations) {
+        for (VisionOutput estimation : estimations) {
+            if (!estimation.hasTargets)
+                continue;
 
+            double[] fom = fomCalculator.calculateFOM(estimation);
             poseEstimator.addVisionMeasurement(
-                visionEstimation.robotPose,
-                visionEstimation.timestamp,
+                estimation.robotPose,
+                estimation.timestamp,
                 VecBuilder.fill(
                     fom[0],
                     fom[1],
@@ -140,43 +169,30 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateIO<State
     }
 
     /**
-     * @return yaw angle of the robot according to gyro
+     * @return Yaw angle of the robot according to gyro.
      */
     public Rotation2d getGyroYaw() {
-        if (!isSimulated())
+        if (Robot.isReal())
             if(pigeonID != -1)
-                return Rotation2d.fromDegrees(_gyroInverted ? -pigeon.getRotation2d().getDegrees() : pigeon.getRotation2d().getDegrees());
+                return Rotation2d.fromDegrees(gyroInverted ? -pigeon.getRotation2d().getDegrees() : pigeon.getRotation2d().getDegrees());
             else
-                return Rotation2d.fromDegrees(_gyroInverted ? -navX.getAngle() : navX.getAngle());
+                return Rotation2d.fromDegrees(gyroInverted ? -navX.getAngle() : navX.getAngle());
         else
-            return _gyroInverted
+            return gyroInverted
                 ? getRobotPose().getRotation().unaryMinus()
                 : getRobotPose().getRotation();
     }
 
-    public Translation3d getRobotVelocity() {
-        if(pigeonID != -1){
-            pigeonVelocity = new Translation3d(
-                pigeonVelocity.getX() + pigeon.getAccelerationX().getValueAsDouble() * 0.02,
-                pigeonVelocity.getY() + pigeon.getAccelerationY().getValueAsDouble() * 0.02,
-                pigeonVelocity.getZ() + pigeon.getAccelerationZ().getValueAsDouble() * 0.02
-            );
-            return pigeonVelocity;
-        }
-        else
-            return new Translation3d(navX.getVelocityX(), navX.getVelocityY(), navX.getVelocityZ());
-    }
-
     /**
-     * Resets the gyro angle, sets it to the given angle
+     * Resets the gyro angle, sets it to the given angle.
      *
-     * @param angle - the angle to set the gyro to
+     * @param angle The angle to set the gyro to.
      */
     public void resetGyro(Rotation2d angle) {
-        if (!isSimulated()) {
+        if (Robot.isReal()) {
             if(pigeonID != -1){
                 System.out.print("Gyro: " + pigeon.getRotation2d().getDegrees() + " -> ");
-                pigeon.setYaw(angle.getDegrees());
+                pigeon.setYaw(angle.getDegrees(), 0);
                 System.out.println(pigeon.getRotation2d().getDegrees());
             }
             else{

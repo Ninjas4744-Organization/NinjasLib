@@ -4,7 +4,7 @@ import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.NinjasLib.DataClasses.VisionConstants;
 import frc.lib.NinjasLib.DataClasses.VisionOutput;
-import frc.lib.NinjasLib.RobotStateIO;
+import frc.robot.Robot;
 
 import java.util.HashMap;
 
@@ -22,7 +22,7 @@ public abstract class VisionIO extends SubsystemBase {
 
 	public static void setConstants(VisionConstants constants) {
 		if (_instance == null) {
-			if (RobotStateIO.isSimulated()) _instance = new VisionSimulated(constants);
+			if (Robot.isSimulation()) _instance = new VisionSimulated(constants);
 			else _instance = new Vision(constants);
 		}
 	}

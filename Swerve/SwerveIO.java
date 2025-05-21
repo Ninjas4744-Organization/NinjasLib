@@ -5,8 +5,8 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import frc.lib.NinjasLib.DataClasses.SwerveConstants;
-import frc.lib.NinjasLib.RobotStateIO;
 import frc.lib.NinjasLib.RobotStateWithSwerve;
+import frc.robot.Robot;
 
 public abstract class SwerveIO {
     private static SwerveIO _instance;
@@ -23,7 +23,7 @@ public abstract class SwerveIO {
     }
 
     public static SwerveIO setConstants(SwerveConstants constants){
-        if (!RobotStateIO.isSimulated()) 
+        if (Robot.isReal())
             _instance = new Swerve(constants);
         else
             _instance = new SwerveSimulated(constants);
