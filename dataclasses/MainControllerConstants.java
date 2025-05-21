@@ -1,0 +1,85 @@
+package frc.lib.NinjasLib.dataclasses;
+
+public class MainControllerConstants {
+	/** Controller constants for the main controller in the subsystem */
+	public ControllerConstants main = new ControllerConstants();
+
+	/** Whether the neutral mode of the controller should be brake or coast(in brake mode setting motor to 0 makes a sudden stop, in coast mode setting motor to 0 makes it free and slowly climb down to zero due to friction */
+	public boolean isBrakeMode = true;
+
+	/** Controller constants for the controllers that follow the main controller in the subsystem */
+	public ControllerConstants[] followers = new ControllerConstants[0];
+
+	/** Current limit */
+	public double currentLimit = 60;
+
+	/** The name of the subsystem which uses this controller */
+	public String subsystemName = "";
+
+	/** Whether to enable logging controller data to advantage scope */
+	public boolean enableLogging = true;
+
+	/** Control constants */
+	public ControlConstants controlConstants = new ControlConstants();
+
+	/* The error which is considered atGoal(). if the PIDF error is smaller than this value it will be considered atGoal() */
+	/** The position error which is considered atGoal() */
+	public double positionGoalTolerance = 0.05;
+
+	/** The velocity error which is considered atGoal() */
+	public double velocityGoalTolerance = 0.05;
+
+	/**
+	 * The home position of the system where the limit switch is and is usually 0. when the limit
+	 * switch is hit the encoder will reset to this value
+	 */
+	public double encoderHomePosition = 0;
+
+	/**
+	 * The controller works with amount of rotations according to the encoder, the rotations value gets multiplied by this number, choose a number that will result the encoder
+	 * to be in meters / degrees
+	 */
+	public double encoderConversionFactor = 1;
+
+	/** Whether to apply minimum soft limit */
+	public boolean isMinSoftLimit = false;
+
+	/** The down soft limit, makes the system unable to move under it */
+	public double minSoftLimit = 0;
+
+	/** Whether to apply maximum soft limit */
+	public boolean isMaxSoftLimit = false;
+
+	/** The up soft limit, makes the system unable to move above it */
+	public double maxSoftLimit = 0;
+
+	/** Whether there is a limit switch related to the motor*/
+	public boolean isLimitSwitch = false;
+
+	/** ID of limit switch used in the system */
+	public int limitSwitchID = 0;
+
+	/** Whether the limit switch is inverted(false when clicked) */
+	public boolean limitSwitchInverted = false;
+
+	/** the direction of movement in which the limit will be clicked, for example if an elevator goes down when given minus and the limit switch is at the bottom then this value should be -1 */
+	public int limitSwitchDirection = -1;
+
+	/** Whether to automatically stop the motor and reset the encoder when limit is clicked */
+	public boolean limitSwitchAutoStopReset = true;
+
+	public static class ControllerConstants {
+		/**
+		 * The ID of the controller, chosen in the device's configuration software- Phoenix Tuner X / Rev
+		 * Hardware Client
+		 */
+		public int id;
+
+		/**
+		 * Whether or not to invert the output of this controller, IF this controller is a FOLLOWER it
+		 * will invert the main controller's output so if the main controller is inverted and this
+		 * follower is inverted it will be inverted twice so not inverted
+		 */
+		public boolean inverted = false;
+	}
+}

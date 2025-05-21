@@ -10,10 +10,10 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import frc.lib.NinjasLib.DataClasses.FOMCalculator;
-import frc.lib.NinjasLib.DataClasses.VisionOutput;
-import frc.lib.NinjasLib.Swerve.Swerve;
-import frc.lib.NinjasLib.Swerve.SwerveIO;
+import frc.lib.NinjasLib.dataclasses.FOMCalculator;
+import frc.lib.NinjasLib.dataclasses.VisionOutput;
+import frc.lib.NinjasLib.swerve.Swerve;
+import frc.lib.NinjasLib.swerve.SwerveIO;
 import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
 
