@@ -79,7 +79,7 @@ public class SimulatedController extends Controller {
 
     @Override
     public double getOutput() {
-        return motorSim.getOutput(0);
+        return motorSim.getAngularVelocityRadPerSec() / motorSim.getGearbox().freeSpeedRadPerSec; // TODO FIX
     }
 
     @Override
@@ -89,7 +89,7 @@ public class SimulatedController extends Controller {
 
     @Override
     public void setEncoder(double position) {
-        motorSim.setState(position / constants.conversionFactor, motorSim.getAngularVelocityRadPerSec());
+        motorSim.setState(position, motorSim.getAngularVelocityRadPerSec());
     }
 
     @Override
@@ -131,35 +131,18 @@ public class SimulatedController extends Controller {
             profiledPIDController.reset(new TrapezoidProfile.State(getPosition(), getVelocity()));
         isCurrentlyProfiling = false;
 
+        if (getPosition() >= constants.maxSoftLimit) {
+            stop();
+            setEncoder(constants.maxSoftLimit);
+        }
+
+        if (getPosition() <= constants.minSoftLimit) {
+            stop();
+            setEncoder(constants.minSoftLimit);
+        }
+
         motorSim.update(0.02);
 
         super.periodic();
     }
-
-//    private void calculateKinematics() {
-//        _output = MathUtil.clamp(_output, -1, 1);
-//        double dt = 0.02;
-//        double v0 = _velocity;
-//
-////        double accelerationDir = Math.signum(_output - _lastOutput);
-//        double velocityDir = Math.signum(v0);
-//        double outputDir = Math.signum(_output);
-//        double wantedVelocity = _output * _maxVelocity;
-//
-//        double dynamicAccelerationLimiter;
-//        if((outputDir == velocityDir && Math.abs(wantedVelocity) >= Math.abs(v0)))
-//            dynamicAccelerationLimiter = _maxAcceleration * (1 - Math.pow(Math.abs(v0) / _maxVelocity, 2));
-//        else
-//            dynamicAccelerationLimiter = _maxAcceleration * 5;
-//
-//        _velocity +=
-//            MathUtil.clamp(
-//                wantedVelocity - v0,
-//                -dynamicAccelerationLimiter * dt,
-//                dynamicAccelerationLimiter * dt);
-//
-//        double a = (_velocity - v0) / dt;
-//        _position += v0 * dt + 0.5 * a * dt * dt;
-//        _lastOutput = _output;
-//    }
 }

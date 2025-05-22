@@ -156,7 +156,10 @@ public abstract class Controller {
      * @return Whether the limit switch of the system is clicked now
      */
     public boolean getLimit() {
-        return constants.isLimitSwitch && (constants.limitSwitchInverted != limitSwitch.get());
+        if (Robot.isReal())
+            return constants.isLimitSwitch && (constants.limitSwitchInverted != limitSwitch.get());
+        else
+            return constants.isLimitSwitch && (Math.abs(constants.homePosition - getPosition()) < constants.positionGoalTolerance);
     }
 
     /** Runs controller periodic tasks, run it on the subsystem periodic */
@@ -166,18 +169,6 @@ public abstract class Controller {
         if (constants.limitSwitchAutoStopReset && getLimit() && Math.signum(getOutput()) == constants.limitSwitchDirection)
             stop();
         preLimit = getLimit();
-
-//        if(!_constants.enableLogging)
-//            return;
-//
-//        Logger.recordOutput(_constants.subsystemName + "/Position", getPosition());
-//        Logger.recordOutput(_constants.subsystemName + "/Velocity", getVelocity());
-//        Logger.recordOutput(_constants.subsystemName + "/Output", getOutput());
-//        Logger.recordOutput(_constants.subsystemName + "/Current", getCurrent());
-//        Logger.recordOutput(_constants.subsystemName + "/Goal", getGoal());
-//        Logger.recordOutput(_constants.subsystemName + "/Limit Switch", getLimit());
-//        Logger.recordOutput(_constants.subsystemName + "/Control State", _controlState.toString());
-//        Logger.recordOutput(_constants.subsystemName + "/Control Type", _constants.controlConstants.type == SmartControlType.NONE ? "N/A" : _constants.controlConstants.type.toString());
     }
 
     public static Controller createController(ControllerType type, ControllerConstants constants) {
