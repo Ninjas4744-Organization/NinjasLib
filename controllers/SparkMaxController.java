@@ -6,7 +6,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import frc.lib.NinjasLib.dataclasses.ControlConstants.SmartControlType;
-import frc.lib.NinjasLib.dataclasses.MainControllerConstants;
+import frc.lib.NinjasLib.dataclasses.RealControllerConstants;
 
 public class SparkMaxController extends Controller {
 	private final SparkMax _main;
@@ -16,7 +16,7 @@ public class SparkMaxController extends Controller {
 	private final ProfiledPIDController _PIDFController;
 	private boolean isCurrentlyPiding = false;
 
-	public SparkMaxController(MainControllerConstants constants) {
+    public SparkMaxController(RealControllerConstants constants) {
 		super(constants);
 
 		_main = new SparkMax(constants.main.id, SparkMax.MotorType.kBrushless);
@@ -27,13 +27,13 @@ public class SparkMaxController extends Controller {
 
 		config.softLimit.forwardSoftLimit(constants.maxSoftLimit)
 		.reverseSoftLimit(constants.minSoftLimit)
-		.forwardSoftLimitEnabled(constants.isMaxSoftLimit)
-		.reverseSoftLimitEnabled(constants.isMinSoftLimit);
+            .forwardSoftLimitEnabled(constants.maxSoftLimit != Double.MAX_VALUE)
+            .reverseSoftLimitEnabled(constants.minSoftLimit != Double.MIN_VALUE);
 
 		config.closedLoop.pid(constants.controlConstants.P, constants.controlConstants.I, constants.controlConstants.D);
 
-		config.encoder.positionConversionFactor(constants.encoderConversionFactor)
-		.velocityConversionFactor(constants.encoderConversionFactor / 60);
+        config.encoder.positionConversionFactor(constants.conversionFactor)
+            .velocityConversionFactor(constants.conversionFactor / 60);
 
 		_main.configure(config, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
 
@@ -47,14 +47,14 @@ public class SparkMaxController extends Controller {
 		}
 
 		_profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(
-				constants.controlConstants.CruiseVelocity, constants.controlConstants.Acceleration));
+            constants.controlConstants.cruiseVelocity, constants.controlConstants.acceleration));
 
 		_PIDFController = new ProfiledPIDController(
 				constants.controlConstants.P,
 				constants.controlConstants.I,
 				constants.controlConstants.D,
 				new TrapezoidProfile.Constraints(
-						constants.controlConstants.CruiseVelocity, constants.controlConstants.Acceleration));
+                    constants.controlConstants.cruiseVelocity, constants.controlConstants.acceleration));
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public class SparkMaxController extends Controller {
 	public void setPosition(double position) {
 		super.setPosition(position);
 
-		if (_constants.controlConstants.type == SmartControlType.PID)
+        if (constants.controlConstants.type == SmartControlType.PID)
 			_main.getClosedLoopController().setReference(getGoal(), SparkBase.ControlType.kPosition);
 
 		_PIDFController.setGoal(position);
@@ -78,7 +78,7 @@ public class SparkMaxController extends Controller {
 	public void setVelocity(double velocity) {
 		super.setVelocity(velocity);
 
-		if (_constants.controlConstants.type == SmartControlType.PID)
+        if (constants.controlConstants.type == SmartControlType.PID)
 			_main.getClosedLoopController().setReference(getGoal(), SparkBase.ControlType.kVelocity);
 
 		_PIDFController.setGoal(velocity);
@@ -116,24 +116,24 @@ public class SparkMaxController extends Controller {
 
 	@Override
 	public void periodic() {
-		switch (_constants.controlConstants.type) {
+        switch (constants.controlConstants.type) {
 			case PROFILED_PID:
 				isCurrentlyPiding = true;
 
-				if(_controlState == ControlState.POSITION)
+                if (controlState == ControlState.POSITION)
 					_main.set(_PIDFController.calculate(getPosition()));
-				else if(_controlState == ControlState.VELOCITY)
+                else if (controlState == ControlState.VELOCITY)
 					_main.set(_PIDFController.calculate(getVelocity()));
 				break;
 
 			case PROFILE:
-				if(_controlState == ControlState.POSITION)
+                if (controlState == ControlState.POSITION)
 					_main.set(_profile.calculate(
 					0.02,
 					new TrapezoidProfile.State(getPosition(), getVelocity()),
 					new TrapezoidProfile.State(getGoal(), 0))
 					.velocity);
-				else if(_controlState == ControlState.VELOCITY)
+                else if (controlState == ControlState.VELOCITY)
 					_main.set(_profile.calculate(
 					0.02,
 					new TrapezoidProfile.State(getPosition(), getVelocity()),
@@ -142,7 +142,7 @@ public class SparkMaxController extends Controller {
 				break;
 		}
 
-		if (!isCurrentlyPiding && _controlState != ControlState.PERCENT_OUTPUT)
+        if (!isCurrentlyPiding && controlState != ControlState.PERCENT_OUTPUT)
 			_PIDFController.reset(new TrapezoidProfile.State(getPosition(), getVelocity()));
 		isCurrentlyPiding = false;
 

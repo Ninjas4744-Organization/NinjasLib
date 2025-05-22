@@ -54,21 +54,21 @@ public class ControlConstants {
 	/**
 	 * Whether the gravity on the subsystem is like an elevator or line an arm. This will only affect kG if you gave it a number
 	 */
-	public GravityTypeValue GravityType = GravityTypeValue.Elevator_Static;
+    public GravityTypeValue gravityType = GravityTypeValue.Elevator_Static;
 
 	/**
 	 * the max velocity the profile should reach
 	 */
-	public double CruiseVelocity = 0;
+    public double cruiseVelocity = 0;
 
 	/**
 	 * the acceleration in which the profile should increase its velocity until cruise velocity
 	 * reached
 	 */
-	public double Acceleration = 0;
+    public double acceleration = 0;
 
 	/** the rate of acceleration change in the profile */
-	public double Jerk = 0;
+    public double jerk = 0;
 
 	public SmartControlType type = SmartControlType.NONE;
 
@@ -82,32 +82,33 @@ public class ControlConstants {
 		return constants;
 	}
 
-	public static ControlConstants createProfile(double CruiseVelocity, double Acceleration, double Jerk, double V, double S, double G, GravityTypeValue GravityType) {
+    public static ControlConstants createProfile(double cruiseVelocity, double acceleration, double jerk, double V, double S, double G, GravityTypeValue gravityType) {
 		ControlConstants constants = new ControlConstants();
 		constants.type = SmartControlType.PROFILE;
-		constants.CruiseVelocity = CruiseVelocity;
-		constants.Acceleration = Acceleration;
-		constants.Jerk=Jerk;
+        constants.cruiseVelocity = cruiseVelocity;
+        constants.acceleration = acceleration;
+        constants.jerk = jerk;
 		constants.V = V;
 		constants.S = S;
 		constants.G = G;
-		constants.GravityType = GravityType;
+        constants.gravityType = gravityType;
 		return constants;
 	}
 
-	public static ControlConstants createProfiledPID(double P, double I, double D, double IZone, double CruiseVelocity, double Acceleration, double Jerk, double V, double S, double G, GravityTypeValue GravityType) {
+    public static ControlConstants createProfiledPID(double P, double I, double D, double IZone, double cruiseVelocity, double acceleration, double jerk, double V, double S, double G, GravityTypeValue gravityType) {
 		ControlConstants constants = new ControlConstants();
 		constants.type = SmartControlType.PROFILED_PID;
 		constants.P = P;
 		constants.I = I;
 		constants.D = D;
 		constants.IZone = IZone;
-		constants.CruiseVelocity = CruiseVelocity;
-		constants.Acceleration = Acceleration;
-		constants.Jerk=Jerk;
+        constants.cruiseVelocity = cruiseVelocity;
+        constants.acceleration = acceleration;
+        constants.jerk = jerk;
 		constants.V = V;
 		constants.S = S;
-		constants.GravityType = GravityType;
+        constants.G = G;
+        constants.gravityType = gravityType;
 		return constants;
 	}
 
@@ -121,7 +122,7 @@ public class ControlConstants {
 
 	@Override
 	public String toString() {
-		return "P: " + P + " I: " + I + " D: " + D + " IZone: " + IZone + " S: " + S + " V: " + V
-				+ " CruiseVelocity: " + CruiseVelocity + " Acceleration: " + Acceleration;
+        return "P: " + P + " I: " + I + " D: " + D + " IZone: " + IZone + " V: " + V + " S: " + S + " G: " + G + " GravityType: " + gravityType.toString()
+            + " CruiseVelocity: " + cruiseVelocity + " Acceleration: " + acceleration + " Jerk: " + jerk;
 	}
 }

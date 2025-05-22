@@ -6,21 +6,21 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import frc.lib.NinjasLib.dataclasses.MainControllerConstants;
+import frc.lib.NinjasLib.dataclasses.RealControllerConstants;
 
 public class TalonFXController extends Controller {
     private final TalonFX _main;
     private final TalonFX[] _followers;
 
-    public TalonFXController(MainControllerConstants constants) {
+    public TalonFXController(RealControllerConstants constants) {
         super(constants);
 
         _main = new TalonFX(constants.main.id);
         _main.getConfigurator()
           .apply(new TalonFXConfiguration()
             .withSoftwareLimitSwitch(new SoftwareLimitSwitchConfigs()
-              .withForwardSoftLimitEnable(constants.isMaxSoftLimit)
-              .withReverseSoftLimitEnable(constants.isMinSoftLimit)
+                .withForwardSoftLimitEnable(constants.maxSoftLimit != Double.MAX_VALUE)
+                .withReverseSoftLimitEnable(constants.minSoftLimit != Double.MIN_VALUE)
               .withForwardSoftLimitThreshold(constants.maxSoftLimit)
               .withReverseSoftLimitThreshold(constants.minSoftLimit))
             .withAudio(new AudioConfigs().withBeepOnBoot(true))
@@ -31,9 +31,9 @@ public class TalonFXController extends Controller {
                   : InvertedValue.Clockwise_Positive)
                     .withNeutralMode(constants.isBrakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast))
             .withMotionMagic(new MotionMagicConfigs()
-              .withMotionMagicAcceleration(constants.controlConstants.Acceleration)
-              .withMotionMagicCruiseVelocity(constants.controlConstants.CruiseVelocity)
-                    .withMotionMagicJerk(constants.controlConstants.Jerk))
+                .withMotionMagicAcceleration(constants.controlConstants.acceleration)
+                .withMotionMagicCruiseVelocity(constants.controlConstants.cruiseVelocity)
+                .withMotionMagicJerk(constants.controlConstants.jerk))
             .withCurrentLimits(new CurrentLimitsConfigs()
               .withStatorCurrentLimit(constants.currentLimit)
               .withStatorCurrentLimitEnable(true)
@@ -47,7 +47,7 @@ public class TalonFXController extends Controller {
               .withKV(constants.controlConstants.V)
               .withKG(constants.controlConstants.G)
               .withGravityType(GravityTypeValue.Arm_Cosine))
-                  .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(1 / constants.encoderConversionFactor)));
+              .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(constants.gearRatio / constants.conversionFactor)));
 
         _followers = new TalonFX[constants.followers.length];
         for (int i = 0; i < _followers.length; i++) {
@@ -68,7 +68,7 @@ public class TalonFXController extends Controller {
     public void setPosition(double position) {
         super.setPosition(position);
 
-        switch (_constants.controlConstants.type) {
+        switch (constants.controlConstants.type) {
             case PROFILED_PID, PROFILE:
                 _main.setControl(new MotionMagicVoltage(position));
                 break;
@@ -87,7 +87,7 @@ public class TalonFXController extends Controller {
     public void setVelocity(double velocity) {
         super.setVelocity(velocity);
 
-        switch (_constants.controlConstants.type) {
+        switch (constants.controlConstants.type) {
             case PROFILED_PID, PROFILE:
                 _main.setControl(new MotionMagicVelocityVoltage(velocity));
                 break;

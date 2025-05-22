@@ -1,191 +1,165 @@
 package frc.lib.NinjasLib.controllers;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import frc.lib.NinjasLib.dataclasses.SimulatedControllerConstants;
+import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import frc.lib.NinjasLib.dataclasses.ControllerConstants;
 
 public class SimulatedController extends Controller {
-    private double _maxVelocity;
-    private double _maxAcceleration;
-    private double _output = 0;
-    private double _lastOutput = 0;
-    private double _velocity = 0;
-    private double _position = 0;
+    private final TrapezoidProfile profile;
+    private final ProfiledPIDController profiledPIDController;
+    private final PIDController PIDController;
+    private boolean isCurrentlyProfiling = false;
+    private DCMotorSim motorSim;
 
-    private final TrapezoidProfile _profile;
-    private final ProfiledPIDController _PIDFController;
-    private final PIDController _PIDController;
-    private boolean isCurrentlyPidfing = false;
+    public SimulatedController(ControllerConstants constants) {
+        super(constants.real);
 
-    public SimulatedController(SimulatedControllerConstants constants) {
-        super(constants.mainControllerConstants);
+        motorSim = new DCMotorSim(LinearSystemId.createDCMotorSystem(constants.motorType, 0.001, constants.real.gearRatio), constants.motorType, 0.002, 0.002);
 
-        switch (constants.motorType) {
-            case KRAKEN, FALCON:
-                _maxVelocity = 100;
-                _maxAcceleration = 120;
-                break;
-            case NEO:
-                _maxVelocity = 94;
-                _maxAcceleration = 80;
-                break;
-            case NEO550:
-                _maxVelocity = 183;
-                _maxAcceleration = 1183;
-                break;
-            case CIM:
-                _maxVelocity = 44;
-                _maxAcceleration = 88;
-                break;
-            case KRAKEN_PRO, FALCON_PRO:
-                _maxVelocity = 97;
-                _maxAcceleration = 240;
-                break;
-        }
+        profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(
+            constants.real.controlConstants.cruiseVelocity,
+            constants.real.controlConstants.acceleration));
 
-        _profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(
-          constants.mainControllerConstants.controlConstants.CruiseVelocity,
-          constants.mainControllerConstants.controlConstants.Acceleration));
-
-        _PIDFController = new ProfiledPIDController(
-          constants.mainControllerConstants.controlConstants.P,
-          constants.mainControllerConstants.controlConstants.I,
-          constants.mainControllerConstants.controlConstants.D,
+        profiledPIDController = new ProfiledPIDController(
+            constants.real.controlConstants.P,
+            constants.real.controlConstants.I,
+            constants.real.controlConstants.D,
           new TrapezoidProfile.Constraints(
-            constants.mainControllerConstants.controlConstants.CruiseVelocity, constants.mainControllerConstants.controlConstants.Acceleration));
-        _PIDFController.setIZone(constants.mainControllerConstants.controlConstants.IZone);
+              constants.real.controlConstants.cruiseVelocity, constants.real.controlConstants.acceleration));
+        profiledPIDController.setIZone(constants.real.controlConstants.IZone);
 
-        _PIDController = new PIDController(
-          constants.mainControllerConstants.controlConstants.P,
-          constants.mainControllerConstants.controlConstants.I,
-          constants.mainControllerConstants.controlConstants.D
+        PIDController = new PIDController(
+            constants.real.controlConstants.P,
+            constants.real.controlConstants.I,
+            constants.real.controlConstants.D
         );
-        _PIDController.setIZone(constants.mainControllerConstants.controlConstants.IZone);
+        PIDController.setIZone(constants.real.controlConstants.IZone);
     }
 
     @Override
     public void setPercent(double percent) {
         super.setPercent(percent);
 
-        _output = percent;
+        motorSim.setInputVoltage(percent * 12);
     }
 
     @Override
     public void setPosition(double position) {
         super.setPosition(position);
 
-        _PIDFController.setGoal(position);
-        _PIDController.setSetpoint(position);
+        profiledPIDController.setGoal(position);
+        PIDController.setSetpoint(position);
     }
 
     @Override
     public void setVelocity(double velocity) {
         super.setVelocity(velocity);
 
-        _PIDFController.setGoal(velocity);
-        _PIDController.setSetpoint(velocity);
+        profiledPIDController.setGoal(velocity);
+        PIDController.setSetpoint(velocity);
     }
 
     @Override
     public void stop() {
-        _output = 0;
+        motorSim.setInputVoltage(0);
     }
 
     @Override
     public double getPosition() {
-        return _position * _constants.encoderConversionFactor;
+        return motorSim.getAngularPositionRotations() * constants.conversionFactor;
     }
 
     @Override
     public double getVelocity() {
-        return _velocity * _constants.encoderConversionFactor;
+        return motorSim.getAngularVelocityRPM() / 60 * constants.conversionFactor;
     }
 
     @Override
     public double getOutput() {
-        return _output;
+        return motorSim.getOutput(0);
     }
 
     @Override
     public double getCurrent() {
-        return 0;
+        return motorSim.getCurrentDrawAmps();
     }
 
     @Override
     public void setEncoder(double position) {
-        _position = position;
+        motorSim.setState(position / constants.conversionFactor, motorSim.getAngularVelocityRadPerSec());
     }
 
     @Override
     public void periodic() {
-        switch (_constants.controlConstants.type) {
+        switch (constants.controlConstants.type) {
             case PROFILED_PID:
-                isCurrentlyPidfing = true;
+                isCurrentlyProfiling = true;
 
-                if(_controlState == ControlState.POSITION)
-                    _output = _PIDFController.calculate(getPosition());
-                else if(_controlState == ControlState.VELOCITY)
-                    _output = _PIDFController.calculate(getVelocity());
+                if (controlState == ControlState.POSITION)
+                    motorSim.setInputVoltage(profiledPIDController.calculate(getPosition()) * 12);
+                else if (controlState == ControlState.VELOCITY)
+                    motorSim.setInputVoltage(profiledPIDController.calculate(getVelocity()) * 12);
                 break;
 
             case PID, TORQUE_CURRENT:
-                if(_controlState == ControlState.POSITION)
-                    _output = _PIDController.calculate(getPosition());
-                else if(_controlState == ControlState.VELOCITY)
-                    _output = _PIDController.calculate(getVelocity());
+                if (controlState == ControlState.POSITION)
+                    motorSim.setInputVoltage(PIDController.calculate(getPosition()) * 12);
+                else if (controlState == ControlState.VELOCITY)
+                    motorSim.setInputVoltage(PIDController.calculate(getVelocity()) * 12);
                 break;
 
             case PROFILE:
-                if(_controlState == ControlState.POSITION)
-                    _output = _profile.calculate(
+                if (controlState == ControlState.POSITION)
+                    motorSim.setInputVoltage(profile.calculate(
                       0.02,
                       new TrapezoidProfile.State(getPosition(), getVelocity()),
                       new TrapezoidProfile.State(getGoal(), 0))
-                      .velocity * _constants.controlConstants.V / 12;
-                else if(_controlState == ControlState.VELOCITY)
-                    _output = _profile.calculate(
+                        .velocity * constants.controlConstants.V);
+                else if (controlState == ControlState.VELOCITY)
+                    motorSim.setInputVoltage(profile.calculate(
                       0.02,
                       new TrapezoidProfile.State(getPosition(), getVelocity()),
                       new TrapezoidProfile.State(getPosition(), getGoal()))
-                      .velocity * _constants.controlConstants.V / 12;
+                        .velocity * constants.controlConstants.V);
                 break;
         }
 
-        if (!isCurrentlyPidfing && _controlState != ControlState.PERCENT_OUTPUT)
-            _PIDFController.reset(new TrapezoidProfile.State(getPosition(), getVelocity()));
-        isCurrentlyPidfing = false;
+        if (!isCurrentlyProfiling && controlState != ControlState.PERCENT_OUTPUT)
+            profiledPIDController.reset(new TrapezoidProfile.State(getPosition(), getVelocity()));
+        isCurrentlyProfiling = false;
 
-        calculateKinematics();
+        motorSim.update(0.02);
 
         super.periodic();
     }
 
-    private void calculateKinematics() {
-        _output = MathUtil.clamp(_output, -1, 1);
-        double dt = 0.02;
-        double v0 = _velocity;
-
-//        double accelerationDir = Math.signum(_output - _lastOutput);
-        double velocityDir = Math.signum(v0);
-        double outputDir = Math.signum(_output);
-        double wantedVelocity = _output * _maxVelocity;
-
-        double dynamicAccelerationLimiter;
-        if((outputDir == velocityDir && Math.abs(wantedVelocity) >= Math.abs(v0)))
-            dynamicAccelerationLimiter = _maxAcceleration * (1 - Math.pow(Math.abs(v0) / _maxVelocity, 2));
-        else
-            dynamicAccelerationLimiter = _maxAcceleration * 5;
-
-        _velocity +=
-            MathUtil.clamp(
-                wantedVelocity - v0,
-                -dynamicAccelerationLimiter * dt,
-                dynamicAccelerationLimiter * dt);
-
-        double a = (_velocity - v0) / dt;
-        _position += v0 * dt + 0.5 * a * dt * dt;
-        _lastOutput = _output;
-    }
+//    private void calculateKinematics() {
+//        _output = MathUtil.clamp(_output, -1, 1);
+//        double dt = 0.02;
+//        double v0 = _velocity;
+//
+////        double accelerationDir = Math.signum(_output - _lastOutput);
+//        double velocityDir = Math.signum(v0);
+//        double outputDir = Math.signum(_output);
+//        double wantedVelocity = _output * _maxVelocity;
+//
+//        double dynamicAccelerationLimiter;
+//        if((outputDir == velocityDir && Math.abs(wantedVelocity) >= Math.abs(v0)))
+//            dynamicAccelerationLimiter = _maxAcceleration * (1 - Math.pow(Math.abs(v0) / _maxVelocity, 2));
+//        else
+//            dynamicAccelerationLimiter = _maxAcceleration * 5;
+//
+//        _velocity +=
+//            MathUtil.clamp(
+//                wantedVelocity - v0,
+//                -dynamicAccelerationLimiter * dt,
+//                dynamicAccelerationLimiter * dt);
+//
+//        double a = (_velocity - v0) / dt;
+//        _position += v0 * dt + 0.5 * a * dt * dt;
+//        _lastOutput = _output;
+//    }
 }

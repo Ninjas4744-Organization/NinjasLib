@@ -2,8 +2,9 @@ package frc.lib.NinjasLib.controllers;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import frc.lib.NinjasLib.dataclasses.ControlConstants.SmartControlType;
-import frc.lib.NinjasLib.dataclasses.MainControllerConstants;
-import org.littletonrobotics.junction.Logger;
+import frc.lib.NinjasLib.dataclasses.ControllerConstants;
+import frc.lib.NinjasLib.dataclasses.RealControllerConstants;
+import frc.robot.Robot;
 
 public abstract class Controller {
     public enum ControlState {
@@ -12,22 +13,30 @@ public abstract class Controller {
         VELOCITY
     }
 
-    protected ControlState _controlState = ControlState.PERCENT_OUTPUT;
-    protected MainControllerConstants _constants;
-    protected double _goal = 0;
-    private DigitalInput _limitSwitch;
-    private boolean _preLimit = false;
+    public enum ControllerType {
+        TalonFX,
+        SparkMax,
+        TalonSRX,
+        VictorSPX,
+        Simulation
+    }
+
+    protected ControlState controlState = ControlState.PERCENT_OUTPUT;
+    protected RealControllerConstants constants;
+    protected double goal = 0;
+    private DigitalInput limitSwitch;
+    private boolean preLimit = false;
 
     /**
      * Creates a new Ninjas controller
      *
      * @param constants the constants for the controller
      */
-    public Controller(MainControllerConstants constants) {
-        _constants = constants;
+    public Controller(RealControllerConstants constants) {
+        this.constants = constants;
 
         if(constants.isLimitSwitch){
-            _limitSwitch = new DigitalInput(constants.limitSwitchID);
+            limitSwitch = new DigitalInput(constants.limitSwitchID);
         }
     }
 
@@ -40,7 +49,7 @@ public abstract class Controller {
      * @see #stop()
      */
     public void setPercent(double percent) {
-        _controlState = ControlState.PERCENT_OUTPUT;
+        controlState = ControlState.PERCENT_OUTPUT;
     }
 
     /**
@@ -52,8 +61,8 @@ public abstract class Controller {
      * @see #stop()
      */
     public void setPosition(double position) {
-        _controlState = ControlState.POSITION;
-        _goal = position;
+        controlState = ControlState.POSITION;
+        goal = position;
     }
 
     /**
@@ -65,8 +74,8 @@ public abstract class Controller {
      * @see #stop()
      */
     public void setVelocity(double velocity) {
-        _controlState = ControlState.VELOCITY;
-        _goal = velocity;
+        controlState = ControlState.VELOCITY;
+        goal = velocity;
     }
 
     /**
@@ -111,7 +120,7 @@ public abstract class Controller {
      * @see #isHomed
      */
     public void resetEncoder() {
-        setEncoder(_constants.encoderHomePosition);
+        setEncoder(constants.homePosition);
     }
 
     /**
@@ -119,7 +128,7 @@ public abstract class Controller {
      * @see #resetEncoder
      */
     public boolean isHomed() {
-        return Math.abs(_constants.encoderHomePosition - getPosition()) < _constants.positionGoalTolerance;
+        return Math.abs(constants.homePosition - getPosition()) < constants.positionGoalTolerance;
     }
 
     /**
@@ -127,7 +136,7 @@ public abstract class Controller {
      *     Magic...
      */
     public double getGoal() {
-        return _goal;
+        return goal;
     }
 
     /**
@@ -135,10 +144,10 @@ public abstract class Controller {
      *     Will return false if not in position or velocity control
      */
     public boolean atGoal() {
-        if (_controlState == ControlState.POSITION)
-            return Math.abs(getGoal() - getPosition()) < _constants.positionGoalTolerance;
-        else if (_controlState == ControlState.VELOCITY)
-            return Math.abs(getGoal() - getVelocity()) < _constants.velocityGoalTolerance;
+        if (controlState == ControlState.POSITION)
+            return Math.abs(getGoal() - getPosition()) < constants.positionGoalTolerance;
+        else if (controlState == ControlState.VELOCITY)
+            return Math.abs(getGoal() - getVelocity()) < constants.velocityGoalTolerance;
 
         return false;
     }
@@ -147,27 +156,62 @@ public abstract class Controller {
      * @return Whether the limit switch of the system is clicked now
      */
     public boolean getLimit() {
-        return _constants.isLimitSwitch && (_constants.limitSwitchInverted != _limitSwitch.get());
+        return constants.isLimitSwitch && (constants.limitSwitchInverted != limitSwitch.get());
     }
 
     /** Runs controller periodic tasks, run it on the subsystem periodic */
     public void periodic() {
-        if(_constants.limitSwitchAutoStopReset && getLimit() && !_preLimit)
+        if (constants.limitSwitchAutoStopReset && getLimit() && !preLimit)
             resetEncoder();
-        if(_constants.limitSwitchAutoStopReset && getLimit() && Math.signum(getOutput()) == _constants.limitSwitchDirection)
+        if (constants.limitSwitchAutoStopReset && getLimit() && Math.signum(getOutput()) == constants.limitSwitchDirection)
             stop();
-        _preLimit = getLimit();
+        preLimit = getLimit();
 
-        if(!_constants.enableLogging)
-            return;
+//        if(!_constants.enableLogging)
+//            return;
+//
+//        Logger.recordOutput(_constants.subsystemName + "/Position", getPosition());
+//        Logger.recordOutput(_constants.subsystemName + "/Velocity", getVelocity());
+//        Logger.recordOutput(_constants.subsystemName + "/Output", getOutput());
+//        Logger.recordOutput(_constants.subsystemName + "/Current", getCurrent());
+//        Logger.recordOutput(_constants.subsystemName + "/Goal", getGoal());
+//        Logger.recordOutput(_constants.subsystemName + "/Limit Switch", getLimit());
+//        Logger.recordOutput(_constants.subsystemName + "/Control State", _controlState.toString());
+//        Logger.recordOutput(_constants.subsystemName + "/Control Type", _constants.controlConstants.type == SmartControlType.NONE ? "N/A" : _constants.controlConstants.type.toString());
+    }
 
-        Logger.recordOutput(_constants.subsystemName + "/Position", getPosition());
-        Logger.recordOutput(_constants.subsystemName + "/Velocity", getVelocity());
-        Logger.recordOutput(_constants.subsystemName + "/Output", getOutput());
-        Logger.recordOutput(_constants.subsystemName + "/Current", getCurrent());
-        Logger.recordOutput(_constants.subsystemName + "/Goal", getGoal());
-        Logger.recordOutput(_constants.subsystemName + "/Limit Switch", getLimit());
-        Logger.recordOutput(_constants.subsystemName + "/Control State", _controlState.toString());
-        Logger.recordOutput(_constants.subsystemName + "/Control Type", _constants.controlConstants.type == SmartControlType.NONE ? "N/A" : _constants.controlConstants.type.toString());
+    public static Controller createController(ControllerType type, ControllerConstants constants) {
+        if (Robot.isReal()) {
+            switch (type) {
+                case SparkMax -> new SparkMaxController(constants.real);
+                case TalonSRX -> new TalonSRXController(constants.real);
+                case VictorSPX -> new VictorSPXController(constants.real);
+                default -> new TalonFXController(constants.real);
+            }
+        }
+
+        return new SimulatedController(constants);
+    }
+
+    public static class ControllerIOInputs {
+        public double Position;
+        public double Velocity;
+        public double Output;
+        public double Current;
+        public double Goal;
+        public boolean LimitSwitch;
+        public String ControlState;
+        public String ControlType;
+    }
+
+    public void updateInputs(ControllerIOInputs inputs) {
+        inputs.Position = getPosition();
+        inputs.Velocity = getVelocity();
+        inputs.Output = getOutput();
+        inputs.Current = getCurrent();
+        inputs.Goal = getGoal();
+        inputs.LimitSwitch = getLimit();
+        inputs.ControlState = controlState.toString();
+        inputs.ControlType = constants.controlConstants.type == SmartControlType.NONE ? "N/A" : constants.controlConstants.type.toString();
     }
 }
