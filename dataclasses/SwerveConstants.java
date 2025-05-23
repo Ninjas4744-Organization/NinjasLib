@@ -1,6 +1,8 @@
 package frc.lib.NinjasLib.dataclasses;
 
+import com.pathplanner.lib.config.RobotConfig;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.system.plant.DCMotor;
 
 public class SwerveConstants {
     /** Whether to drive without module velocity PID control */
@@ -42,6 +44,23 @@ public class SwerveConstants {
     /** Swerve kinematics class used for calculating swerve movement */
     public SwerveDriveKinematics kinematics;
 
-    /** Whether to log swerve data to advantage scope */
-    public boolean enableLogging;
+    /**
+     * Robot config
+     */
+    public RobotConfig robotConfig;
+
+    /* Simulation */
+    /**
+     * Width of bumper from side to side of robot, meters
+     */
+    public double bumperWidth;
+
+    /**
+     * Length of bumper from back to forward of robot, meters
+     */
+    public double bumperLength;
+
+    public DCMotor driveMotorType;
+
+    public DCMotor steerMotorType;
 }

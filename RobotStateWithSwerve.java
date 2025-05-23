@@ -13,7 +13,6 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import frc.lib.NinjasLib.dataclasses.FOMCalculator;
 import frc.lib.NinjasLib.dataclasses.VisionOutput;
 import frc.lib.NinjasLib.swerve.Swerve;
-import frc.lib.NinjasLib.swerve.SwerveIO;
 import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
 
@@ -47,7 +46,7 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
             navX = new AHRS(AHRS.NavXComType.kMXP_SPI);
 
             poseEstimator = new SwerveDrivePoseEstimator(kinematics, getGyroYaw(),
-                ((Swerve) SwerveIO.getInstance()).getModulePositions(), new Pose2d());
+                Swerve.getInstance().getModulePositions(), new Pose2d());
         } else {
             poseEstimator = new SwerveDrivePoseEstimator(kinematics, new Rotation2d(),
                 new SwerveModulePosition[]{
@@ -77,7 +76,7 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
             pigeon = new Pigeon2(pigeonID);
 
             poseEstimator = new SwerveDrivePoseEstimator(kinematics, getGyroYaw(),
-                ((Swerve)SwerveIO.getInstance()).getModulePositions(), new Pose2d());
+                Swerve.getInstance().getModulePositions(), new Pose2d());
         } else {
             poseEstimator = new SwerveDrivePoseEstimator(kinematics, new Rotation2d(),
                 new SwerveModulePosition[]{
@@ -122,7 +121,7 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
      */
     public void setRobotPose(Pose2d pose) {
         if (Robot.isReal())
-            poseEstimator.resetPosition(getGyroYaw(), ((Swerve)SwerveIO.getInstance()).getModulePositions(), pose);
+            poseEstimator.resetPosition(getGyroYaw(), Swerve.getInstance().getModulePositions(), pose);
         else
             poseEstimator.resetPosition(getGyroYaw(), new SwerveModulePosition[]{
                 new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
@@ -179,8 +178,8 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
                 return Rotation2d.fromDegrees(gyroInverted ? -navX.getAngle() : navX.getAngle());
         else
             return gyroInverted
-                ? getRobotPose().getRotation().unaryMinus()
-                : getRobotPose().getRotation();
+                ? Swerve.getInstance().getGyroSimulationReading().unaryMinus()
+                : Swerve.getInstance().getGyroSimulationReading();
     }
 
     /**

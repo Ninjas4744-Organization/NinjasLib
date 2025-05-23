@@ -1,6 +1,5 @@
 package frc.lib.NinjasLib.dataclasses;
 
-import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.math.Pair;
 
@@ -24,10 +23,4 @@ public class SwerveControllerConstants {
 
     /** Profile Constraints(Doesn't affect pathplanner autonomy, only paths created on the fly) */
     public PathConstraints pathConstraints;
-
-    /** Robot config */
-    public RobotConfig robotConfig;
-
-    /** Swerve drive assist distance threshold. meters */
-    public double driveAssistThreshold;
 }

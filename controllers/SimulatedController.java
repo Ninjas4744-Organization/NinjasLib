@@ -99,16 +99,16 @@ public class SimulatedController extends Controller {
                 isCurrentlyProfiling = true;
 
                 if (controlState == ControlState.POSITION)
-                    motorSim.setInputVoltage(profiledPIDController.calculate(getPosition()) * 12);
+                    motorSim.setInputVoltage(profiledPIDController.calculate(getPosition()));
                 else if (controlState == ControlState.VELOCITY)
-                    motorSim.setInputVoltage(profiledPIDController.calculate(getVelocity()) * 12);
+                    motorSim.setInputVoltage(profiledPIDController.calculate(getVelocity()));
                 break;
 
             case PID, TORQUE_CURRENT:
                 if (controlState == ControlState.POSITION)
-                    motorSim.setInputVoltage(PIDController.calculate(getPosition()) * 12);
+                    motorSim.setInputVoltage(PIDController.calculate(getPosition()));
                 else if (controlState == ControlState.VELOCITY)
-                    motorSim.setInputVoltage(PIDController.calculate(getVelocity()) * 12);
+                    motorSim.setInputVoltage(PIDController.calculate(getVelocity()));
                 break;
 
             case PROFILE:

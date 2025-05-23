@@ -121,9 +121,9 @@ public class SparkMaxController extends Controller {
 				isCurrentlyPiding = true;
 
                 if (controlState == ControlState.POSITION)
-					_main.set(_PIDFController.calculate(getPosition()));
+					_main.set(_PIDFController.calculate(getPosition()) / 12);
                 else if (controlState == ControlState.VELOCITY)
-					_main.set(_PIDFController.calculate(getVelocity()));
+					_main.set(_PIDFController.calculate(getVelocity()) / 12);
 				break;
 
 			case PROFILE:
@@ -132,13 +132,13 @@ public class SparkMaxController extends Controller {
 					0.02,
 					new TrapezoidProfile.State(getPosition(), getVelocity()),
 					new TrapezoidProfile.State(getGoal(), 0))
-					.velocity);
+						.velocity / 12);
                 else if (controlState == ControlState.VELOCITY)
 					_main.set(_profile.calculate(
 					0.02,
 					new TrapezoidProfile.State(getPosition(), getVelocity()),
 					new TrapezoidProfile.State(getPosition(), getGoal()))
-					.velocity);
+						.velocity / 12);
 				break;
 		}
 
