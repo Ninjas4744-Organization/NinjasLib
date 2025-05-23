@@ -7,7 +7,7 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import frc.lib.NinjasLib.dataclasses.FOMCalculator;
@@ -19,12 +19,10 @@ import org.littletonrobotics.junction.Logger;
 public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<StateEnum> {
     private AHRS navX;
     private Pigeon2 pigeon;
-    private SwerveDrivePoseEstimator poseEstimator;
-    private SwerveDriveKinematics kinematics;
-    private boolean gyroInverted;
-    private FOMCalculator fomCalculator;
+    private final SwerveDrivePoseEstimator poseEstimator;
+    private final boolean gyroInverted;
+    private final FOMCalculator fomCalculator;
     private int pigeonID = -1;
-    private Translation3d pigeonVelocity = new Translation3d();
 
     public static RobotStateWithSwerve getInstance() {
         return (RobotStateWithSwerve) RobotStateBase.getInstance();
@@ -38,7 +36,6 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
      * @param fomCalculator A function the gets a vision estimation from a camera and returns how much we don't trust its position.
      */
     public RobotStateWithSwerve(SwerveDriveKinematics kinematics, boolean gyroInverted, FOMCalculator fomCalculator) {
-        this.kinematics = kinematics;
         this.gyroInverted = gyroInverted;
         this.fomCalculator = fomCalculator;
 
@@ -67,7 +64,6 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
      * @param pigeonID      The pigeon gyro sensor CAN id.
      */
     public RobotStateWithSwerve(SwerveDriveKinematics kinematics, boolean gyroInverted, FOMCalculator fomCalculator, int pigeonID) {
-        this.kinematics = kinematics;
         this.gyroInverted = gyroInverted;
         this.fomCalculator = fomCalculator;
         this.pigeonID = pigeonID;
@@ -112,6 +108,14 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
             other.getTranslation().minus(getRobotPose().getTranslation()),
             other.getRotation().minus(getRobotPose().getRotation())
         );
+    }
+
+    /**
+     * @param other Another pose to measure translation to.
+     * @return Translation from robot to another pose including dx, dy. Field Relative.
+     */
+    public Translation2d getTranslation(Pose2d other) {
+        return other.getTranslation().minus(getRobotPose().getTranslation());
     }
 
     /**

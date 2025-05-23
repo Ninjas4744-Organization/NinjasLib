@@ -153,7 +153,10 @@ public class Swerve {
     }
 
     public void periodic() {
-        RobotStateWithSwerve.getInstance().updateRobotPose(getModulePositions());
+        if (Robot.isReal())
+            RobotStateWithSwerve.getInstance().updateRobotPose(getModulePositions());
+        else
+            RobotStateWithSwerve.getInstance().setRobotPose(simulation.getSimulatedDriveTrainPose());
 
         Logger.recordOutput("Current Velocity", getChassisSpeeds(true));
         Logger.recordOutput("Wanted Velocity", ChassisSpeeds.fromRobotRelativeSpeeds(wantedRobotRelativeSpeeds, RobotStateWithSwerve.getInstance().getGyroYaw()));
@@ -163,11 +166,6 @@ public class Swerve {
 
             module.updateInputs(moduleInputs[module.getModuleNumber()]);
             Logger.processInputs("Module " + module.getModuleNumber(), moduleInputs[module.getModuleNumber()]);
-        }
-
-        if (Robot.isSimulation()) {
-//            simulation.simulationSubTick();
-            Logger.recordOutput("FieldSimulation/RobotPosition", simulation.getSimulatedDriveTrainPose());
         }
     }
 
