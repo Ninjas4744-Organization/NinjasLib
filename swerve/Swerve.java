@@ -12,16 +12,16 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.lib.NinjasLib.RobotStateWithSwerve;
 import frc.lib.NinjasLib.dataclasses.SwerveConstants;
 import frc.robot.Robot;
-import org.ironmaple.simulation.drivesims.GyroSimulation;
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.drivesims.COTS;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
-import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
-import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 import org.littletonrobotics.junction.Logger;
 
-import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.units.Units.Kilograms;
+import static edu.wpi.first.units.Units.Meters;
 
-public abstract class Swerve {
+public class Swerve {
     private static Swerve instance;
     private final SwerveConstants constants;
     private SlewRateLimiter xAccelerationLimit;
@@ -67,19 +67,22 @@ public abstract class Swerve {
                 new SwerveModuleIOReal(constants.moduleConstants[3])
             };
         } else {
-            SwerveModuleSimulationConfig moduleConfig = new SwerveModuleSimulationConfig(constants.driveMotorType, constants.steerMotorType,
-                constants.moduleConstants[0].driveMotorConstants.gearRatio, constants.moduleConstants[0].angleMotorConstants.gearRatio,
-                Volts.of(constants.moduleConstants[0].driveMotorConstants.controlConstants.S), Volts.of(constants.moduleConstants[0].angleMotorConstants.controlConstants.S),
-                Meters.of(constants.robotConfig.moduleConfig.wheelRadiusMeters),
-                KilogramSquareMeters.of(0.0325),
-                constants.robotConfig.moduleConfig.wheelCOF);
+//            SwerveModuleSimulationConfig moduleConfig = new SwerveModuleSimulationConfig(constants.driveMotorType, constants.steerMotorType,
+//                constants.moduleConstants[0].driveMotorConstants.gearRatio, constants.moduleConstants[0].angleMotorConstants.gearRatio,
+//                Volts.of(constants.moduleConstants[0].driveMotorConstants.controlConstants.S), Volts.of(constants.moduleConstants[0].angleMotorConstants.controlConstants.S),
+//                Meters.of(constants.robotConfig.moduleConfig.wheelRadiusMeters),
+//                KilogramSquareMeters.of(0.0325),
+//                constants.robotConfig.moduleConfig.wheelCOF);
 
             DriveTrainSimulationConfig config = new DriveTrainSimulationConfig(Kilograms.of(constants.robotConfig.massKG),
                 Meters.of(constants.bumperLength), Meters.of(constants.bumperWidth),
                 Meters.of(constants.trackWidth), Meters.of(constants.wheelBase),
-                () -> new GyroSimulation(1, 0.05), () -> new SwerveModuleSimulation(moduleConfig));
+                COTS.ofPigeon2(),
+                COTS.ofMark4n(constants.driveMotorType, constants.steerMotorType, constants.robotConfig.moduleConfig.wheelCOF, 3));//() -> new SwerveModuleSimulation(moduleConfig), () -> new SwerveModuleSimulation(moduleConfig), () -> new SwerveModuleSimulation(moduleConfig), () -> new SwerveModuleSimulation(moduleConfig));
 
-            simulation = new SwerveDriveSimulation(config, new Pose2d());
+            simulation = new SwerveDriveSimulation(config, new Pose2d(3, 3, Rotation2d.kZero));
+
+            SimulatedArena.getInstance().addDriveTrainSimulation(simulation);
 
             modules = new SwerveModuleIO[]{
                 new SwerveModuleIOSim(constants.moduleConstants[0], simulation.getModules()[0]),
@@ -160,6 +163,11 @@ public abstract class Swerve {
 
             module.updateInputs(moduleInputs[module.getModuleNumber()]);
             Logger.processInputs("Module " + module.getModuleNumber(), moduleInputs[module.getModuleNumber()]);
+        }
+
+        if (Robot.isSimulation()) {
+//            simulation.simulationSubTick();
+            Logger.recordOutput("FieldSimulation/RobotPosition", simulation.getSimulatedDriveTrainPose());
         }
     }
 

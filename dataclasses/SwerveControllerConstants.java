@@ -1,6 +1,5 @@
 package frc.lib.NinjasLib.dataclasses;
 
-import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.math.Pair;
 
 public class SwerveControllerConstants {
@@ -13,14 +12,9 @@ public class SwerveControllerConstants {
     /** Swerve auto driving angle PID constants */
     public ControlConstants rotationPIDConstants;
 
-    /** Swerve auto axis locking PID constants */
-    public ControlConstants axisLockPIDConstants;
-
     /** The swerve rotation PID needs to know that 360deg and 0deg are the same so the rotation will work properly.
-     * Choose 2 value that are equal in degrees like 0, 360, -180, 180 or 270, -90.
-     * For some reason only one of the pairs will work for each robot so good luck! */
+     * Choose 2 values that are equal in radians like 0, 360, -180, 180 or 270, -90. it's in radians so convert the deg to rad.
+     * For some reason only one of the pairs will work for each robot so good luck!
+     */
     public Pair<Double, Double> rotationPIDContinuousConnections;
-
-    /** Profile Constraints(Doesn't affect pathplanner autonomy, only paths created on the fly) */
-    public PathConstraints pathConstraints;
 }

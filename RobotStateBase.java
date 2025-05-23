@@ -7,24 +7,24 @@ import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
 
 public abstract class RobotStateBase<StateEnum> {
-    protected static RobotStateBase _instance;
-    protected StateEnum _robotState;
+    protected static RobotStateBase instance;
+    protected StateEnum robotState;
 
     public static RobotStateBase getInstance() {
-        if(_instance == null)
+        if (instance == null)
             throw new RuntimeException("RobotStateIO not initialized. Initialize RobotStateIO by setInstance() first.");
-        return _instance;
+        return instance;
     }
 
     public static void setInstance(RobotStateBase instance) {
-        _instance = instance;
+        RobotStateBase.instance = instance;
     }
 
     /**
      * @return State of the robot
      */
     public StateEnum getRobotState() {
-        return _robotState;
+        return robotState;
     }
 
     /**
@@ -33,9 +33,9 @@ public abstract class RobotStateBase<StateEnum> {
      * @param state The state to set the robot state to
      */
     public void setRobotState(StateEnum state) {
-        System.out.println("[Robot State Change] " + _robotState.toString() + " -> " + state.toString());
+        System.out.println("[Robot State Change] " + robotState.toString() + " -> " + state.toString());
         Logger.recordOutput("Robot State", state.toString());
-        _robotState = state;
+        robotState = state;
     }
 
     /**

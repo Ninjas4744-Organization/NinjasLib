@@ -73,7 +73,7 @@ public class SwerveController {
         double roundedAngle = Math.round(angle / roundToAngle) * roundToAngle;
         angle = Math.abs(roundedAngle - angle) <= roundToAngle / 3 ? roundedAngle : angle;
 
-        return anglePID.calculate(RobotStateWithSwerve.getInstance().getGyroYaw().getDegrees(), angle);
+        return anglePID.calculate(RobotStateWithSwerve.getInstance().getGyroYaw().getRadians(), angle);
     }
 
     /**
@@ -88,7 +88,7 @@ public class SwerveController {
      */
     public double lookAt(Translation2d direction, double roundToAngle) {
         if (!(direction.getX() == 0 && direction.getY() == 0))
-            return lookAt(direction.getAngle().getDegrees(), roundToAngle);
+            return lookAt(direction.getAngle().getRadians(), roundToAngle);
 
         return 0;
     }

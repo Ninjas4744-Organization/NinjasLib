@@ -49,7 +49,7 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
 
     @Override
     public SwerveModulePosition getPosition() {
-        return new SwerveModulePosition(simulationModule.getDriveWheelFinalPosition().in(Rotations) * 2 * Math.PI * simulationModule.config.WHEEL_RADIUS.in(Meters), getState().angle);
+        return new SwerveModulePosition(simulationModule.getDriveWheelFinalPosition().in(Radians) * simulationModule.config.WHEEL_RADIUS.in(Meters), getState().angle);
     }
 
     @Override
