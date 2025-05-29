@@ -9,15 +9,12 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Units;
 import frc.lib.NinjasLib.controllers.Controller;
-import frc.lib.NinjasLib.controllers.SparkMaxController;
-import frc.lib.NinjasLib.controllers.TalonFXController;
-import frc.lib.NinjasLib.controllers.TalonSRXController;
 import frc.lib.NinjasLib.dataclasses.SwerveModuleConstants;
 
 public class SwerveModuleIOReal implements SwerveModuleIO {
     public final int moduleNumber;
 
-    private final Controller angleMotor;
+    private final Controller steerMotor;
     private final Controller driveMotor;
 
     private Rotation2d lastAngle;
@@ -35,45 +32,48 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
                 .withMagnetOffset(constants.CANCoderOffset)
         );
 
-        switch (constants.driveControllerType) {
-            case SparkMax:
-                driveMotor = new SparkMaxController(constants.driveMotorConstants);
-                break;
+//        switch (constants.driveControllerType) {
+//            case SparkMax:
+//                driveMotor = new SparkMaxController(constants.driveMotorConstants);
+//                break;
+//
+//            case TalonSRX:
+//                driveMotor = new TalonSRXController(constants.driveMotorConstants);
+//                break;
+//
+//            default:
+//                driveMotor = new TalonFXController(constants.driveMotorConstants);
+//                break;
+//        }
 
-            case TalonSRX:
-                driveMotor = new TalonSRXController(constants.driveMotorConstants);
-                break;
+        driveMotor = Controller.createController(constants.driveControllerType, constants.driveMotorConstants);
+        steerMotor = Controller.createController(constants.angleControllerType, constants.angleMotorConstants);
 
-            default:
-                driveMotor = new TalonFXController(constants.driveMotorConstants);
-                break;
-        }
+//        switch (constants.angleControllerType) {
+//            case SparkMax:
+//                steerMotor = new SparkMaxController(constants.angleMotorConstants);
+//                break;
+//
+//            case TalonSRX:
+//                steerMotor = new TalonSRXController(constants.angleMotorConstants);
+//                break;
+//
+//            default:
+//                steerMotor = new TalonFXController(constants.angleMotorConstants);
+//                break;
+//        }
 
-        switch (constants.angleControllerType) {
-            case SparkMax:
-                angleMotor = new SparkMaxController(constants.angleMotorConstants);
-                break;
-
-            case TalonSRX:
-                angleMotor = new TalonSRXController(constants.angleMotorConstants);
-                break;
-
-            default:
-                angleMotor = new TalonFXController(constants.angleMotorConstants);
-                break;
-        }
-
-        lastAngle = Rotation2d.fromRadians(angleMotor.getPosition());
+        lastAngle = Rotation2d.fromRadians(steerMotor.getPosition());
     }
 
     @Override
     public SwerveModuleState getState() {
-        return new SwerveModuleState(driveMotor.getVelocity(), Rotation2d.fromRadians(angleMotor.getPosition()));
+        return new SwerveModuleState(driveMotor.getVelocity(), Rotation2d.fromRadians(steerMotor.getPosition()));
     }
 
     @Override
     public SwerveModulePosition getPosition() {
-        return new SwerveModulePosition(driveMotor.getPosition(), Rotation2d.fromRadians(angleMotor.getPosition()));
+        return new SwerveModulePosition(driveMotor.getPosition(), Rotation2d.fromRadians(steerMotor.getPosition()));
     }
 
     @Override
@@ -89,10 +89,10 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
         Rotation2d angle = (Math.abs(desiredState.speedMetersPerSecond) <= (maxModuleSpeed * 0.03)) ? lastAngle : desiredState.angle;
         //Prevent jumping from -180 to 180
         double errorBound = (Math.PI - -Math.PI) / 2.0;
-        double error = MathUtil.inputModulus(angle.getDegrees() - angleMotor.getPosition(), -errorBound, errorBound);
-        angle = Rotation2d.fromRadians(angleMotor.getPosition() + error);
+        double error = MathUtil.inputModulus(angle.getRadians() - steerMotor.getPosition(), -errorBound, errorBound);
+        angle = Rotation2d.fromRadians(steerMotor.getPosition() + error);
         //Rotate
-        angleMotor.setPosition(angle.getRadians());
+        steerMotor.setPosition(angle.getRadians());
         lastAngle = angle;
     }
 
@@ -103,8 +103,8 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
 //        double angleDiff = ((absolutePosition - currentAngle + 540) % 360) - 180;  // Normalize to [-180, 180]
 //        double targetAngle = currentAngle + angleDiff;
 
-        System.out.println("Encoder: " + angleMotor.getPosition() + " -> Absolute: " + absolutePosition);
-        angleMotor.setEncoder(absolutePosition);
+        System.out.println("Encoder: " + steerMotor.getPosition() + " -> Absolute: " + absolutePosition);
+        steerMotor.setEncoder(absolutePosition);
     }
 
     public Rotation2d getCanCoder() {
@@ -127,6 +127,6 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
     @Override
     public void periodic() {
         driveMotor.periodic();
-        angleMotor.periodic();
+        steerMotor.periodic();
     }
 }

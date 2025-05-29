@@ -173,12 +173,12 @@ public abstract class Controller {
 
     public static Controller createController(ControllerType type, ControllerConstants constants) {
         if (Robot.isReal()) {
-            switch (type) {
+            return switch (type) {
                 case SparkMax -> new SparkMaxController(constants.real);
                 case TalonSRX -> new TalonSRXController(constants.real);
                 case VictorSPX -> new VictorSPXController(constants.real);
                 default -> new TalonFXController(constants.real);
-            }
+            };
         }
 
         return new SimulatedController(constants);

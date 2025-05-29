@@ -4,8 +4,8 @@ import frc.lib.NinjasLib.controllers.Controller;
 
 public class SwerveModuleConstants {
     public int moduleNumber;
-    public RealControllerConstants driveMotorConstants;
-    public RealControllerConstants angleMotorConstants;
+    public ControllerConstants driveMotorConstants;
+    public ControllerConstants angleMotorConstants;
     public double maxModuleSpeed;
     public int canCoderID;
     public Controller.ControllerType driveControllerType;
@@ -14,8 +14,8 @@ public class SwerveModuleConstants {
     public double CANCoderOffset;
 
     public SwerveModuleConstants(int moduleNumber,
-                                 RealControllerConstants driveMotorConstants,
-                                 RealControllerConstants angleMotorConstants,
+                                 ControllerConstants driveMotorConstants,
+                                 ControllerConstants angleMotorConstants,
                                  double maxModuleSpeed,
                                  int canCoderID,
                                  Controller.ControllerType driveControllerType,

@@ -33,11 +33,11 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
         driveMotor = simulationModule.useGenericMotorControllerForDrive();
         angleMotor = simulationModule.useGenericControllerForSteer();
 
-        drivePID = new PIDController(constants.driveMotorConstants.controlConstants.P, constants.driveMotorConstants.controlConstants.I, constants.driveMotorConstants.controlConstants.D);
-        drivePID.setIZone(constants.driveMotorConstants.controlConstants.IZone);
+        drivePID = new PIDController(constants.driveMotorConstants.real.controlConstants.P, constants.driveMotorConstants.real.controlConstants.I, constants.driveMotorConstants.real.controlConstants.D);
+        drivePID.setIZone(constants.driveMotorConstants.real.controlConstants.IZone);
 
-        anglePID = new PIDController(constants.angleMotorConstants.controlConstants.P, constants.angleMotorConstants.controlConstants.I, constants.angleMotorConstants.controlConstants.D);
-        anglePID.setIZone(constants.angleMotorConstants.controlConstants.IZone);
+        anglePID = new PIDController(constants.angleMotorConstants.real.controlConstants.P, constants.angleMotorConstants.real.controlConstants.I, constants.angleMotorConstants.real.controlConstants.D);
+        anglePID.setIZone(constants.angleMotorConstants.real.controlConstants.IZone);
 
         lastAngle = simulationModule.getCurrentState().angle;
     }

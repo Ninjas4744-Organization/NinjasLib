@@ -1,10 +1,8 @@
 package frc.lib.NinjasLib.swerve;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -102,19 +100,20 @@ public class Swerve {
      * @param fieldRelative Whether to move to robot relative to the field or the robot
      */
     public void drive(ChassisSpeeds drive, boolean fieldRelative) {
-        ChassisSpeeds fieldRelativeSpeeds = fieldRelative ? drive : ChassisSpeeds.fromRobotRelativeSpeeds(drive, RobotStateWithSwerve.getInstance().getGyroYaw());
+//        ChassisSpeeds fieldRelativeSpeeds = fieldRelative ? drive : ChassisSpeeds.fromRobotRelativeSpeeds(drive, RobotStateWithSwerve.getInstance().getGyroYaw());
+//
+//        Translation2d currentVelocity = new Translation2d(getChassisSpeeds(true).vxMetersPerSecond, getChassisSpeeds(true).vyMetersPerSecond);
+//        Translation2d wantedVelocity = new Translation2d(fieldRelativeSpeeds.vxMetersPerSecond, fieldRelativeSpeeds.vyMetersPerSecond);
+////        wantedVelocity = SwerveUtils.limitForwardAcceleration(currentVelocity, SwerveUtils.limitSkidAcceleration(currentVelocity, wantedVelocity, _constants.maxSkidAcceleration), _constants.maxAcceleration, _constants.maxSpeed);
+//
+//        ChassisSpeeds robotRelativeSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(wantedVelocity.getX(), wantedVelocity.getY(), drive.omegaRadiansPerSecond, RobotStateWithSwerve.getInstance().getGyroYaw());
+        ChassisSpeeds robotRelativeSpeeds = fieldRelative ? ChassisSpeeds.fromFieldRelativeSpeeds(drive, RobotStateWithSwerve.getInstance().getGyroYaw()) : drive;
 
-        Translation2d currentVelocity = new Translation2d(getChassisSpeeds(true).vxMetersPerSecond, getChassisSpeeds(true).vyMetersPerSecond);
-        Translation2d wantedVelocity = new Translation2d(fieldRelativeSpeeds.vxMetersPerSecond, fieldRelativeSpeeds.vyMetersPerSecond);
-//        wantedVelocity = SwerveUtils.limitForwardAcceleration(currentVelocity, SwerveUtils.limitSkidAcceleration(currentVelocity, wantedVelocity, _constants.maxSkidAcceleration), _constants.maxAcceleration, _constants.maxSpeed);
-
-        ChassisSpeeds robotRelativeSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(wantedVelocity.getX(), wantedVelocity.getY(), drive.omegaRadiansPerSecond, RobotStateWithSwerve.getInstance().getGyroYaw());
-
-        robotRelativeSpeeds = new ChassisSpeeds(
-            xAccelerationLimit.calculate(MathUtil.clamp(robotRelativeSpeeds.vxMetersPerSecond, -constants.speedLimit, constants.speedLimit)),
-            yAccelerationLimit.calculate(MathUtil.clamp(robotRelativeSpeeds.vyMetersPerSecond, -constants.speedLimit, constants.speedLimit)),
-            rotAccelerationLimit.calculate(MathUtil.clamp(robotRelativeSpeeds.omegaRadiansPerSecond, -constants.rotationSpeedLimit, constants.rotationSpeedLimit))
-        );
+//        robotRelativeSpeeds = new ChassisSpeeds(
+//            xAccelerationLimit.calculate(MathUtil.clamp(robotRelativeSpeeds.vxMetersPerSecond, -constants.speedLimit, constants.speedLimit)),
+//            yAccelerationLimit.calculate(MathUtil.clamp(robotRelativeSpeeds.vyMetersPerSecond, -constants.speedLimit, constants.speedLimit)),
+//            rotAccelerationLimit.calculate(MathUtil.clamp(robotRelativeSpeeds.omegaRadiansPerSecond, -constants.rotationSpeedLimit, constants.rotationSpeedLimit))
+//        );
 
         wantedRobotRelativeSpeeds = robotRelativeSpeeds;
         setModuleStates(kinematics.toSwerveModuleStates(wantedRobotRelativeSpeeds), constants.openLoop);

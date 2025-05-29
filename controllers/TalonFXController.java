@@ -3,7 +3,6 @@ package frc.lib.NinjasLib.controllers;
 import com.ctre.phoenix6.configs.*;
 import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import frc.lib.NinjasLib.dataclasses.RealControllerConstants;
@@ -21,9 +20,9 @@ public class TalonFXController extends Controller {
             .withSoftwareLimitSwitch(new SoftwareLimitSwitchConfigs()
                 .withForwardSoftLimitEnable(constants.maxSoftLimit != Double.MAX_VALUE)
                 .withReverseSoftLimitEnable(constants.minSoftLimit != Double.MIN_VALUE)
-              .withForwardSoftLimitThreshold(constants.maxSoftLimit)
-              .withReverseSoftLimitThreshold(constants.minSoftLimit))
-            .withAudio(new AudioConfigs().withBeepOnBoot(true))
+                    .withForwardSoftLimitThreshold(constants.maxSoftLimit != Double.MAX_VALUE ? constants.maxSoftLimit : 0)
+                    .withReverseSoftLimitThreshold(constants.minSoftLimit != Double.MIN_VALUE ? constants.minSoftLimit : 0))
+                  .withAudio(new AudioConfigs().withBeepOnBoot(false))
             .withMotorOutput(new MotorOutputConfigs()
               .withInverted(
                 constants.main.inverted
@@ -46,7 +45,7 @@ public class TalonFXController extends Controller {
               .withKS(constants.controlConstants.S)
               .withKV(constants.controlConstants.V)
               .withKG(constants.controlConstants.G)
-              .withGravityType(GravityTypeValue.Arm_Cosine))
+                    .withGravityType(constants.controlConstants.gravityType))
               .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(constants.gearRatio / constants.conversionFactor)));
 
         _followers = new TalonFX[constants.followers.length];
