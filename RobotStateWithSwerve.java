@@ -16,6 +16,8 @@ import frc.lib.NinjasLib.swerve.Swerve;
 import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
 
+import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
+
 public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<StateEnum> {
     private AHRS navX;
     private Pigeon2 pigeon;
@@ -209,5 +211,11 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
             setRobotPose(new Pose2d(getRobotPose().getTranslation(), angle));
             System.out.println(getRobotPose().getRotation().getDegrees());
         }
+    }
+
+    public Translation2d getAcceleration() {
+        if (pigeonID != -1)
+            return new Translation2d(pigeon.getAccelerationX().getValue().in(MetersPerSecondPerSecond), pigeon.getAccelerationY().getValue().in(MetersPerSecondPerSecond));
+        return new Translation2d(navX.getWorldLinearAccelX() * 9.806, navX.getWorldLinearAccelY() * 9.806);
     }
 }

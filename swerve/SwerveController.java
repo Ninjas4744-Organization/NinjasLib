@@ -16,8 +16,8 @@ public class SwerveController {
     private final SwerveControllerConstants constants;
 
     private ChassisSpeeds lastInput;
-    private String state;
-    private String previousState;
+    private String channel;
+    private String previousChannel;
 
     private static SwerveController instance = null;
 
@@ -34,8 +34,8 @@ public class SwerveController {
     public SwerveController(SwerveControllerConstants constants) {
         this.constants = constants;
 
-        state = "";
-        previousState = "";
+        channel = "";
+        previousChannel = "";
         lastInput = new ChassisSpeeds();
 
         anglePID = new PIDController(
@@ -105,7 +105,7 @@ public class SwerveController {
     }
 
     public void setControl(ChassisSpeeds chassisSpeeds, boolean fieldRelative, String type) {
-        if (type.equals(state)) {
+        if (type.equals(channel)) {
             lastInput = chassisSpeeds;
             Swerve.getInstance().drive(chassisSpeeds, fieldRelative);
         }
@@ -113,25 +113,25 @@ public class SwerveController {
 
     /**
      * Set the current state of the swerve, so it will work according
-     * @param state the wanted state
+     * @param channel the wanted state
      */
-    public void setState(String state) {
-        previousState = this.state;
-        this.state = state;
+    public void setChannel(String channel) {
+        previousChannel = this.channel;
+        this.channel = channel;
     }
 
     /**
      * @return the current state of the swerve
      */
-    public String getState() {
-        return state;
+    public String getChannel() {
+        return channel;
     }
 
     /**
      * @return the previous state of the swerve, the state it was before changing it
      */
-    public String getPreviousState() {
-        return previousState;
+    public String getPreviousChannel() {
+        return previousChannel;
     }
 
     /**
@@ -151,7 +151,7 @@ public class SwerveController {
         Swerve.getInstance().periodic();
 
         Logger.recordOutput("Swerve/Input", lastInput);
-        Logger.recordOutput("Swerve/State", state);
-        Logger.recordOutput("Swerve/Previous State", previousState);
+        Logger.recordOutput("Swerve/Channel", channel);
+        Logger.recordOutput("Swerve/Previous State", previousChannel);
     }
 }
