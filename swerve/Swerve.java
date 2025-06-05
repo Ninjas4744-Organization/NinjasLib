@@ -212,7 +212,6 @@ public class Swerve {
             return new Translation2d();
         }
         Twist2d twist = kinematics.toTwist2d(previousModulePositions, getModulePositions());
-        Logger.recordOutput("FOMs/Twist", twist);
         previousModulePositions = getModulePositions();
         return new Translation2d(twist.dx, twist.dy);
     }
