@@ -4,6 +4,7 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -31,6 +32,7 @@ public class Swerve {
     private ChassisSpeeds wantedRobotRelativeSpeeds = new ChassisSpeeds();
     private SwerveDriveSimulation simulation;
     private SwerveModuleIOInputsAutoLogged[] moduleInputs;
+    private SwerveModulePosition[] previousModulePositions;
 
     public static Swerve getInstance() {
         if (instance == null)
@@ -66,13 +68,6 @@ public class Swerve {
                 new SwerveModuleIOReal(constants.moduleConstants[3])
             };
         } else {
-//            SwerveModuleSimulationConfig moduleConfig = new SwerveModuleSimulationConfig(constants.driveMotorType, constants.steerMotorType,
-//                constants.moduleConstants[0].driveMotorConstants.gearRatio, constants.moduleConstants[0].angleMotorConstants.gearRatio,
-//                Volts.of(constants.moduleConstants[0].driveMotorConstants.controlConstants.S), Volts.of(constants.moduleConstants[0].angleMotorConstants.controlConstants.S),
-//                Meters.of(constants.robotConfig.moduleConfig.wheelRadiusMeters),
-//                KilogramSquareMeters.of(0.0325),
-//                constants.robotConfig.moduleConfig.wheelCOF);
-
             DriveTrainSimulationConfig config = new DriveTrainSimulationConfig(Kilograms.of(constants.robotConfig.massKG),
                 Meters.of(constants.bumperLength), Meters.of(constants.bumperWidth),
                 Meters.of(constants.trackWidth), Meters.of(constants.wheelBase),
@@ -159,14 +154,14 @@ public class Swerve {
         else
             RobotStateWithSwerve.getInstance().setRobotPose(simulation.getSimulatedDriveTrainPose());
 
-        Logger.recordOutput("Current Velocity", getChassisSpeeds(true));
-        Logger.recordOutput("Wanted Velocity", ChassisSpeeds.fromRobotRelativeSpeeds(wantedRobotRelativeSpeeds, RobotStateWithSwerve.getInstance().getGyroYaw()));
+        Logger.recordOutput("Swerve/Current Velocity", getChassisSpeeds(true));
+        Logger.recordOutput("Swerve/Wanted Velocity", ChassisSpeeds.fromRobotRelativeSpeeds(wantedRobotRelativeSpeeds, RobotStateWithSwerve.getInstance().getGyroYaw()));
 
         for (SwerveModuleIO module : modules) {
             module.periodic();
 
             module.updateInputs(moduleInputs[module.getModuleNumber()]);
-            Logger.processInputs("Module " + module.getModuleNumber(), moduleInputs[module.getModuleNumber()]);
+            Logger.processInputs("Swerve/Module " + module.getModuleNumber(), moduleInputs[module.getModuleNumber()]);
         }
     }
 
@@ -209,5 +204,16 @@ public class Swerve {
         if (Robot.isSimulation())
             return simulation.getGyroSimulation().getGyroReading();
         return Rotation2d.kZero;
+    }
+
+    public Translation2d getOdometryTwist() {
+        if (previousModulePositions == null) {
+            previousModulePositions = getModulePositions();
+            return new Translation2d();
+        }
+        Twist2d twist = kinematics.toTwist2d(previousModulePositions, getModulePositions());
+        Logger.recordOutput("FOMs/Twist", twist);
+        previousModulePositions = getModulePositions();
+        return new Translation2d(twist.dx, twist.dy);
     }
 }

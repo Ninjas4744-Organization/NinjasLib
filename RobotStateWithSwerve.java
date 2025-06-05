@@ -3,15 +3,14 @@ package frc.lib.NinjasLib;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.studica.frc.AHRS;
 import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import frc.lib.NinjasLib.dataclasses.FOMCalculator;
 import frc.lib.NinjasLib.dataclasses.VisionOutput;
+import frc.lib.NinjasLib.swerve.NinjasSwervePoseTracker;
 import frc.lib.NinjasLib.swerve.Swerve;
 import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
@@ -21,9 +20,9 @@ import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<StateEnum> {
     private AHRS navX;
     private Pigeon2 pigeon;
-    private final SwerveDrivePoseEstimator poseEstimator;
+    //    private final SwerveDrivePoseEstimator poseEstimator;
+    private final NinjasSwervePoseTracker poseTracker;
     private final boolean gyroInverted;
-    private final FOMCalculator fomCalculator;
     private int pigeonID = -1;
 
     public static RobotStateWithSwerve getInstance() {
@@ -35,19 +34,17 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
      *
      * @param kinematics    The swerve drive kinematics used in the swerve. Used to calculate odometry.
      * @param gyroInverted  Whether to invert the returned angle of the gyro. Counterclockwise positive if not inverted.
-     * @param fomCalculator A function the gets a vision estimation from a camera and returns how much we don't trust its position.
      */
-    public RobotStateWithSwerve(SwerveDriveKinematics kinematics, boolean gyroInverted, FOMCalculator fomCalculator) {
+    public RobotStateWithSwerve(SwerveDriveKinematics kinematics, boolean gyroInverted) {
         this.gyroInverted = gyroInverted;
-        this.fomCalculator = fomCalculator;
 
         if (Robot.isReal()) {
             navX = new AHRS(AHRS.NavXComType.kMXP_SPI);
 
-            poseEstimator = new SwerveDrivePoseEstimator(kinematics, getGyroYaw(),
+            poseTracker = new NinjasSwervePoseTracker(kinematics, getGyroYaw(),
                 Swerve.getInstance().getModulePositions(), new Pose2d());
         } else {
-            poseEstimator = new SwerveDrivePoseEstimator(kinematics, new Rotation2d(),
+            poseTracker = new NinjasSwervePoseTracker(kinematics, new Rotation2d(),
                 new SwerveModulePosition[]{
                     new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
                     new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
@@ -62,21 +59,19 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
      *
      * @param kinematics    The swerve drive kinematics used in the swerve. Used to calculate odometry.
      * @param gyroInverted  Whether to invert the returned angle of the gyro. Counterclockwise positive if not inverted.
-     * @param fomCalculator A function the gets a vision estimation from a camera and returns how much we don't trust its position.
      * @param pigeonID      The pigeon gyro sensor CAN id.
      */
-    public RobotStateWithSwerve(SwerveDriveKinematics kinematics, boolean gyroInverted, FOMCalculator fomCalculator, int pigeonID) {
+    public RobotStateWithSwerve(SwerveDriveKinematics kinematics, boolean gyroInverted, int pigeonID) {
         this.gyroInverted = gyroInverted;
-        this.fomCalculator = fomCalculator;
         this.pigeonID = pigeonID;
 
         if (Robot.isReal()) {
             pigeon = new Pigeon2(pigeonID);
 
-            poseEstimator = new SwerveDrivePoseEstimator(kinematics, getGyroYaw(),
+            poseTracker = new NinjasSwervePoseTracker(kinematics, getGyroYaw(),
                 Swerve.getInstance().getModulePositions(), new Pose2d());
         } else {
-            poseEstimator = new SwerveDrivePoseEstimator(kinematics, new Rotation2d(),
+            poseTracker = new NinjasSwervePoseTracker(kinematics, new Rotation2d(),
                 new SwerveModulePosition[]{
                     new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
                     new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
@@ -90,7 +85,7 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
      * @return 2D position of the robot on the field.
      */
     public Pose2d getRobotPose() {
-        return poseEstimator.getEstimatedPosition();
+        return poseTracker.getEstimatedPosition();
     }
 
     /**
@@ -127,9 +122,9 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
      */
     public void setRobotPose(Pose2d pose) {
         if (Robot.isReal())
-            poseEstimator.resetPosition(getGyroYaw(), Swerve.getInstance().getModulePositions(), pose);
+            poseTracker.resetPosition(getGyroYaw(), Swerve.getInstance().getModulePositions(), pose);
         else
-            poseEstimator.resetPosition(getGyroYaw(), new SwerveModulePosition[]{
+            poseTracker.resetPosition(getGyroYaw(), new SwerveModulePosition[]{
                 new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
                 new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
                 new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
@@ -144,31 +139,26 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
      * @param modulePositions The current position of the swerve modules.
      */
     public void updateRobotPose(SwerveModulePosition[] modulePositions) {
-        poseEstimator.update(getGyroYaw(), modulePositions);
+        poseTracker.update(getGyroYaw(), modulePositions);
         Logger.recordOutput("Robot Pose", getRobotPose());
     }
 
     /**
-     * Updates the robot pose according to given vision estimations.
+     * Updates the robot pose according to given vision estimation.
      *
-     * @param estimations The vision estimations.
+     * @param estimation The vision estimation.
      */
-    public void updateRobotPose(VisionOutput... estimations) {
-        for (VisionOutput estimation : estimations) {
-            if (!estimation.hasTargets)
-                continue;
+    public void updateRobotPose(VisionOutput estimation, double odometryFOM, double visionFOM) {
+        if (!estimation.hasTargets)
+            return;
 
-            double[] fom = fomCalculator.calculateFOM(estimation);
-            poseEstimator.addVisionMeasurement(
+        poseTracker.setMeasurementStdDevs(VecBuilder.fill(odometryFOM, odometryFOM, odometryFOM),
+                VecBuilder.fill(visionFOM, visionFOM, visionFOM));
+
+        poseTracker.addVisionMeasurement(
                 estimation.robotPose,
-                estimation.timestamp,
-                VecBuilder.fill(
-                    fom[0],
-                    fom[1],
-                    fom[2]
-                )
-            );
-        }
+                estimation.timestamp
+        );
 
         Logger.recordOutput("Robot Pose", getRobotPose());
     }
