@@ -17,4 +17,10 @@ public class SwerveControllerConstants {
      * For some reason only one of the pairs will work for each robot so good luck!
      */
     public Pair<Double, Double> rotationPIDContinuousConnections;
+
+    /**
+     * Whether to make the swerve try to stay at its wanted angle with PID.
+     * It will fight the random rotations caused by fast driving.
+     */
+    public boolean enableRotationPIDCorrection = false;
 }

@@ -15,9 +15,12 @@ public class SwerveController {
     private final PIDController yPID;
     private final SwerveControllerConstants constants;
 
-    private ChassisSpeeds lastInput;
+    private SwerveInput lastInput;
     private String channel;
     private String previousChannel;
+
+    private Rotation2d targetAngle = Rotation2d.kZero;
+    private double rotationCorrectionLastInput = 0;
 
     private static SwerveController instance = null;
 
@@ -36,7 +39,7 @@ public class SwerveController {
 
         channel = "";
         previousChannel = "";
-        lastInput = new ChassisSpeeds();
+        lastInput = new SwerveInput();
 
         anglePID = new PIDController(
             constants.rotationPIDConstants.P,
@@ -104,10 +107,26 @@ public class SwerveController {
             yPID.calculate(RobotStateWithSwerve.getInstance().getRobotPose().getY(), target.getY()));
     }
 
-    public void setControl(ChassisSpeeds chassisSpeeds, boolean fieldRelative, String type) {
-        if (type.equals(channel)) {
-            lastInput = chassisSpeeds;
-            Swerve.getInstance().drive(chassisSpeeds, fieldRelative);
+    public void setControl(ChassisSpeeds chassisSpeeds, boolean fieldRelative, String channel) {
+        if (channel.equals(this.channel)) {
+            if (constants.enableRotationPIDCorrection) {
+//                double omegaRadiansPerSecond = anglePID.calculate(RobotStateWithSwerve.getInstance().getGyroYaw().getRadians(), targetAngle.getRadians());
+//                lastInput = new SwerveInput(new ChassisSpeeds(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond, omegaRadiansPerSecond), fieldRelative);
+//                Swerve.getInstance().drive(lastInput.getChassisSpeeds(), fieldRelative);
+
+//                targetAngle = targetAngle.plus(Rotation2d.fromRadians(chassisSpeeds.omegaRadiansPerSecond * 0.02));
+                if (Math.abs(lastInput.getO()) < 0.1) {
+                    lastInput = new SwerveInput(chassisSpeeds, fieldRelative);
+                    Swerve.getInstance().drive(new ChassisSpeeds(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond, rotationCorrectionLastInput), lastInput.isFieldRelative());
+                } else {
+                    targetAngle = Rotation2d.fromRadians((targetAngle.getRadians() + chassisSpeeds.omegaRadiansPerSecond * 0.02 * 20 + RobotStateWithSwerve.getInstance().getGyroYaw().getRadians()) / 2);
+                    lastInput = new SwerveInput(chassisSpeeds, fieldRelative);
+                    Swerve.getInstance().drive(lastInput.getChassisSpeeds(), lastInput.isFieldRelative());
+                }
+            } else {
+                lastInput = new SwerveInput(chassisSpeeds, fieldRelative);
+                Swerve.getInstance().drive(lastInput.getChassisSpeeds(), lastInput.isFieldRelative());
+            }
         }
     }
 
@@ -148,10 +167,21 @@ public class SwerveController {
     }
 
     public void periodic() {
+        if (constants.enableRotationPIDCorrection) {
+            if (Math.abs(lastInput.getO()) < 0.1) {
+                rotationCorrectionLastInput = anglePID.calculate(RobotStateWithSwerve.getInstance().getGyroYaw().getRadians(), targetAngle.getRadians());
+                Swerve.getInstance().drive(new ChassisSpeeds(lastInput.getVx(), lastInput.getVy(), rotationCorrectionLastInput), lastInput.isFieldRelative());
+            }
+
+            Logger.recordOutput("Swerve/Target Angle", targetAngle);
+            Pose2d robotPose = RobotStateWithSwerve.getInstance().getRobotPose();
+            Logger.recordOutput("Swerve/Target Angle Pose", new Pose2d(robotPose.getTranslation(), targetAngle));
+        }
         Swerve.getInstance().periodic();
 
-        Logger.recordOutput("Swerve/Input", lastInput);
+        Logger.recordOutput("Swerve/Input", lastInput.getChassisSpeeds());
+        Logger.recordOutput("Swerve/Input Field Relative", lastInput.isFieldRelative());
         Logger.recordOutput("Swerve/Channel", channel);
-        Logger.recordOutput("Swerve/Previous State", previousChannel);
+        Logger.recordOutput("Swerve/Previous Channel", previousChannel);
     }
 }

@@ -56,6 +56,11 @@ public class VictorSPXController extends Controller {
 		throw new UnsupportedOperationException("No encoder on VictorSPX");
 	}
 
+    @Override
+    public double getAcceleration() {
+        throw new UnsupportedOperationException("No encoder on VictorSPX");
+    }
+
 	@Override
 	public double getOutput() {
 		return _main.getMotorOutputPercent();

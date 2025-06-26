@@ -10,6 +10,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Units;
 import frc.lib.NinjasLib.controllers.Controller;
 import frc.lib.NinjasLib.dataclasses.SwerveModuleConstants;
+import org.littletonrobotics.junction.Logger;
 
 public class SwerveModuleIOReal implements SwerveModuleIO {
     public final int moduleNumber;
@@ -32,36 +33,8 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
                 .withMagnetOffset(constants.CANCoderOffset)
         );
 
-//        switch (constants.driveControllerType) {
-//            case SparkMax:
-//                driveMotor = new SparkMaxController(constants.driveMotorConstants);
-//                break;
-//
-//            case TalonSRX:
-//                driveMotor = new TalonSRXController(constants.driveMotorConstants);
-//                break;
-//
-//            default:
-//                driveMotor = new TalonFXController(constants.driveMotorConstants);
-//                break;
-//        }
-
         driveMotor = Controller.createController(constants.driveControllerType, constants.driveMotorConstants);
         steerMotor = Controller.createController(constants.angleControllerType, constants.angleMotorConstants);
-
-//        switch (constants.angleControllerType) {
-//            case SparkMax:
-//                steerMotor = new SparkMaxController(constants.angleMotorConstants);
-//                break;
-//
-//            case TalonSRX:
-//                steerMotor = new TalonSRXController(constants.angleMotorConstants);
-//                break;
-//
-//            default:
-//                steerMotor = new TalonFXController(constants.angleMotorConstants);
-//                break;
-//        }
 
         lastAngle = Rotation2d.fromRadians(steerMotor.getPosition());
     }
@@ -117,6 +90,8 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
         inputs.Speed = getState().speedMetersPerSecond;
         inputs.Angle = getState().angle;
         inputs.AbsoluteAngle = getCanCoder();
+
+        Logger.recordOutput("Swerve/Module " + getModuleNumber() + " Acc", Math.abs(driveMotor.getAcceleration()));
     }
 
     @Override

@@ -88,14 +88,19 @@ public abstract class Controller {
     public abstract void stop();
 
     /**
-     * @return the position of the controller
+     * @return the rotational position of the motor
      */
     public abstract double getPosition();
 
     /**
-     * @return the velocity of the controller
+     * @return the rotational velocity of the motor
      */
     public abstract double getVelocity();
+
+    /**
+     * @return the rotational acceleration of the motor
+     */
+    public abstract double getAcceleration();
 
     /**
      * @return the percent output of the controller

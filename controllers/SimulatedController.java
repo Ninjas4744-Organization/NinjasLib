@@ -13,6 +13,7 @@ public class SimulatedController extends Controller {
     private final PIDController PIDController;
     private boolean isCurrentlyProfiling = false;
     private DCMotorSim motorSim;
+    private double lastVelocity;
 
     public SimulatedController(ControllerConstants constants) {
         super(constants.real);
@@ -75,6 +76,13 @@ public class SimulatedController extends Controller {
     @Override
     public double getVelocity() {
         return motorSim.getAngularVelocityRPM() / 60 * constants.conversionFactor;
+    }
+
+    @Override
+    public double getAcceleration() {
+        double acc = (getVelocity() - lastVelocity) / 0.02;
+        lastVelocity = getVelocity();
+        return acc;
     }
 
     @Override

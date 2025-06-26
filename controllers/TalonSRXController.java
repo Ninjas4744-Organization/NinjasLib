@@ -5,34 +5,35 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import frc.lib.NinjasLib.dataclasses.RealControllerConstants;
 
 public class TalonSRXController extends Controller {
-	private final TalonSRX _main;
-	private final TalonSRX[] _followers;
+    private final TalonSRX main;
+    private final TalonSRX[] followers;
+    private double lastVelocity;
 
     public TalonSRXController(RealControllerConstants constants) {
 		super(constants);
 
-		_main = new TalonSRX(constants.main.id);
-		_main.configFactoryDefault();
-		_main.setInverted(constants.main.inverted);
-		_main.configPeakCurrentLimit((int) constants.currentLimit);
+        main = new TalonSRX(constants.main.id);
+        main.configFactoryDefault();
+        main.setInverted(constants.main.inverted);
+        main.configPeakCurrentLimit((int) constants.currentLimit);
 
-		_main.config_kP(0, constants.controlConstants.P);
-		_main.config_kI(0, constants.controlConstants.I);
-		_main.config_kD(0, constants.controlConstants.D);
-		_main.configMotionCruiseVelocity(
+        main.config_kP(0, constants.controlConstants.P);
+        main.config_kI(0, constants.controlConstants.I);
+        main.config_kD(0, constants.controlConstants.D);
+        main.configMotionCruiseVelocity(
             constants.controlConstants.cruiseVelocity * constants.conversionFactor / 10);
-        _main.configMotionAcceleration(constants.controlConstants.acceleration * constants.conversionFactor / 10);
-        _main.configForwardSoftLimitEnable(constants.maxSoftLimit != Double.MAX_VALUE);
-        _main.configReverseSoftLimitEnable(constants.minSoftLimit != Double.MIN_VALUE);
-		_main.configForwardSoftLimitThreshold(constants.maxSoftLimit);
-		_main.configReverseSoftLimitThreshold(constants.minSoftLimit);
+        main.configMotionAcceleration(constants.controlConstants.acceleration * constants.conversionFactor / 10);
+        main.configForwardSoftLimitEnable(constants.maxSoftLimit != Double.MAX_VALUE);
+        main.configReverseSoftLimitEnable(constants.minSoftLimit != Double.MIN_VALUE);
+        main.configForwardSoftLimitThreshold(constants.maxSoftLimit);
+        main.configReverseSoftLimitThreshold(constants.minSoftLimit);
 
-		_followers = new TalonSRX[constants.followers.length];
-		for (int i = 0; i < _followers.length; i++) {
-			_followers[i] = new TalonSRX(constants.followers[i].id);
-			_followers[i].configFactoryDefault();
-			_followers[i].follow(_main);
-			_followers[i].setInverted(constants.followers[i].inverted ^ constants.main.inverted);
+        followers = new TalonSRX[constants.followers.length];
+        for (int i = 0; i < followers.length; i++) {
+            followers[i] = new TalonSRX(constants.followers[i].id);
+            followers[i].configFactoryDefault();
+            followers[i].follow(main);
+            followers[i].setInverted(constants.followers[i].inverted ^ constants.main.inverted);
 		}
 	}
 
@@ -40,7 +41,7 @@ public class TalonSRXController extends Controller {
 	public void setPercent(double percent) {
 		super.setPercent(percent);
 
-		_main.set(TalonSRXControlMode.PercentOutput, percent);
+        main.set(TalonSRXControlMode.PercentOutput, percent);
 	}
 
 	@Override
@@ -49,11 +50,11 @@ public class TalonSRXController extends Controller {
 
         switch (constants.controlConstants.type) {
 			case PROFILE, PROFILED_PID:
-                _main.set(TalonSRXControlMode.MotionMagic, position / constants.conversionFactor);
+                main.set(TalonSRXControlMode.MotionMagic, position / constants.conversionFactor);
 				break;
 
 			case PID:
-                _main.set(TalonSRXControlMode.Position, position / constants.conversionFactor);
+                main.set(TalonSRXControlMode.Position, position / constants.conversionFactor);
 				break;
 		}
 	}
@@ -64,11 +65,11 @@ public class TalonSRXController extends Controller {
 
         switch (constants.controlConstants.type) {
 			case PROFILED_PID:
-                _main.set(TalonSRXControlMode.MotionMagic, velocity / constants.conversionFactor);
+                main.set(TalonSRXControlMode.MotionMagic, velocity / constants.conversionFactor);
 				break;
 
 			case PID:
-                _main.set(TalonSRXControlMode.Velocity, velocity / constants.conversionFactor);
+                main.set(TalonSRXControlMode.Velocity, velocity / constants.conversionFactor);
 				break;
 
 			case PROFILE:
@@ -78,32 +79,38 @@ public class TalonSRXController extends Controller {
 
 	@Override
 	public void stop() {
-		_main.set(TalonSRXControlMode.PercentOutput, 0);
+        main.set(TalonSRXControlMode.PercentOutput, 0);
 	}
 
 	@Override
 	public double getPosition() {
-        return _main.getSelectedSensorPosition() * constants.conversionFactor;
+        return main.getSelectedSensorPosition() * constants.conversionFactor;
 	}
 
 	@Override
 	public double getVelocity() {
-        return _main.getSelectedSensorVelocity() * constants.conversionFactor;
+        return main.getSelectedSensorVelocity() * constants.conversionFactor;
+    }
+
+    @Override
+    public double getAcceleration() {
+        double acc = (getVelocity() - lastVelocity) / 0.02;
+        lastVelocity = getVelocity();
+        return acc;
 	}
 
 	@Override
 	public double getOutput() {
-		return _main.getMotorOutputPercent();
+        return main.getMotorOutputPercent();
 	}
 
 	@Override
 	public double getCurrent() {
-		return _main.getBusVoltage();
+        return main.getBusVoltage();
 	}
-
 
 	@Override
 	public void setEncoder(double position) {
-        _main.setSelectedSensorPosition(position / constants.conversionFactor);
+        main.setSelectedSensorPosition(position / constants.conversionFactor);
 	}
 }

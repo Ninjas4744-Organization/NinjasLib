@@ -8,14 +8,14 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import frc.lib.NinjasLib.dataclasses.RealControllerConstants;
 
 public class TalonFXController extends Controller {
-    private final TalonFX _main;
+    private final TalonFX main;
     private final TalonFX[] _followers;
 
     public TalonFXController(RealControllerConstants constants) {
         super(constants);
 
-        _main = new TalonFX(constants.main.id);
-        _main.getConfigurator()
+        main = new TalonFX(constants.main.id);
+        main.getConfigurator()
           .apply(new TalonFXConfiguration()
             .withSoftwareLimitSwitch(new SoftwareLimitSwitchConfigs()
                 .withForwardSoftLimitEnable(constants.maxSoftLimit != Double.MAX_VALUE)
@@ -60,7 +60,7 @@ public class TalonFXController extends Controller {
     public void setPercent(double percent) {
         super.setPercent(percent);
 
-        _main.set(percent);
+        main.set(percent);
     }
 
     @Override
@@ -69,15 +69,15 @@ public class TalonFXController extends Controller {
 
         switch (constants.controlConstants.type) {
             case PROFILED_PID, PROFILE:
-                _main.setControl(new MotionMagicVoltage(position));
+                main.setControl(new MotionMagicVoltage(position));
                 break;
 
             case PID:
-                _main.setControl(new PositionVoltage(position));
+                main.setControl(new PositionVoltage(position));
                 break;
 
             case TORQUE_CURRENT:
-                _main.setControl(new PositionTorqueCurrentFOC(position));
+                main.setControl(new PositionTorqueCurrentFOC(position));
                 break;
         }
     }
@@ -88,46 +88,51 @@ public class TalonFXController extends Controller {
 
         switch (constants.controlConstants.type) {
             case PROFILED_PID, PROFILE:
-                _main.setControl(new MotionMagicVelocityVoltage(velocity));
+                main.setControl(new MotionMagicVelocityVoltage(velocity));
                 break;
 
             case PID:
-                _main.setControl(new VelocityVoltage(velocity));
+                main.setControl(new VelocityVoltage(velocity));
                 break;
 
             case TORQUE_CURRENT:
-                _main.setControl(new VelocityTorqueCurrentFOC(velocity));
+                main.setControl(new VelocityTorqueCurrentFOC(velocity));
                 break;
         }
     }
 
     @Override
     public void stop() {
-        _main.stopMotor();
+        main.stopMotor();
     }
 
     @Override
     public double getPosition() {
-        return _main.getPosition().getValueAsDouble();
+        return main.getPosition().getValueAsDouble();
     }
 
     @Override
     public double getVelocity() {
-        return _main.getVelocity().getValueAsDouble();
+        return main.getVelocity().getValueAsDouble();
+    }
+
+    @Override
+    public double getAcceleration() {
+        return main.getAcceleration().getValueAsDouble();
     }
 
     @Override
     public double getOutput() {
-        return _main.get();
+        return main.get();
     }
 
     @Override
     public double getCurrent() {
-        return _main.getStatorCurrent().getValueAsDouble();
+        return main.getStatorCurrent().getValueAsDouble();
     }
 
     @Override
     public void setEncoder(double position) {
-        _main.setPosition(position);
+        main.setPosition(position);
     }
 }
