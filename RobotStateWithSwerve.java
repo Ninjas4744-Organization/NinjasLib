@@ -1,5 +1,6 @@
 package frc.lib.NinjasLib;
 
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.studica.frc.AHRS;
 import edu.wpi.first.math.VecBuilder;
@@ -9,11 +10,15 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.units.measure.Angle;
 import frc.lib.NinjasLib.dataclasses.VisionOutput;
-import frc.lib.NinjasLib.swerve.NinjasSwervePoseTracker;
+import frc.lib.NinjasLib.localization.NinjasSwervePoseTracker;
+import frc.lib.NinjasLib.localization.OdometryThread;
 import frc.lib.NinjasLib.swerve.Swerve;
 import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
+
+import java.util.Queue;
 
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 
@@ -24,6 +29,7 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
     private final NinjasSwervePoseTracker poseTracker;
     private final boolean gyroInverted;
     private int pigeonID = -1;
+    private Queue<Double> gyroYawQueue;
 
     public static RobotStateWithSwerve getInstance() {
         return (RobotStateWithSwerve) RobotStateBase.getInstance();
@@ -61,24 +67,38 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
      * @param gyroInverted  Whether to invert the returned angle of the gyro. Counterclockwise positive if not inverted.
      * @param pigeonID      The pigeon gyro sensor CAN id.
      */
-    public RobotStateWithSwerve(SwerveDriveKinematics kinematics, boolean gyroInverted, int pigeonID) {
+    public RobotStateWithSwerve(SwerveDriveKinematics kinematics, boolean gyroInverted, int pigeonID, boolean enableOdometryThread) {
         this.gyroInverted = gyroInverted;
         this.pigeonID = pigeonID;
 
         if (Robot.isReal()) {
             pigeon = new Pigeon2(pigeonID);
 
+            if (enableOdometryThread) {
+                StatusSignal<Angle> yaw = pigeon.getYaw();
+                yaw.setUpdateFrequency(Swerve.getInstance().getOdometryFrequency());
+                pigeon.optimizeBusUtilization();
+
+                gyroYawQueue = OdometryThread.getInstance().registerSignal(yaw.clone());
+            }
+
             poseTracker = new NinjasSwervePoseTracker(kinematics, getGyroYaw(),
                 Swerve.getInstance().getModulePositions(), new Pose2d());
         } else {
             poseTracker = new NinjasSwervePoseTracker(kinematics, new Rotation2d(),
                 new SwerveModulePosition[]{
-                    new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
-                    new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
-                    new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
-                    new SwerveModulePosition(0, Rotation2d.fromDegrees(0))
+                    new SwerveModulePosition(0, Rotation2d.kZero),
+                    new SwerveModulePosition(0, Rotation2d.kZero),
+                    new SwerveModulePosition(0, Rotation2d.kZero),
+                    new SwerveModulePosition(0, Rotation2d.kZero)
                 }, new Pose2d());
         }
+    }
+
+    public Rotation2d[] getGyroYawArray() {
+        Rotation2d[] arr = gyroYawQueue.stream().map(Rotation2d::fromDegrees).toArray(Rotation2d[]::new);
+        gyroYawQueue.clear();
+        return arr;
     }
 
     /**
@@ -140,6 +160,16 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
      */
     public void updateRobotPose(SwerveModulePosition[] modulePositions) {
         poseTracker.update(getGyroYaw(), modulePositions);
+        Logger.recordOutput("Robot Pose", getRobotPose());
+    }
+
+    /**
+     * Updates the robot pose according to odometry parameters.
+     *
+     * @param modulePositions The current position of the swerve modules.
+     */
+    public void updateRobotPoseWithTime(SwerveModulePosition[] modulePositions, Rotation2d gyroYaw, double timestamp) {
+        poseTracker.updateWithTime(timestamp, gyroYaw, modulePositions);
         Logger.recordOutput("Robot Pose", getRobotPose());
     }
 

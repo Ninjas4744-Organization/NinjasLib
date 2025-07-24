@@ -1,5 +1,6 @@
 package frc.lib.NinjasLib;
 
+import com.ctre.phoenix6.CANBus;
 import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
@@ -9,10 +10,11 @@ import org.littletonrobotics.junction.Logger;
 public abstract class RobotStateBase<StateEnum> {
     protected static RobotStateBase instance;
     protected StateEnum robotState;
+    protected CANBus CANBus;
 
     public static RobotStateBase getInstance() {
         if (instance == null)
-            throw new RuntimeException("RobotStateIO not initialized. Initialize RobotStateIO by setInstance() first.");
+            throw new RuntimeException("RobotStateBase not initialized. Initialize RobotStateBase by setInstance() first.");
         return instance;
     }
 
@@ -38,6 +40,10 @@ public abstract class RobotStateBase<StateEnum> {
         robotState = state;
     }
 
+    public CANBus getCANBus() {
+        return CANBus;
+    }
+
     /**
      * @return Whether the robot is in the blue alliance or the red alliance
      */
@@ -52,7 +58,7 @@ public abstract class RobotStateBase<StateEnum> {
     /**
      * @return Which driver station the robot is in
      */
-    public AllianceStationID getAllianceStation() {
+    public static AllianceStationID getAllianceStation() {
         return Robot.isSimulation() ? DriverStationSim.getAllianceStationId() : DriverStation.getRawAllianceStation();
     }
 }

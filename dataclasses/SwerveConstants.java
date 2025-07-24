@@ -49,18 +49,25 @@ public class SwerveConstants {
      */
     public RobotConfig robotConfig;
 
-    /* Simulation */
-    /**
-     * Width of bumper from side to side of robot, meters
-     */
+    /** Width of bumper from side to side of robot, meters */
     public double bumperWidth;
 
-    /**
-     * Length of bumper from back to forward of robot, meters
-     */
+    /** Length of bumper from back to forward of robot, meters */
     public double bumperLength;
 
+    /** The type of the drive motors */
     public DCMotor driveMotorType;
 
+    /** The type of the drive motors */
     public DCMotor steerMotorType;
+
+    /**
+     * Whether to create a separate thread to run the swerve odometry
+     */
+    public boolean enableOdometryThread;
+
+    /**
+     * Frequency of the thread that updates the odometry. Only works if enableOdometryThread is set to true
+     */
+    public double odometryThreadFrequency;
 }

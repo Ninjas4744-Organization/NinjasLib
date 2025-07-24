@@ -1,15 +1,20 @@
 package frc.lib.NinjasLib.controllers;
 
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.*;
 import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularAcceleration;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import frc.lib.NinjasLib.dataclasses.RealControllerConstants;
 
 public class TalonFXController extends Controller {
     private final TalonFX main;
-    private final TalonFX[] _followers;
+    private final TalonFX[] followers;
 
     public TalonFXController(RealControllerConstants constants) {
         super(constants);
@@ -48,11 +53,11 @@ public class TalonFXController extends Controller {
                     .withGravityType(constants.controlConstants.gravityType))
               .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(constants.gearRatio / constants.conversionFactor)));
 
-        _followers = new TalonFX[constants.followers.length];
-        for (int i = 0; i < _followers.length; i++) {
-            _followers[i] = new TalonFX(constants.followers[i].id);
-            _followers[i].getConfigurator().apply(new TalonFXConfiguration().MotorOutput.withNeutralMode(constants.isBrakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast));
-            _followers[i].setControl(new Follower(constants.main.id, constants.followers[i].inverted));
+        followers = new TalonFX[constants.followers.length];
+        for (int i = 0; i < followers.length; i++) {
+            followers[i] = new TalonFX(constants.followers[i].id);
+            followers[i].getConfigurator().apply(new TalonFXConfiguration().MotorOutput.withNeutralMode(constants.isBrakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast));
+            followers[i].setControl(new Follower(constants.main.id, constants.followers[i].inverted));
         }
     }
 
@@ -134,5 +139,21 @@ public class TalonFXController extends Controller {
     @Override
     public void setEncoder(double position) {
         main.setPosition(position);
+    }
+
+    public StatusSignal<Angle> getPositionSignal() {
+        return main.getPosition();
+    }
+
+    public StatusSignal<AngularVelocity> getVelocitySignal() {
+        return main.getVelocity();
+    }
+
+    public StatusSignal<AngularAcceleration> getAccelerationSignal() {
+        return main.getAcceleration();
+    }
+
+    public StatusSignal<Current> getCurrentSignal() {
+        return main.getStatorCurrent();
     }
 }

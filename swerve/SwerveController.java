@@ -4,7 +4,6 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import frc.lib.NinjasLib.RobotStateWithSwerve;
 import frc.lib.NinjasLib.dataclasses.SwerveControllerConstants;
 import org.littletonrobotics.junction.Logger;
@@ -107,26 +106,29 @@ public class SwerveController {
             yPID.calculate(RobotStateWithSwerve.getInstance().getRobotPose().getY(), target.getY()));
     }
 
-    public void setControl(ChassisSpeeds chassisSpeeds, boolean fieldRelative, String channel) {
+    public void setControl(SwerveInput input, String channel) {
         if (channel.equals(this.channel)) {
-            if (constants.enableRotationPIDCorrection) {
-//                double omegaRadiansPerSecond = anglePID.calculate(RobotStateWithSwerve.getInstance().getGyroYaw().getRadians(), targetAngle.getRadians());
-//                lastInput = new SwerveInput(new ChassisSpeeds(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond, omegaRadiansPerSecond), fieldRelative);
-//                Swerve.getInstance().drive(lastInput.getChassisSpeeds(), fieldRelative);
+//            if (constants.enableRotationPIDCorrection) {
+////                double omegaRadiansPerSecond = anglePID.calculate(RobotStateWithSwerve.getInstance().getGyroYaw().getRadians(), targetAngle.getRadians());
+////                lastInput = new SwerveInput(new ChassisSpeeds(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond, omegaRadiansPerSecond), fieldRelative);
+////                Swerve.getInstance().drive(lastInput.getChassisSpeeds(), fieldRelative);
+//
+////                targetAngle = targetAngle.plus(Rotation2d.fromRadians(chassisSpeeds.omegaRadiansPerSecond * 0.02));
+//                if (Math.abs(lastInput.getO()) < 0.1) {
+//                    lastInput = new SwerveInput(chassisSpeeds, fieldRelative);
+//                    Swerve.getInstance().drive(new ChassisSpeeds(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond, rotationCorrectionLastInput), lastInput.isFieldRelative());
+//                } else {
+//                    targetAngle = Rotation2d.fromRadians((targetAngle.getRadians() + chassisSpeeds.omegaRadiansPerSecond * 0.02 * 20 + RobotStateWithSwerve.getInstance().getGyroYaw().getRadians()) / 2);
+//                    lastInput = new SwerveInput(chassisSpeeds, fieldRelative);
+//                    Swerve.getInstance().drive(lastInput.getChassisSpeeds(), lastInput.isFieldRelative());
+//                }
+//            } else {
+//                lastInput = new SwerveInput(chassisSpeeds, fieldRelative);
+//                Swerve.getInstance().drive(lastInput.getChassisSpeeds(), lastInput.isFieldRelative());
+//            }
 
-//                targetAngle = targetAngle.plus(Rotation2d.fromRadians(chassisSpeeds.omegaRadiansPerSecond * 0.02));
-                if (Math.abs(lastInput.getO()) < 0.1) {
-                    lastInput = new SwerveInput(chassisSpeeds, fieldRelative);
-                    Swerve.getInstance().drive(new ChassisSpeeds(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond, rotationCorrectionLastInput), lastInput.isFieldRelative());
-                } else {
-                    targetAngle = Rotation2d.fromRadians((targetAngle.getRadians() + chassisSpeeds.omegaRadiansPerSecond * 0.02 * 20 + RobotStateWithSwerve.getInstance().getGyroYaw().getRadians()) / 2);
-                    lastInput = new SwerveInput(chassisSpeeds, fieldRelative);
-                    Swerve.getInstance().drive(lastInput.getChassisSpeeds(), lastInput.isFieldRelative());
-                }
-            } else {
-                lastInput = new SwerveInput(chassisSpeeds, fieldRelative);
-                Swerve.getInstance().drive(lastInput.getChassisSpeeds(), lastInput.isFieldRelative());
-            }
+            Swerve.getInstance().drive(input);
+            lastInput = input;
         }
     }
 
@@ -158,29 +160,29 @@ public class SwerveController {
      * @param percent the percent chassis speeds to convert
      * @return the m/s chassis speeds to give the swerve
      */
-    public ChassisSpeeds fromPercent(ChassisSpeeds percent) {
-        return new ChassisSpeeds(
+    public SwerveInput fromPercent(SwerveInput percent) {
+        return new SwerveInput(
             percent.vxMetersPerSecond * constants.swerveConstants.maxSpeed,
             percent.vyMetersPerSecond * constants.swerveConstants.maxSpeed,
-            percent.omegaRadiansPerSecond * constants.swerveConstants.maxAngularVelocity
+            percent.omegaRadiansPerSecond * constants.swerveConstants.maxAngularVelocity,
+            percent.isFieldRelative()
         );
     }
 
     public void periodic() {
-        if (constants.enableRotationPIDCorrection) {
-            if (Math.abs(lastInput.getO()) < 0.1) {
-                rotationCorrectionLastInput = anglePID.calculate(RobotStateWithSwerve.getInstance().getGyroYaw().getRadians(), targetAngle.getRadians());
-                Swerve.getInstance().drive(new ChassisSpeeds(lastInput.getVx(), lastInput.getVy(), rotationCorrectionLastInput), lastInput.isFieldRelative());
-            }
-
-            Logger.recordOutput("Swerve/Target Angle", targetAngle);
-            Pose2d robotPose = RobotStateWithSwerve.getInstance().getRobotPose();
-            Logger.recordOutput("Swerve/Target Angle Pose", new Pose2d(robotPose.getTranslation(), targetAngle));
-        }
+//        if (constants.enableRotationPIDCorrection) {
+//            if (Math.abs(lastInput.getO()) < 0.1) {
+//                rotationCorrectionLastInput = anglePID.calculate(RobotStateWithSwerve.getInstance().getGyroYaw().getRadians(), targetAngle.getRadians());
+//                Swerve.getInstance().drive(new ChassisSpeeds(lastInput.getVx(), lastInput.getVy(), rotationCorrectionLastInput), lastInput.isFieldRelative());
+//            }
+//
+//            Logger.recordOutput("Swerve/Target Angle", targetAngle);
+//            Pose2d robotPose = RobotStateWithSwerve.getInstance().getRobotPose();
+//            Logger.recordOutput("Swerve/Target Angle Pose", new Pose2d(robotPose.getTranslation(), targetAngle));
+//        }
         Swerve.getInstance().periodic();
 
-        Logger.recordOutput("Swerve/Input", lastInput.getChassisSpeeds());
-        Logger.recordOutput("Swerve/Input Field Relative", lastInput.isFieldRelative());
+        Logger.recordOutput("Swerve/Input", lastInput);
         Logger.recordOutput("Swerve/Channel", channel);
         Logger.recordOutput("Swerve/Previous Channel", previousChannel);
     }

@@ -11,6 +11,9 @@ public interface SwerveModuleIO {
         double Speed;
         Rotation2d Angle;
         Rotation2d AbsoluteAngle;
+        Rotation2d[] Angles;
+        double[] Positions;
+        double[] Timestamps;
     }
 
     default SwerveModuleState getState() {

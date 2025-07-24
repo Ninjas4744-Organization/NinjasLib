@@ -9,22 +9,33 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Units;
 import frc.lib.NinjasLib.controllers.Controller;
+import frc.lib.NinjasLib.controllers.TalonFXController;
+import frc.lib.NinjasLib.dataclasses.SwerveConstants;
 import frc.lib.NinjasLib.dataclasses.SwerveModuleConstants;
-import org.littletonrobotics.junction.Logger;
+import frc.lib.NinjasLib.localization.OdometryThread;
+
+import java.util.Queue;
 
 public class SwerveModuleIOReal implements SwerveModuleIO {
     public final int moduleNumber;
+    private SwerveModuleConstants constants;
+    private SwerveConstants swerveConstants;
 
     private final Controller steerMotor;
     private final Controller driveMotor;
 
     private Rotation2d lastAngle;
     private final CANcoder canCoder;
-    private final double maxModuleSpeed;
 
-    public SwerveModuleIOReal(SwerveModuleConstants constants) {
+    private final boolean isTalonFX;
+    private Queue<Double> positionQueue;
+    private Queue<Double> angleQueue;
+    private final Queue<Double> timestampQueue;
+
+    public SwerveModuleIOReal(SwerveModuleConstants constants, SwerveConstants swerveConstants) {
         moduleNumber = constants.moduleNumber;
-        maxModuleSpeed = constants.maxModuleSpeed;
+        this.constants = constants;
+        this.swerveConstants = swerveConstants;
 
         canCoder = new CANcoder(constants.canCoderID);
         canCoder.getConfigurator().apply(
@@ -34,9 +45,16 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
         );
 
         driveMotor = Controller.createController(constants.driveControllerType, constants.driveMotorConstants);
-        steerMotor = Controller.createController(constants.angleControllerType, constants.angleMotorConstants);
+        steerMotor = Controller.createController(constants.steerControllerType, constants.angleMotorConstants);
 
         lastAngle = Rotation2d.fromRadians(steerMotor.getPosition());
+
+        isTalonFX = constants.driveControllerType == Controller.ControllerType.TalonFX && constants.steerControllerType == Controller.ControllerType.TalonFX;
+        if (swerveConstants.enableOdometryThread && isTalonFX) {
+            positionQueue = OdometryThread.getInstance().registerSignal(((TalonFXController) driveMotor).getPositionSignal().clone());
+            angleQueue = OdometryThread.getInstance().registerSignal(((TalonFXController) steerMotor).getPositionSignal().clone());
+            timestampQueue = OdometryThread.getInstance().makeTimestampQueue();
+        }
     }
 
     @Override
@@ -54,12 +72,12 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
         desiredState = SwerveUtils.optimizeModuleState(desiredState, getState().angle);
 
         //Drive
-        if (isOpenLoop) driveMotor.setPercent(desiredState.speedMetersPerSecond / maxModuleSpeed);
+        if (isOpenLoop) driveMotor.setPercent(desiredState.speedMetersPerSecond / constants.maxModuleSpeed);
         else driveMotor.setVelocity(desiredState.speedMetersPerSecond);
 
         //Angle
         // Prevent rotating module if speed is less than 3%. Prevents jittering.
-        Rotation2d angle = (Math.abs(desiredState.speedMetersPerSecond) <= (maxModuleSpeed * 0.03)) ? lastAngle : desiredState.angle;
+        Rotation2d angle = (Math.abs(desiredState.speedMetersPerSecond) <= (constants.maxModuleSpeed * 0.03)) ? lastAngle : desiredState.angle;
         //Prevent jumping from -180 to 180
         double errorBound = (Math.PI - -Math.PI) / 2.0;
         double error = MathUtil.inputModulus(angle.getRadians() - steerMotor.getPosition(), -errorBound, errorBound);
@@ -70,7 +88,7 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
     }
 
     public void resetToAbsolute() {
-        double absolutePosition = ((getCanCoder().getRadians() + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+        double absolutePosition = ((getCANCoder().getRadians() + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
 //        double currentAngle = angleMotor.getPosition();
 
 //        double angleDiff = ((absolutePosition - currentAngle + 540) % 360) - 180;  // Normalize to [-180, 180]
@@ -80,7 +98,7 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
         steerMotor.setEncoder(absolutePosition);
     }
 
-    public Rotation2d getCanCoder() {
+    public Rotation2d getCANCoder() {
         canCoder.getAbsolutePosition().refresh();
         return Rotation2d.fromRadians(canCoder.getAbsolutePosition().getValue().in(Units.Radians));
     }
@@ -89,9 +107,17 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
     public void updateInputs(SwerveModuleIOInputsAutoLogged inputs) {
         inputs.Speed = getState().speedMetersPerSecond;
         inputs.Angle = getState().angle;
-        inputs.AbsoluteAngle = getCanCoder();
+        inputs.AbsoluteAngle = getCANCoder();
 
-        Logger.recordOutput("Swerve/Module " + getModuleNumber() + " Acc", Math.abs(driveMotor.getAcceleration()));
+        if (swerveConstants.enableOdometryThread && isTalonFX) {
+            inputs.Positions = positionQueue.stream().mapToDouble((Double value) -> value).toArray();
+            inputs.Angles = angleQueue.stream().map(Rotation2d::fromRadians).toArray(Rotation2d[]::new);
+            inputs.Timestamps = timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+
+            positionQueue.clear();
+            angleQueue.clear();
+            timestampQueue.clear();
+        }
     }
 
     @Override

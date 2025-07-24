@@ -1,4 +1,4 @@
-package frc.lib.NinjasLib.vision;
+package frc.lib.NinjasLib.localization.vision;
 
 import edu.wpi.first.math.geometry.Transform3d;
 import frc.lib.NinjasLib.dataclasses.VisionConstants;

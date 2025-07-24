@@ -9,7 +9,7 @@ public class SwerveModuleConstants {
     public double maxModuleSpeed;
     public int canCoderID;
     public Controller.ControllerType driveControllerType;
-    public Controller.ControllerType angleControllerType;
+    public Controller.ControllerType steerControllerType;
     public boolean invertCANCoder;
     public double CANCoderOffset;
 
@@ -19,7 +19,7 @@ public class SwerveModuleConstants {
                                  double maxModuleSpeed,
                                  int canCoderID,
                                  Controller.ControllerType driveControllerType,
-                                 Controller.ControllerType angleControllerType,
+                                 Controller.ControllerType steerControllerType,
                                  boolean invertCANCoder,
                                  double CANCoderOffset) {
         this.moduleNumber = moduleNumber;
@@ -28,7 +28,7 @@ public class SwerveModuleConstants {
         this.maxModuleSpeed = maxModuleSpeed;
         this.canCoderID = canCoderID;
         this.driveControllerType = driveControllerType;
-        this.angleControllerType = angleControllerType;
+        this.steerControllerType = steerControllerType;
         this.invertCANCoder = invertCANCoder;
         this.CANCoderOffset = CANCoderOffset;
     }

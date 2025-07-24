@@ -1,4 +1,4 @@
-package frc.lib.NinjasLib.vision;
+package frc.lib.NinjasLib.localization.vision;
 
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
