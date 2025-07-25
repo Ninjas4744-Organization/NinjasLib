@@ -159,33 +159,40 @@ public class Swerve {
         Logger.recordOutput("Swerve/Current Velocity", getChassisSpeeds(true));
         Logger.recordOutput("Swerve/Wanted Velocity", ChassisSpeeds.fromRobotRelativeSpeeds(wantedRobotRelativeSpeeds, RobotStateWithSwerve.getInstance().getGyroYaw()));
 
-        odometryLock.lock();
-        Rotation2d[] gyroYawArray = RobotStateWithSwerve.getInstance().getGyroYawArray();
-        for (SwerveModuleIO module : modules) {
-            module.periodic();
+        if (constants.enableOdometryThread) {
+            odometryLock.lock();
+            Rotation2d[] gyroYawArray = RobotStateWithSwerve.getInstance().getGyroYawArray();
+            for (SwerveModuleIO module : modules) {
+                module.periodic();
 
-            module.updateInputs(moduleInputs[module.getModuleNumber()]);
-            Logger.processInputs("Swerve/Module " + module.getModuleNumber(), moduleInputs[module.getModuleNumber()]);
-        }
-        odometryLock.unlock();
-
-        if (Robot.isReal()) {
-            double[] sampleTimestamps = moduleInputs[0].Timestamps;
-            int sampleCount = sampleTimestamps.length;
-
-            for (int i = 0; i < sampleCount; i++) {
-                SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
-                for (int j = 0; j < 4; j++) {
-                    int index = modules[i].getModuleNumber();
-                    double drivePosition = moduleInputs[index].Positions[i];
-                    Rotation2d steerAngle = moduleInputs[index].Angles[i];
-                    modulePositions[index] = new SwerveModulePosition(drivePosition, steerAngle);
-                }
-
-                RobotStateWithSwerve.getInstance().updateRobotPoseWithTime(modulePositions, gyroYawArray[i], sampleTimestamps[i]);
+                module.updateInputs(moduleInputs[module.getModuleNumber()]);
+                Logger.processInputs("Swerve/Module " + module.getModuleNumber(), moduleInputs[module.getModuleNumber()]);
             }
-        } else
-            RobotStateWithSwerve.getInstance().setRobotPose(simulation.getSimulatedDriveTrainPose());
+            odometryLock.unlock();
+
+            if (Robot.isReal()) {
+                double[] sampleTimestamps = moduleInputs[0].Timestamps;
+                int sampleCount = sampleTimestamps.length;
+
+                for (int i = 0; i < sampleCount; i++) {
+                    SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
+                    for (int j = 0; j < 4; j++) {
+                        int index = modules[i].getModuleNumber();
+                        double drivePosition = moduleInputs[index].Positions[i];
+                        Rotation2d steerAngle = moduleInputs[index].Angles[i];
+                        modulePositions[index] = new SwerveModulePosition(drivePosition, steerAngle);
+                    }
+
+                    RobotStateWithSwerve.getInstance().updateRobotPoseWithTime(modulePositions, gyroYawArray[i], sampleTimestamps[i]);
+                }
+            } else
+                RobotStateWithSwerve.getInstance().setRobotPose(simulation.getSimulatedDriveTrainPose());
+        } else {
+            if (Robot.isReal())
+                RobotStateWithSwerve.getInstance().updateRobotPose(getModulePositions());
+            else
+                RobotStateWithSwerve.getInstance().setRobotPose(simulation.getSimulatedDriveTrainPose());
+        }
     }
 
     public double getOdometryFrequency() {

@@ -30,7 +30,7 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
     private final boolean isTalonFX;
     private Queue<Double> positionQueue;
     private Queue<Double> angleQueue;
-    private final Queue<Double> timestampQueue;
+    private Queue<Double> timestampQueue;
 
     public SwerveModuleIOReal(SwerveModuleConstants constants, SwerveConstants swerveConstants) {
         moduleNumber = constants.moduleNumber;
