@@ -1,9 +1,9 @@
 package frc.lib.NinjasLib.controllers;
 
 import edu.wpi.first.wpilibj.DigitalInput;
-import frc.lib.NinjasLib.dataclasses.ControlConstants.SmartControlType;
-import frc.lib.NinjasLib.dataclasses.ControllerConstants;
-import frc.lib.NinjasLib.dataclasses.RealControllerConstants;
+import frc.lib.NinjasLib.controllers.constants.ControlConstants.SmartControlType;
+import frc.lib.NinjasLib.controllers.constants.ControllerConstants;
+import frc.lib.NinjasLib.controllers.constants.RealControllerConstants;
 import frc.robot.Robot;
 
 public abstract class Controller {

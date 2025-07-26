@@ -10,7 +10,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
-import frc.lib.NinjasLib.dataclasses.RealControllerConstants;
+import frc.lib.NinjasLib.controllers.constants.RealControllerConstants;
 
 public class TalonFXController extends Controller {
     private final TalonFX main;

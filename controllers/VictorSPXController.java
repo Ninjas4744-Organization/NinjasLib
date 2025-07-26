@@ -2,7 +2,7 @@ package frc.lib.NinjasLib.controllers;
 
 import com.ctre.phoenix.motorcontrol.VictorSPXControlMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
-import frc.lib.NinjasLib.dataclasses.RealControllerConstants;
+import frc.lib.NinjasLib.controllers.constants.RealControllerConstants;
 
 public class VictorSPXController extends Controller {
 	private final VictorSPX _main;

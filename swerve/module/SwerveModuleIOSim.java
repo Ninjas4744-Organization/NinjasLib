@@ -1,11 +1,12 @@
-package frc.lib.NinjasLib.swerve;
+package frc.lib.NinjasLib.swerve.module;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.lib.NinjasLib.dataclasses.SwerveModuleConstants;
+import frc.lib.NinjasLib.swerve.SwerveUtils;
+import frc.lib.NinjasLib.swerve.constants.SwerveModuleConstants;
 import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
 import org.ironmaple.simulation.motorsims.SimulatedMotorController;
 

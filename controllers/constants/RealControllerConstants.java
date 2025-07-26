@@ -1,4 +1,4 @@
-package frc.lib.NinjasLib.dataclasses;
+package frc.lib.NinjasLib.controllers.constants;
 
 public class RealControllerConstants {
     /**

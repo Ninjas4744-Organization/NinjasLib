@@ -1,4 +1,4 @@
-package frc.lib.NinjasLib.dataclasses;
+package frc.lib.NinjasLib.swerve.constants;
 
 import com.pathplanner.lib.config.RobotConfig;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;

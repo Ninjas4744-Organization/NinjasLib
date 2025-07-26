@@ -2,7 +2,7 @@ package frc.lib.NinjasLib.controllers;
 
 import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import frc.lib.NinjasLib.dataclasses.RealControllerConstants;
+import frc.lib.NinjasLib.controllers.constants.RealControllerConstants;
 
 public class TalonSRXController extends Controller {
     private final TalonSRX main;

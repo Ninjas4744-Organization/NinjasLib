@@ -1,4 +1,4 @@
-package frc.lib.NinjasLib;
+package frc.lib.NinjasLib.statemachine;
 
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.Pigeon2;
@@ -11,9 +11,9 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.units.measure.Angle;
-import frc.lib.NinjasLib.dataclasses.VisionOutput;
 import frc.lib.NinjasLib.localization.NinjasSwervePoseTracker;
 import frc.lib.NinjasLib.localization.OdometryThread;
+import frc.lib.NinjasLib.localization.vision.VisionOutput;
 import frc.lib.NinjasLib.swerve.Swerve;
 import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;

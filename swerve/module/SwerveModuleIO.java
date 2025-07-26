@@ -1,4 +1,4 @@
-package frc.lib.NinjasLib.swerve;
+package frc.lib.NinjasLib.swerve.module;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -8,12 +8,12 @@ import org.littletonrobotics.junction.AutoLog;
 public interface SwerveModuleIO {
     @AutoLog
     class SwerveModuleIOInputs {
-        double Speed;
-        Rotation2d Angle;
-        Rotation2d AbsoluteAngle;
-        Rotation2d[] Angles;
-        double[] Positions;
-        double[] Timestamps;
+        public double Speed;
+        public Rotation2d Angle;
+        public Rotation2d AbsoluteAngle;
+        public Rotation2d[] Angles;
+        public double[] Positions;
+        public double[] Timestamps;
     }
 
     default SwerveModuleState getState() {

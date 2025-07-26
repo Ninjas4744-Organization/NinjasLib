@@ -1,4 +1,4 @@
-package frc.lib.NinjasLib.swerve;
+package frc.lib.NinjasLib.swerve.module;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -10,9 +10,10 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Units;
 import frc.lib.NinjasLib.controllers.Controller;
 import frc.lib.NinjasLib.controllers.TalonFXController;
-import frc.lib.NinjasLib.dataclasses.SwerveConstants;
-import frc.lib.NinjasLib.dataclasses.SwerveModuleConstants;
 import frc.lib.NinjasLib.localization.OdometryThread;
+import frc.lib.NinjasLib.swerve.SwerveUtils;
+import frc.lib.NinjasLib.swerve.constants.SwerveConstants;
+import frc.lib.NinjasLib.swerve.constants.SwerveModuleConstants;
 
 import java.util.Queue;
 

@@ -1,6 +1,7 @@
-package frc.lib.NinjasLib.dataclasses;
+package frc.lib.NinjasLib.swerve.constants;
 
 import edu.wpi.first.math.Pair;
+import frc.lib.NinjasLib.controllers.constants.ControlConstants;
 
 public class SwerveControllerConstants {
     /** Regular swerve constants */

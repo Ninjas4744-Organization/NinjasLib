@@ -1,7 +1,8 @@
-package frc.lib.NinjasLib.dataclasses;
+package frc.lib.NinjasLib.localization.vision;
 
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Transform3d;
 
 public class VisionOutput {
 	/** The pose of the robot */
@@ -10,23 +11,23 @@ public class VisionOutput {
 	/** The time at which the pose was detected */
 	public double timestamp;
 
-	/** The tag which was detected most ambiguously */
-	public AprilTag maxAmbiguityTag;
-
-	/** The tag which was detected the farthest */
-	public AprilTag farthestTag;
-
 	/** The tag which was detected the closest */
-	public AprilTag closestTag;
+	public AprilTag closestTarget;
+
+	public AprilTag[] targets;
+
+	public Transform3d cameraToClosestTargetTransform;
+
+	public Transform3d[] cameraToTargetsTransforms;
 
 	/** The ambiguity of the tag which was detected most ambiguously */
 	public double maxAmbiguity;
 
 	/** The distance from the camera of the tag which was detected the farthest */
-	public double farthestTagDist;
+	public double farthestTargetDist;
 
 	/** The distance from the camera of the tag which was detected the closest */
-	public double closestTagDist;
+	public double closestTargetDist;
 
 	/** Whether the camera detected any tags */
 	public boolean hasTargets;

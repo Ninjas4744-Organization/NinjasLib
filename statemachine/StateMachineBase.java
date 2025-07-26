@@ -1,4 +1,4 @@
-package frc.lib.NinjasLib;
+package frc.lib.NinjasLib.statemachine;
 
 import edu.wpi.first.wpilibj2.command.Command;
 

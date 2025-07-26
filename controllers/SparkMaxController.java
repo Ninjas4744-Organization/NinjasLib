@@ -5,8 +5,8 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import frc.lib.NinjasLib.dataclasses.ControlConstants.SmartControlType;
-import frc.lib.NinjasLib.dataclasses.RealControllerConstants;
+import frc.lib.NinjasLib.controllers.constants.ControlConstants.SmartControlType;
+import frc.lib.NinjasLib.controllers.constants.RealControllerConstants;
 
 public class SparkMaxController extends Controller {
     private final SparkMax main;

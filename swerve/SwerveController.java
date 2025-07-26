@@ -4,8 +4,8 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import frc.lib.NinjasLib.RobotStateWithSwerve;
-import frc.lib.NinjasLib.dataclasses.SwerveControllerConstants;
+import frc.lib.NinjasLib.statemachine.RobotStateWithSwerve;
+import frc.lib.NinjasLib.swerve.constants.SwerveControllerConstants;
 import org.littletonrobotics.junction.Logger;
 
 public class SwerveController {

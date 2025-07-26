@@ -1,6 +1,7 @@
-package frc.lib.NinjasLib.dataclasses;
+package frc.lib.NinjasLib.swerve.constants;
 
 import frc.lib.NinjasLib.controllers.Controller;
+import frc.lib.NinjasLib.controllers.constants.ControllerConstants;
 
 public class SwerveModuleConstants {
     public int moduleNumber;

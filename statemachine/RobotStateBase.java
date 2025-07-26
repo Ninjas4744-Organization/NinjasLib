@@ -1,4 +1,4 @@
-package frc.lib.NinjasLib;
+package frc.lib.NinjasLib.statemachine;
 
 import com.ctre.phoenix6.CANBus;
 import edu.wpi.first.hal.AllianceStationID;

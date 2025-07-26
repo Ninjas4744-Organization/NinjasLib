@@ -1,4 +1,4 @@
-package frc.lib.NinjasLib.dataclasses;
+package frc.lib.NinjasLib.controllers.constants;
 
 import com.ctre.phoenix6.signals.GravityTypeValue;
 

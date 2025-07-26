@@ -5,7 +5,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
-import frc.lib.NinjasLib.dataclasses.ControllerConstants;
+import frc.lib.NinjasLib.controllers.constants.ControllerConstants;
 
 public class SimulatedController extends Controller {
     private final TrapezoidProfile profile;
