@@ -54,8 +54,14 @@ public class RealControllerConstants {
     /** The up soft limit, makes the system unable to move above it */
     public double maxSoftLimit = Double.MAX_VALUE;
 
-    /** Whether there is a limit switch related to the motor. */
+    /** Whether there is a limit switch related to the subsystem. */
     public boolean isLimitSwitch = false;
+
+    /** Whether to use a virtual limit switch (according to the current the motor takes) instead of a real one. */
+    public boolean isVirtualLimit = false;
+
+    /** How much normalized current (current / voltage) is needed to activate the virtual limit to behave like a real limit switch */
+    public double virtualLimitStallThreshold = 40 / 12.0;
 
     /** ID of limit switch used in the subsystem. */
     public int limitSwitchID = 0;

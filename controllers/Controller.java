@@ -1,6 +1,7 @@
 package frc.lib.NinjasLib.controllers;
 
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.RobotController;
 import frc.lib.NinjasLib.controllers.constants.ControlConstants.SmartControlType;
 import frc.lib.NinjasLib.controllers.constants.ControllerConstants;
 import frc.lib.NinjasLib.controllers.constants.RealControllerConstants;
@@ -35,7 +36,7 @@ public abstract class Controller {
     public Controller(RealControllerConstants constants) {
         this.constants = constants;
 
-        if(constants.isLimitSwitch){
+        if(constants.isLimitSwitch && !constants.isVirtualLimit){
             limitSwitch = new DigitalInput(constants.limitSwitchID);
         }
     }
@@ -161,10 +162,15 @@ public abstract class Controller {
      * @return Whether the limit switch of the system is clicked now
      */
     public boolean getLimit() {
+        if (!constants.isLimitSwitch)
+            return false;
+
         if (Robot.isReal())
-            return constants.isLimitSwitch && (constants.limitSwitchInverted != limitSwitch.get());
+            return constants.isVirtualLimit
+                ? Math.abs(getCurrent() / RobotController.getBatteryVoltage()) > constants.virtualLimitStallThreshold
+                : constants.limitSwitchInverted != limitSwitch.get();
         else
-            return constants.isLimitSwitch && (Math.abs(constants.homePosition - getPosition()) < constants.positionGoalTolerance);
+            return Math.abs(constants.homePosition - getPosition()) < constants.positionGoalTolerance;
     }
 
     /** Runs controller periodic tasks, run it on the subsystem periodic */
@@ -192,6 +198,7 @@ public abstract class Controller {
     public static class ControllerIOInputs {
         public double Position;
         public double Velocity;
+        public double Acceleration;
         public double Output;
         public double Current;
         public double Goal;
@@ -203,6 +210,7 @@ public abstract class Controller {
     public void updateInputs(ControllerIOInputs inputs) {
         inputs.Position = getPosition();
         inputs.Velocity = getVelocity();
+        inputs.Acceleration = getAcceleration();
         inputs.Output = getOutput();
         inputs.Current = getCurrent();
         inputs.Goal = getGoal();
