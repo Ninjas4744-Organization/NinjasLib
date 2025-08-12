@@ -3,6 +3,7 @@ package frc.lib.NinjasLib.localization.vision;
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.littletonrobotics.junction.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,21 +11,22 @@ import java.util.List;
 
 public class Vision extends SubsystemBase {
 	private static Vision instance;
-	protected HashMap<String, List<VisionOutput>> outputs;
-	protected VisionCamera[] cameras;
-	protected HashMap<String, Integer> cameraNameToIndex;
+	private HashMap<String, List<VisionOutput>> outputs;
+	private VisionCamera[] cameras;
+	private HashMap<String, Integer> cameraNameToIndex;
+	private HashMap<String, VisionCameraInputsAutoLogged> inputs;
 
 	public static Vision getInstance() {
 		if (instance == null)
-			throw new RuntimeException("VisionIO constants not given. Initialize VisionIO by setConstants(VisionConstants) first.");
+			throw new RuntimeException("Vision instance not set. Set vision instance by setInstance(Vision vision).");
 		return instance;
 	}
 
-	public static void setConstants(VisionConstants constants) {
-		instance = new Vision(constants);
+	public static void setInstance(Vision vision) {
+		instance = vision;
 	}
 
-	protected Vision(VisionConstants constants) {
+	public Vision(VisionConstants constants) {
 		String[] camerasNames = constants.cameras.keySet().toArray(new String[0]);
 
 		cameras = new VisionCamera[camerasNames.length];
@@ -38,14 +40,21 @@ public class Vision extends SubsystemBase {
 		}
 
 		outputs = new HashMap<>();
-		for (String name : camerasNames)
+		inputs = new HashMap<>();
+		for (String name : camerasNames){
 			outputs.put(name, new ArrayList<>());
+			inputs.put(name, new VisionCameraInputsAutoLogged());
+		}
 	}
 
 	@Override
 	public void periodic() {
-		for (VisionCamera<?> camera : cameras)
-			outputs.put(camera.getName(), camera.Update());
+		for (VisionCamera camera : cameras) {
+			outputs.put(camera.getName(), camera.update());
+
+			camera.updateInputs(inputs.get(camera.getName()));
+			Logger.processInputs("Vision/" + camera.getName(), inputs.get(camera.getName()));
+		}
 	}
 
 	/**

@@ -11,7 +11,7 @@ import frc.lib.NinjasLib.statemachine.RobotStateWithSwerve;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LimelightVisionCamera extends VisionCamera<LimelightHelpers> {
+public class LimelightVisionCamera extends VisionCamera {
     private final String cameraName;
     private LimelightHelpers.LimelightTarget_Fiducial[] targets;
 
@@ -22,7 +22,7 @@ public class LimelightVisionCamera extends VisionCamera<LimelightHelpers> {
     }
 
     @Override
-    public List<VisionOutput> Update() {
+    public List<VisionOutput> update() {
         outputs.clear();
 
         // Set the robot's yaw from the swerve pose estimator
@@ -101,11 +101,6 @@ public class LimelightVisionCamera extends VisionCamera<LimelightHelpers> {
 
         output.maxAmbiguity = 0; // MegaTag2 handles ambiguity internally
         output.farthestTargetDist = maxDist;
-    }
-
-    @Override
-    public LimelightHelpers getCamera() {
-        return new LimelightHelpers();
     }
 
     @Override

@@ -3,9 +3,10 @@ package frc.lib.NinjasLib.swerve;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.util.WPISerializable;
+import org.littletonrobotics.junction.LogTable;
+import org.littletonrobotics.junction.inputs.LoggableInputs;
 
-public class SwerveInput extends ChassisSpeeds implements WPISerializable {
+public class SwerveInput extends ChassisSpeeds implements LoggableInputs, Cloneable {
     private boolean fieldRelative;
 
     public SwerveInput() {
@@ -76,5 +77,25 @@ public class SwerveInput extends ChassisSpeeds implements WPISerializable {
         return String.format(
             "ChassisSpeeds(Vx: %.2f m/s, Vy: %.2f m/s, Omega: %.2f rad/s, Field Relative: %b)",
             vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, fieldRelative);
+    }
+
+    @Override
+    public void toLog(LogTable table) {
+        table.put("VxMetersPerSecond", vxMetersPerSecond);
+        table.put("VyMetersPerSecond", vyMetersPerSecond);
+        table.put("OmegaRadiansPerSecond", omegaRadiansPerSecond);
+        table.put("FieldRelative", fieldRelative);
+    }
+
+    @Override
+    public void fromLog(LogTable table) {
+        vxMetersPerSecond = table.get("VxMetersPerSecond", vxMetersPerSecond);
+        vyMetersPerSecond = table.get("VyMetersPerSecond", vyMetersPerSecond);
+        omegaRadiansPerSecond = table.get("OmegaRadiansPerSecond", omegaRadiansPerSecond);
+        fieldRelative = table.get("FieldRelative", fieldRelative);
+    }
+
+    public SwerveInput clone() {
+        return new SwerveInput(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, fieldRelative);
     }
 }

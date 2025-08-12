@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class PhotonVisionCamera extends VisionCamera<PhotonCamera> {
+public class PhotonVisionCamera extends VisionCamera {
     private final PhotonCamera camera;
     private final PhotonPoseEstimator estimator;
     private List<PhotonTrackedTarget> targets;
@@ -40,7 +40,7 @@ public class PhotonVisionCamera extends VisionCamera<PhotonCamera> {
      * @return The vision output of this camera
      */
     @Override
-    public List<VisionOutput> Update() {
+    public List<VisionOutput> update() {
         if(disconnected)
             return new ArrayList<>();
 
@@ -119,7 +119,6 @@ public class PhotonVisionCamera extends VisionCamera<PhotonCamera> {
     /**
      * @return The camera processor that is being used by this VisionCamera
      */
-    @Override
     public PhotonCamera getCamera() {
         return camera;
     }
