@@ -234,8 +234,11 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
     }
 
     public Translation2d getAcceleration() {
-        if (pigeonID != -1)
-            return new Translation2d(pigeon.getAccelerationX().getValue().in(MetersPerSecondPerSecond), pigeon.getAccelerationY().getValue().in(MetersPerSecondPerSecond));
-        return new Translation2d(navX.getWorldLinearAccelX() * 9.806, navX.getWorldLinearAccelY() * 9.806);
+        if(Robot.isReal()){
+            if (pigeonID != -1)
+                return new Translation2d(pigeon.getAccelerationX().getValue().in(MetersPerSecondPerSecond), pigeon.getAccelerationY().getValue().in(MetersPerSecondPerSecond));
+            return new Translation2d(navX.getWorldLinearAccelX() * 9.806, navX.getWorldLinearAccelY() * 9.806);
+        }
+        return Translation2d.kZero; //TODO FIX
     }
 }

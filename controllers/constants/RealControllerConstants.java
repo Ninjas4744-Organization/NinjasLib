@@ -61,7 +61,7 @@ public class RealControllerConstants {
     public boolean isVirtualLimit = false;
 
     /** How much normalized current (current / voltage) is needed to activate the virtual limit to behave like a real limit switch */
-    public double virtualLimitStallThreshold = 40 / 12.0;
+    public double virtualLimitStallThreshold = 30 / 12.0;
 
     /** ID of limit switch used in the subsystem. */
     public int limitSwitchID = 0;

@@ -167,7 +167,7 @@ public abstract class Controller {
 
         if (Robot.isReal())
             return constants.isVirtualLimit
-                ? Math.abs(getCurrent() / RobotController.getBatteryVoltage()) > constants.virtualLimitStallThreshold
+                ? (Math.abs(getCurrent() / RobotController.getBatteryVoltage()) > constants.virtualLimitStallThreshold && Math.signum(getOutput()) == constants.limitSwitchDirection) || (preLimit && Math.signum(getOutput()) != -constants.limitSwitchDirection)
                 : constants.limitSwitchInverted != limitSwitch.get();
         else
             return Math.abs(constants.homePosition - getPosition()) < constants.positionGoalTolerance;

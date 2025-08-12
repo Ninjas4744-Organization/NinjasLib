@@ -87,12 +87,12 @@ public class SimulatedController extends Controller {
 
     @Override
     public double getOutput() {
-        return motorSim.getAngularVelocityRadPerSec() / motorSim.getGearbox().freeSpeedRadPerSec; // TODO FIX
+        return motorSim.getInputVoltage() / 12; // TODO FIX
     }
 
     @Override
     public double getCurrent() {
-        return motorSim.getCurrentDrawAmps();
+        return motorSim.getCurrentDrawAmps(); // TODO FIX
     }
 
     @Override
