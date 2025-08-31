@@ -192,6 +192,13 @@ public class Swerve {
             } else
                 RobotStateWithSwerve.getInstance().setRobotPose(simulation.getSimulatedDriveTrainPose());
         } else {
+            for (SwerveModuleIO module : modules) {
+                module.periodic();
+
+                module.updateInputs(moduleInputs[module.getModuleNumber()]);
+                Logger.processInputs("Swerve/Module " + module.getModuleNumber(), moduleInputs[module.getModuleNumber()]);
+            }
+
             if (Robot.isReal())
                 RobotStateWithSwerve.getInstance().updateRobotPose(getModulePositions());
             else
