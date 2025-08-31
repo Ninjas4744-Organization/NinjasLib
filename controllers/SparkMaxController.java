@@ -33,8 +33,8 @@ public class SparkMaxController extends Controller {
 
 		config.closedLoop.pid(constants.controlConstants.P, constants.controlConstants.I, constants.controlConstants.D);
 
-        config.encoder.positionConversionFactor(constants.conversionFactor)
-            .velocityConversionFactor(constants.conversionFactor / 60);
+		config.encoder.positionConversionFactor(constants.conversionFactor / constants.gearRatio)
+				.velocityConversionFactor(constants.conversionFactor / constants.gearRatio / 60);
 
         main.configure(config, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
 
