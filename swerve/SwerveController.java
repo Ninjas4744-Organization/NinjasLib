@@ -65,16 +65,8 @@ public class SwerveController {
      * Makes the swerve use PID to look at the given angle
      *
      * @param angle the angle to look at
-     * @param roundToAngle the angle jumps to round to, for example 45 degrees will make it round
-     *     the given angle to the nearest 0, 45, 90, 135... it rounds the angle only if the rounded
-     *     angle is close enough to the given angle so for example if the given angle is 28 and the
-     *     rounded angle is 45 it won't round. if you write 1 as the roundToAngle there will be no
-     *     rounding, DON'T USE 0 (division by zero error)
      */
-    public double lookAt(double angle, double roundToAngle) {
-        double roundedAngle = Math.round(angle / roundToAngle) * roundToAngle;
-        angle = Math.abs(roundedAngle - angle) <= roundToAngle / 3 ? roundedAngle : angle;
-
+    public double lookAt(double angle) {
         return anglePID.calculate(RobotStateWithSwerve.getInstance().getGyroYaw().getRadians(), angle);
     }
 
@@ -82,22 +74,17 @@ public class SwerveController {
      * Makes the swerve use PID to look according to the given direction
      *
      * @param direction - the direction vector to look
-     * @param roundToAngle - the angle jumps to round to, for example 45 degrees will make it round
-     *     the given angle (calculated from direction) to the nearest 0, 45, 90, 135... it rounds the
-     *     angle only if the rounded angle is close enough to the given angle so for example if the
-     *     given angle is 28 and the rounded angle is 45 it won't round. if you write 1 as the
-     *     roundToAngle there will be no rounding, DON'T USE 0 (division by zero error)
      */
-    public double lookAt(Translation2d direction, double roundToAngle) {
+    public double lookAt(Translation2d direction) {
         if (!(direction.getX() == 0 && direction.getY() == 0))
-            return lookAt(direction.getAngle().getRadians(), roundToAngle);
+            return lookAt(direction.getAngle().getRadians());
 
         return 0;
     }
 
     public double lookAtTarget(Pose2d target, Rotation2d offset) {
         Translation2d lookAtTranslation = RobotStateWithSwerve.getInstance().getTransform(target).getTranslation().rotateBy(offset);
-        return lookAt(lookAtTranslation, 1);
+        return lookAt(lookAtTranslation);
     }
 
     public Translation2d pidTo(Translation2d target) {
