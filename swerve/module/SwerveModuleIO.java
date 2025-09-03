@@ -8,20 +8,15 @@ import org.littletonrobotics.junction.AutoLog;
 public interface SwerveModuleIO {
     @AutoLog
     class SwerveModuleIOInputs {
-        public double Speed;
-        public Rotation2d Angle;
+        public int ModuleNumber;
+        public SwerveModuleState State;
+        public SwerveModulePosition Position;
         public Rotation2d AbsoluteAngle;
+
+        // Odometry Thread
         public Rotation2d[] Angles;
         public double[] Positions;
         public double[] Timestamps;
-    }
-
-    default SwerveModuleState getState() {
-        return null;
-    }
-
-    default SwerveModulePosition getPosition() {
-        return null;
     }
 
     default void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop) {
@@ -31,9 +26,5 @@ public interface SwerveModuleIO {
     }
 
     default void periodic() {
-    }
-
-    default int getModuleNumber() {
-        return 0;
     }
 }

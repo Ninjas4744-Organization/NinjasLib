@@ -59,18 +59,8 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
     }
 
     @Override
-    public SwerveModuleState getState() {
-        return new SwerveModuleState(driveMotor.getVelocity(), Rotation2d.fromRadians(steerMotor.getPosition()));
-    }
-
-    @Override
-    public SwerveModulePosition getPosition() {
-        return new SwerveModulePosition(driveMotor.getPosition(), Rotation2d.fromRadians(steerMotor.getPosition()));
-    }
-
-    @Override
     public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop) {
-        desiredState = SwerveUtils.optimizeModuleState(desiredState, getState().angle);
+        desiredState = SwerveUtils.optimizeModuleState(desiredState, Rotation2d.fromRadians(steerMotor.getPosition()));
 
         //Drive
         if (isOpenLoop) driveMotor.setPercent(desiredState.speedMetersPerSecond / constants.maxModuleSpeed);
@@ -90,10 +80,6 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
 
     public void resetToAbsolute() {
         double absolutePosition = ((getCANCoder().getRadians() + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
-//        double currentAngle = angleMotor.getPosition();
-
-//        double angleDiff = ((absolutePosition - currentAngle + 540) % 360) - 180;  // Normalize to [-180, 180]
-//        double targetAngle = currentAngle + angleDiff;
 
         System.out.println("Encoder: " + steerMotor.getPosition() + " -> Absolute: " + absolutePosition);
         steerMotor.setEncoder(absolutePosition);
@@ -106,8 +92,9 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
 
     @Override
     public void updateInputs(SwerveModuleIOInputsAutoLogged inputs) {
-        inputs.Speed = getState().speedMetersPerSecond;
-        inputs.Angle = getState().angle;
+        inputs.ModuleNumber = moduleNumber;
+        inputs.State = new SwerveModuleState(driveMotor.getVelocity(), Rotation2d.fromRadians(steerMotor.getPosition()));
+        inputs.Position = new SwerveModulePosition(driveMotor.getPosition(), Rotation2d.fromRadians(steerMotor.getPosition()));
         inputs.AbsoluteAngle = getCANCoder();
 
         if (swerveConstants.enableOdometryThread && isTalonFX) {
@@ -119,11 +106,6 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
             angleQueue.clear();
             timestampQueue.clear();
         }
-    }
-
-    @Override
-    public int getModuleNumber() {
-        return moduleNumber;
     }
 
     @Override

@@ -3,10 +3,12 @@ package frc.lib.NinjasLib.swerve;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import org.littletonrobotics.junction.LogTable;
-import org.littletonrobotics.junction.inputs.LoggableInputs;
+import edu.wpi.first.util.struct.Struct;
+import edu.wpi.first.util.struct.StructSerializable;
 
-public class SwerveInput extends ChassisSpeeds implements LoggableInputs, Cloneable {
+import java.nio.ByteBuffer;
+
+public class SwerveInput extends ChassisSpeeds implements StructSerializable {
     private boolean fieldRelative;
 
     public SwerveInput() {
@@ -79,23 +81,49 @@ public class SwerveInput extends ChassisSpeeds implements LoggableInputs, Clonea
             vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, fieldRelative);
     }
 
-    @Override
-    public void toLog(LogTable table) {
-        table.put("VxMetersPerSecond", vxMetersPerSecond);
-        table.put("VyMetersPerSecond", vyMetersPerSecond);
-        table.put("OmegaRadiansPerSecond", omegaRadiansPerSecond);
-        table.put("FieldRelative", fieldRelative);
-    }
+    public static final SwerveInputStruct struct = new SwerveInputStruct();
 
-    @Override
-    public void fromLog(LogTable table) {
-        vxMetersPerSecond = table.get("VxMetersPerSecond", vxMetersPerSecond);
-        vyMetersPerSecond = table.get("VyMetersPerSecond", vyMetersPerSecond);
-        omegaRadiansPerSecond = table.get("OmegaRadiansPerSecond", omegaRadiansPerSecond);
-        fieldRelative = table.get("FieldRelative", fieldRelative);
-    }
+    public static class SwerveInputStruct implements Struct<SwerveInput> {
+        @Override
+        public Class<SwerveInput> getTypeClass() {
+            return SwerveInput.class;
+        }
 
-    public SwerveInput clone() {
-        return new SwerveInput(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, fieldRelative);
+        @Override
+        public String getTypeName() {
+            return "SwerveInput";
+        }
+
+        @Override
+        public int getSize() {
+            return kSizeDouble * 3 + kSizeBool;
+        }
+
+        @Override
+        public String getSchema() {
+            return "double vxMetersPerSecond;double vyMetersPerSecond;double omegaRadiansPerSecond;bool fieldRelative";
+        }
+
+        @Override
+        public SwerveInput unpack(ByteBuffer bb) {
+            double vx = bb.getDouble();
+            double vy = bb.getDouble();
+            double omega = bb.getDouble();
+            boolean fieldRelative = bb.get() != 0;
+            return new SwerveInput(vx, vy, omega, fieldRelative);
+        }
+
+        @Override
+        public void pack(ByteBuffer bb, SwerveInput value) {
+            bb.putDouble(value.vxMetersPerSecond);
+            bb.putDouble(value.vyMetersPerSecond);
+            bb.putDouble(value.omegaRadiansPerSecond);
+            bb.put((byte) (value.fieldRelative ? 1 : 0));
+        }
+
+        @Override
+        public boolean isImmutable() {
+            return false;
+        }
     }
 }

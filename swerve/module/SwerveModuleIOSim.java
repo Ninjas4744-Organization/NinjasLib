@@ -44,45 +44,31 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
     }
 
     @Override
-    public SwerveModuleState getState() {
-        return simulationModule.getCurrentState();
-    }
-
-    @Override
-    public SwerveModulePosition getPosition() {
-        return new SwerveModulePosition(simulationModule.getDriveWheelFinalPosition().in(Radians) * simulationModule.config.WHEEL_RADIUS.in(Meters), getState().angle);
-    }
-
-    @Override
     public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop) {
-        desiredState = SwerveUtils.optimizeModuleState(desiredState, getState().angle);
+        desiredState = SwerveUtils.optimizeModuleState(desiredState, simulationModule.getCurrentState().angle);
 
         //Drive
         if (isOpenLoop) driveMotor.requestVoltage(Volts.of(desiredState.speedMetersPerSecond / maxModuleSpeed * 12));
         else
-            driveMotor.requestVoltage(Volts.of(drivePID.calculate(getState().speedMetersPerSecond, desiredState.speedMetersPerSecond)));
+            driveMotor.requestVoltage(Volts.of(drivePID.calculate(simulationModule.getCurrentState().speedMetersPerSecond, desiredState.speedMetersPerSecond)));
 
         //Angle
         // Prevent rotating module if speed is less than 3%. Prevents jittering.
         Rotation2d angle = (Math.abs(desiredState.speedMetersPerSecond) <= (maxModuleSpeed * 0.03)) ? lastAngle : desiredState.angle;
         //Prevent jumping from -180 to 180
         double errorBound = (Math.PI - -Math.PI) / 2.0;
-        double error = MathUtil.inputModulus(angle.getRadians() - getState().angle.getRadians(), -errorBound, errorBound);
-        angle = Rotation2d.fromRadians(getState().angle.getRadians() + error);
+        double error = MathUtil.inputModulus(angle.getRadians() - simulationModule.getCurrentState().angle.getRadians(), -errorBound, errorBound);
+        angle = Rotation2d.fromRadians(simulationModule.getCurrentState().angle.getRadians() + error);
         //Rotate
-        angleMotor.requestVoltage(Volts.of(anglePID.calculate(getState().angle.getRadians(), angle.getRadians())));
+        angleMotor.requestVoltage(Volts.of(anglePID.calculate(simulationModule.getCurrentState().angle.getRadians(), angle.getRadians())));
         lastAngle = angle;
     }
 
     @Override
     public void updateInputs(SwerveModuleIOInputsAutoLogged inputs) {
-        inputs.Speed = getState().speedMetersPerSecond;
-        inputs.Angle = getState().angle;
+        inputs.ModuleNumber = moduleNumber;
+        inputs.State = simulationModule.getCurrentState();
+        inputs.Position = new SwerveModulePosition(simulationModule.getDriveWheelFinalPosition().in(Radians) * simulationModule.config.WHEEL_RADIUS.in(Meters), inputs.State.angle);
         inputs.AbsoluteAngle = Rotation2d.kZero;
-    }
-
-    @Override
-    public int getModuleNumber() {
-        return moduleNumber;
     }
 }
