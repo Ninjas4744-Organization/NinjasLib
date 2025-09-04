@@ -9,9 +9,9 @@ public interface SwerveModuleIO {
     @AutoLog
     class SwerveModuleIOInputs {
         public int ModuleNumber;
-        public SwerveModuleState State;
-        public SwerveModulePosition Position;
-        public Rotation2d AbsoluteAngle;
+        public SwerveModuleState State = new SwerveModuleState();
+        public SwerveModulePosition Position = new SwerveModulePosition();
+        public Rotation2d AbsoluteAngle = Rotation2d.kZero;
 
         // Odometry Thread
         public Rotation2d[] Angles;

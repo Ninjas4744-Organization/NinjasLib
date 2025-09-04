@@ -4,7 +4,6 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.RobotController;
-import frc.lib.NinjasLib.statemachine.RobotStateBase;
 import frc.lib.NinjasLib.swerve.Swerve;
 
 import java.util.ArrayList;
@@ -23,7 +22,6 @@ public class OdometryThread extends Thread {
     private final List<Queue<Double>> genericQueues = new ArrayList<>();
     private final List<Queue<Double>> timestampQueues = new ArrayList<>();
 
-    private static boolean isCANFD;
     private static OdometryThread instance = null;
 
     public static OdometryThread getInstance() {
@@ -35,7 +33,6 @@ public class OdometryThread extends Thread {
 
     private OdometryThread() {
         setName("OdometryThread");
-        isCANFD = RobotStateBase.getInstance().getCANBus().isNetworkFD();
         setDaemon(true);
     }
 
@@ -103,7 +100,7 @@ public class OdometryThread extends Thread {
             // Wait for updates from all signals
             signalsLock.lock();
             try {
-                if (isCANFD && phoenixSignals.length > 0) {
+                if (phoenixSignals.length > 0) {
                     BaseStatusSignal.waitForAll(2.0 / Swerve.getInstance().getOdometryFrequency(), phoenixSignals);
                 } else {
                     // "waitForAll" does not support blocking on multiple signals with a bus

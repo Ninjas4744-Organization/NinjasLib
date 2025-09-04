@@ -60,7 +60,7 @@ public class SwerveController {
      * @param angle the angle to look at
      */
     public double lookAt(double angle) {
-        return anglePID.calculate(RobotStateWithSwerve.getInstance().getGyroYaw().getRadians(), angle);
+        return anglePID.calculate(Swerve.getInstance().getGyro().getYaw().getRadians(), angle);
     }
 
     /**

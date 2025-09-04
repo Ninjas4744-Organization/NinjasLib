@@ -1,8 +1,5 @@
 package frc.lib.NinjasLib.statemachine;
 
-import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.hardware.Pigeon2;
-import com.studica.frc.AHRS;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -10,26 +7,20 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.units.measure.Angle;
 import frc.lib.NinjasLib.localization.NinjasSwervePoseTracker;
-import frc.lib.NinjasLib.localization.OdometryThread;
 import frc.lib.NinjasLib.localization.vision.VisionOutput;
 import frc.lib.NinjasLib.swerve.Swerve;
 import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
 
-import java.util.Queue;
-
-import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
-
 public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<StateEnum> {
-    private AHRS navX;
-    private Pigeon2 pigeon;
+//    private AHRS navX;
+//    private Pigeon2 pigeon;
     //    private final SwerveDrivePoseEstimator poseEstimator;
     private final NinjasSwervePoseTracker poseTracker;
-    private final boolean gyroInverted;
-    private int pigeonID = -1;
-    private Queue<Double> gyroYawQueue;
+//    private final boolean gyroInverted;
+//    private int pigeonID = -1;
+//    private Queue<Double> gyroYawQueue;
 
     public static RobotStateWithSwerve getInstance() {
         return (RobotStateWithSwerve) RobotStateBase.getInstance();
@@ -38,16 +29,11 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
     /**
      * Create a new RobotStateWithSwerve with navX gyro sensor.
      *
-     * @param kinematics    The swerve drive kinematics used in the swerve. Used to calculate odometry.
-     * @param gyroInverted  Whether to invert the returned angle of the gyro. Counterclockwise positive if not inverted.
+     * @param kinematics The swerve drive kinematics used in the swerve. Used to calculate odometry.
      */
-    public RobotStateWithSwerve(SwerveDriveKinematics kinematics, boolean gyroInverted) {
-        this.gyroInverted = gyroInverted;
-
+    public RobotStateWithSwerve(SwerveDriveKinematics kinematics) {
         if (Robot.isReal()) {
-            navX = new AHRS(AHRS.NavXComType.kMXP_SPI);
-
-            poseTracker = new NinjasSwervePoseTracker(kinematics, getGyroYaw(),
+            poseTracker = new NinjasSwervePoseTracker(kinematics, Swerve.getInstance().getGyro().getYaw(),
                 Swerve.getInstance().getModulePositions(), new Pose2d());
         } else {
             poseTracker = new NinjasSwervePoseTracker(kinematics, new Rotation2d(),
@@ -60,46 +46,11 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
         }
     }
 
-    /**
-     * Create a new RobotStateWithSwerve with pigeon gyro sensor.
-     *
-     * @param kinematics    The swerve drive kinematics used in the swerve. Used to calculate odometry.
-     * @param gyroInverted  Whether to invert the returned angle of the gyro. Counterclockwise positive if not inverted.
-     * @param pigeonID      The pigeon gyro sensor CAN id.
-     */
-    public RobotStateWithSwerve(SwerveDriveKinematics kinematics, boolean gyroInverted, int pigeonID, boolean enableOdometryThread) {
-        this.gyroInverted = gyroInverted;
-        this.pigeonID = pigeonID;
-
-        if (Robot.isReal()) {
-            pigeon = new Pigeon2(pigeonID);
-
-            if (enableOdometryThread) {
-                StatusSignal<Angle> yaw = pigeon.getYaw();
-                yaw.setUpdateFrequency(Swerve.getInstance().getOdometryFrequency());
-                pigeon.optimizeBusUtilization();
-
-                gyroYawQueue = OdometryThread.getInstance().registerSignal(yaw.clone());
-            }
-
-            poseTracker = new NinjasSwervePoseTracker(kinematics, getGyroYaw(),
-                Swerve.getInstance().getModulePositions(), new Pose2d());
-        } else {
-            poseTracker = new NinjasSwervePoseTracker(kinematics, new Rotation2d(),
-                new SwerveModulePosition[]{
-                    new SwerveModulePosition(0, Rotation2d.kZero),
-                    new SwerveModulePosition(0, Rotation2d.kZero),
-                    new SwerveModulePosition(0, Rotation2d.kZero),
-                    new SwerveModulePosition(0, Rotation2d.kZero)
-                }, new Pose2d());
-        }
-    }
-
-    public Rotation2d[] getGyroYawArray() {
-        Rotation2d[] arr = gyroYawQueue.stream().map(Rotation2d::fromDegrees).toArray(Rotation2d[]::new);
-        gyroYawQueue.clear();
-        return arr;
-    }
+//    public Rotation2d[] getGyroYawArray() {
+//        Rotation2d[] arr = gyroYawQueue.stream().map(Rotation2d::fromDegrees).toArray(Rotation2d[]::new);
+//        gyroYawQueue.clear();
+//        return arr;
+//    }
 
     /**
      * @return 2D position of the robot on the field.
@@ -142,9 +93,9 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
      */
     public void setRobotPose(Pose2d pose) {
         if (Robot.isReal())
-            poseTracker.resetPosition(getGyroYaw(), Swerve.getInstance().getModulePositions(), pose);
+            poseTracker.resetPosition(Swerve.getInstance().getGyro().getYaw(), Swerve.getInstance().getModulePositions(), pose);
         else
-            poseTracker.resetPosition(getGyroYaw(), new SwerveModulePosition[]{
+            poseTracker.resetPosition(Swerve.getInstance().getGyro().getYaw(), new SwerveModulePosition[]{
                 new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
                 new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
                 new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
@@ -158,8 +109,8 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
      *
      * @param modulePositions The current position of the swerve modules.
      */
-    public void updateRobotPose(SwerveModulePosition[] modulePositions) {
-        poseTracker.update(getGyroYaw(), modulePositions);
+    public void updateRobotPose(SwerveModulePosition[] modulePositions, Rotation2d gyroYaw) {
+        poseTracker.update(gyroYaw, modulePositions);
         Logger.recordOutput("Robot Pose", getRobotPose());
     }
 
@@ -193,52 +144,52 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
         Logger.recordOutput("Robot Pose", getRobotPose());
     }
 
-    /**
-     * @return Yaw angle of the robot according to gyro.
-     */
-    public Rotation2d getGyroYaw() {
-        if (Robot.isReal())
-            if(pigeonID != -1)
-                return Rotation2d.fromDegrees(gyroInverted ? -pigeon.getRotation2d().getDegrees() : pigeon.getRotation2d().getDegrees());
-            else
-                return Rotation2d.fromDegrees(gyroInverted ? -navX.getAngle() : navX.getAngle());
-        else
-            return gyroInverted
-                ? Swerve.getInstance().getGyroSimulationReading().unaryMinus()
-                : Swerve.getInstance().getGyroSimulationReading();
-    }
+//    /**
+//     * @return Yaw angle of the robot according to gyro.
+//     */
+//    public Rotation2d getGyroYaw() {
+//        if (Robot.isReal())
+//            if(pigeonID != -1)
+//                return Rotation2d.fromDegrees(gyroInverted ? -pigeon.getRotation2d().getDegrees() : pigeon.getRotation2d().getDegrees());
+//            else
+//                return Rotation2d.fromDegrees(gyroInverted ? -navX.getAngle() : navX.getAngle());
+//        else
+//            return gyroInverted
+//                ? Swerve.getInstance().getGyroSimulationReading().unaryMinus()
+//                : Swerve.getInstance().getGyroSimulationReading();
+//    }
 
-    /**
-     * Resets the gyro angle, sets it to the given angle.
-     *
-     * @param angle The angle to set the gyro to.
-     */
-    public void resetGyro(Rotation2d angle) {
-        if (Robot.isReal()) {
-            if(pigeonID != -1){
-                System.out.print("Gyro: " + pigeon.getRotation2d().getDegrees() + " -> ");
-                pigeon.setYaw(angle.getDegrees(), 0);
-                System.out.println(pigeon.getRotation2d().getDegrees());
-            }
-            else{
-                System.out.print("Gyro: " + navX.getAngle() + " -> ");
-                navX.reset();
-                navX.setAngleAdjustment(angle.getDegrees());
-                System.out.println(navX.getAngle());
-            }
-        } else {
-            System.out.print("Gyro: " + getRobotPose().getRotation().getDegrees() + " -> ");
-            setRobotPose(new Pose2d(getRobotPose().getTranslation(), angle));
-            System.out.println(getRobotPose().getRotation().getDegrees());
-        }
-    }
+//    /**
+//     * Resets the gyro angle, sets it to the given angle.
+//     *
+//     * @param angle The angle to set the gyro to.
+//     */
+//    public void resetGyro(Rotation2d angle) {
+//        if (Robot.isReal()) {
+//            if(pigeonID != -1){
+//                System.out.print("Gyro: " + pigeon.getRotation2d().getDegrees() + " -> ");
+//                pigeon.setYaw(angle.getDegrees(), 0);
+//                System.out.println(pigeon.getRotation2d().getDegrees());
+//            }
+//            else{
+//                System.out.print("Gyro: " + navX.getAngle() + " -> ");
+//                navX.reset();
+//                navX.setAngleAdjustment(angle.getDegrees());
+//                System.out.println(navX.getAngle());
+//            }
+//        } else {
+//            System.out.print("Gyro: " + getRobotPose().getRotation().getDegrees() + " -> ");
+//            setRobotPose(new Pose2d(getRobotPose().getTranslation(), angle));
+//            System.out.println(getRobotPose().getRotation().getDegrees());
+//        }
+//    }
 
-    public Translation2d getAcceleration() {
-        if(Robot.isReal()){
-            if (pigeonID != -1)
-                return new Translation2d(pigeon.getAccelerationX().getValue().in(MetersPerSecondPerSecond), pigeon.getAccelerationY().getValue().in(MetersPerSecondPerSecond));
-            return new Translation2d(navX.getWorldLinearAccelX() * 9.806, navX.getWorldLinearAccelY() * 9.806);
-        }
-        return Translation2d.kZero; //TODO FIX
-    }
+//    public Translation2d getAcceleration() {
+//        if(Robot.isReal()){
+//            if (pigeonID != -1)
+//                return new Translation2d(pigeon.getAccelerationX().getValue().in(MetersPerSecondPerSecond), pigeon.getAccelerationY().getValue().in(MetersPerSecondPerSecond));
+//            return new Translation2d(navX.getWorldLinearAccelX() * 9.806, navX.getWorldLinearAccelY() * 9.806);
+//        }
+//        return Translation2d.kZero; //TODO FIX
+//    }
 }

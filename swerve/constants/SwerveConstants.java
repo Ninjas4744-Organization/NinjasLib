@@ -1,6 +1,7 @@
 package frc.lib.NinjasLib.swerve.constants;
 
 import com.pathplanner.lib.config.RobotConfig;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.system.plant.DCMotor;
 
@@ -69,5 +70,22 @@ public class SwerveConstants {
     /**
      * Frequency of the thread that updates the odometry. Only works if enableOdometryThread is set to true
      */
-    public double odometryThreadFrequency;
+    public int odometryThreadFrequency;
+
+    /** Whether the robot is running in AdvantageKit replay simulation mode. */
+    public boolean isReplay;
+
+    /** The starting position of the robot */
+    public Pose2d robotStartPose;
+
+    public enum GyroType {
+        NavX,
+        Pigeon2
+    }
+
+    public GyroType gyroType;
+
+    public int gyroID;
+
+    public boolean gyroInverted;
 }
