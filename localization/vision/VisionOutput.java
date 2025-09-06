@@ -2,6 +2,7 @@ package frc.lib.NinjasLib.localization.vision;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.util.struct.Struct;
 import edu.wpi.first.util.struct.StructSerializable;
@@ -87,14 +88,14 @@ public class VisionOutput implements StructSerializable {
 			size += kSizeDouble; // closestTargetId (was int)
 			size += Pose3d.struct.getSize(); // closestTargetPose
 
-			size += 4 + 10 * kSizeDouble; // targetsIds array (was int[], now double[], max 10 elements)
+			size += 3 * kSizeDouble; // targetsIds array only 3
+			size += 3 * Pose3d.struct.getSize(); // targetsPoses array only 3
 			size += Transform3d.struct.getSize(); // cameraToClosestTargetTransform
-			size += 4 + 10 * Transform3d.struct.getSize(); // cameraToTargetsTransforms, max 10
+			size += 3 * Transform3d.struct.getSize(); // cameraToTargetsTransforms, max 3
 
 			size += kSizeDouble * 3; // maxAmbiguity, farthestTargetDist, closestTargetDist
 			size += kSizeBool; // hasTargets
 			size += kSizeDouble; // amountOfTargets (was int, now double)
-			size += 4 + 32; // cameraName, max 32 bytes
 
 			return size;
 		}
@@ -110,13 +111,10 @@ public class VisionOutput implements StructSerializable {
 
 		@Override
 		public String getSchema() {
-//			return "Pose2d robotPose;double timestamp;int closestTargetId;Pose3d closestTargetPose;" +
-//				"int[] targetsIds;Transform3d cameraToClosestTargetTransform;Transform3d[] cameraToTargetsTransforms;" +
-//				"double maxAmbiguity;double farthestTargetDist;double closestTargetDist;" +
-//				"bool hasTargets;int amountOfTargets;string cameraName";
-
 			return "Pose2d robotPose;double timestamp;double closestTargetId;Pose3d closestTargetPose;" +
-				"double[] targetsIds";
+				"double target1Id;double target2Id;double target3Id;Pose3d target1Pose;Pose3d target2Pose;Pose3d target3Pose;" +
+				"Transform3d cameraToClosestTargetTransform;Transform3d cameraToTarget1Transform;Transform3d cameraToTarget2Transform;Transform3d cameraToTarget3Transform;" +
+				"double maxAmbiguity;double farthestTargetDist;double closestTargetDist;bool hasTargets;double amountOfTargets";
 		}
 
 		@Override
@@ -129,20 +127,37 @@ public class VisionOutput implements StructSerializable {
 			output.closestTargetId = (int) bb.getDouble();
 			output.closestTargetPose = Pose3d.struct.unpack(bb);
 
-			// targetsIds array
-			int targetsLength = bb.getInt();
+			int target2 = (int) bb.getDouble();
+			int target1 = (int) bb.getDouble();
+			int target3 = (int) bb.getDouble();
+			int targetsLength = (target1 != -1 ? 1 : 0) + (target2 != -1 ? 1 : 0) + (target3 != -1 ? 1 : 0);
 			output.targetsIds = new int[targetsLength];
-			for (int i = 0; i < targetsLength; i++) {
-				output.targetsIds[i] = (int) bb.getDouble();
-			}
+			int idx = 0;
+			if (target1 != -1) output.targetsIds[idx++] = target1;
+			if (target2 != -1) output.targetsIds[idx++] = target2;
+			if (target3 != -1) output.targetsIds[idx++] = target3;
+
+			Pose3d pose1 = Pose3d.struct.unpack(bb);
+			Pose3d pose2 = Pose3d.struct.unpack(bb);
+			Pose3d pose3 = Pose3d.struct.unpack(bb);
+			int posesLength = (pose1.getX() != -999 ? 1 : 0) + (pose2.getX() != -999 ? 1 : 0) + (pose3.getX() != -999 ? 1 : 0);
+			output.targetsPoses = new Pose3d[posesLength];
+			idx = 0;
+			if (pose1.getX() != -999) output.targetsPoses[idx++] = pose1;
+			if (pose2.getX() != -999) output.targetsPoses[idx++] = pose2;
+			if (pose3.getX() != -999) output.targetsPoses[idx++] = pose3;
 
 			output.cameraToClosestTargetTransform = Transform3d.struct.unpack(bb);
 
-			int transformsLength = bb.getInt();
+			Transform3d transform1 = Transform3d.struct.unpack(bb);
+			Transform3d transform2 = Transform3d.struct.unpack(bb);
+			Transform3d transform3 = Transform3d.struct.unpack(bb);
+			int transformsLength = (transform1.getX() != -999 ? 1 : 0) + (transform2.getX() != -999 ? 1 : 0) + (transform3.getX() != -999 ? 1 : 0);
 			output.cameraToTargetsTransforms = new Transform3d[transformsLength];
-			for (int i = 0; i < transformsLength; i++) {
-				output.cameraToTargetsTransforms[i] = Transform3d.struct.unpack(bb);
-			}
+			idx = 0;
+			if (transform1.getX() != -999) output.cameraToTargetsTransforms[idx++] = transform1;
+			if (transform2.getX() != -999) output.cameraToTargetsTransforms[idx++] = transform2;
+			if (transform3.getX() != -999) output.cameraToTargetsTransforms[idx++] = transform3;
 
 			output.maxAmbiguity = bb.getDouble();
 			output.farthestTargetDist = bb.getDouble();
@@ -150,12 +165,6 @@ public class VisionOutput implements StructSerializable {
 
 			output.hasTargets = bb.get() != 0;
 			output.amountOfTargets = (int) bb.getDouble();
-
-			// cameraName string
-			int nameLength = bb.getInt();
-			byte[] nameBytes = new byte[nameLength];
-			bb.get(nameBytes);
-			output.cameraName = new String(nameBytes);
 
 			return output;
 		}
@@ -168,17 +177,27 @@ public class VisionOutput implements StructSerializable {
 			bb.putDouble(value.closestTargetId);
 			Pose3d.struct.pack(bb, value.closestTargetPose);
 
-			// targetsIds array
-			bb.putInt(value.targetsIds.length);
-			for (int id : value.targetsIds) {
-				bb.putDouble(id);
+			for (int i = 0; i < 3; i++) {
+				if (i < value.targetsIds.length)
+					bb.putDouble(value.targetsIds[i]);
+				else
+					bb.putDouble(-1);
+			}
+
+			for (int i = 0; i < 3; i++) {
+				if (i < value.targetsPoses.length)
+					Pose3d.struct.pack(bb, value.targetsPoses[i]);
+				else
+					Pose3d.struct.pack(bb, new Pose3d(-999, -999, -999, Rotation3d.kZero));
 			}
 
 			Transform3d.struct.pack(bb, value.cameraToClosestTargetTransform);
 
-			bb.putInt(value.cameraToTargetsTransforms.length);
-			for (Transform3d t : value.cameraToTargetsTransforms) {
-				Transform3d.struct.pack(bb, t);
+			for (int i = 0; i < 3; i++) {
+				if (i < value.cameraToTargetsTransforms.length)
+					Transform3d.struct.pack(bb, value.cameraToTargetsTransforms[i]);
+				else
+					Transform3d.struct.pack(bb, new Transform3d(-999, -999, -999, Rotation3d.kZero));
 			}
 
 			bb.putDouble(value.maxAmbiguity);
@@ -187,10 +206,6 @@ public class VisionOutput implements StructSerializable {
 
 			bb.put((byte) (value.hasTargets ? 1 : 0));
 			bb.putDouble(value.amountOfTargets);
-
-			byte[] nameBytes = value.cameraName.getBytes();
-			bb.putInt(nameBytes.length);
-			bb.put(nameBytes);
 		}
 
 		@Override

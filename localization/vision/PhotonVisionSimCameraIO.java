@@ -19,10 +19,10 @@ public class PhotonVisionSimCameraIO extends PhotonVisionCameraIO {
 
         var cameraProp = new SimCameraProperties();
         cameraProp.setCalibration(1280, 720, Rotation2d.fromDegrees(74));
-        cameraProp.setCalibError(0.35, 0.10);
+        cameraProp.setCalibError(0.25, 0.08);
         cameraProp.setFPS(25);
-        cameraProp.setAvgLatencyMs(50);
-        cameraProp.setLatencyStdDevMs(10);
+        cameraProp.setAvgLatencyMs(35);
+        cameraProp.setLatencyStdDevMs(5);
         sim = new PhotonCameraSim(camera, cameraProp);
     }
 
