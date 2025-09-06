@@ -1,6 +1,7 @@
 package frc.lib.NinjasLib.localization.vision;
 
 import edu.wpi.first.apriltag.AprilTag;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
@@ -8,23 +9,28 @@ import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
-public class PhotonVisionCamera extends VisionCamera {
-    private final PhotonCamera camera;
+public class PhotonVisionCameraIO implements VisionCameraIO {
+    protected final PhotonCamera camera;
     private final PhotonPoseEstimator estimator;
     private List<PhotonTrackedTarget> targets;
     private boolean disconnected = false;
+    private final List<Integer> ignoredTags;
+    private final VisionConstants constants;
+    private Map<Integer, AprilTag> tags;
+    private String cameraName;
 
     /**
      * @param name Name of the camera.
      * @param cameraPose Location of the camera on the robot (from center, positive x forward,
      *     positive y left, and positive angle is counterclockwise).
      */
-    public PhotonVisionCamera(String name, Transform3d cameraPose, VisionConstants constants) {
-        super(name, cameraPose, constants);
+    public PhotonVisionCameraIO(String name, Transform3d cameraPose, VisionConstants constants) {
+        this.constants = constants;
+        cameraName = name;
+        ignoredTags = new ArrayList<>();
+        fillTagsMap();
 
         camera = new PhotonCamera(name);
 
@@ -37,18 +43,20 @@ public class PhotonVisionCamera extends VisionCamera {
 
     /**
      * Updates the results of this camera, should run on periodic
-     * @return The vision output of this camera
      */
     @Override
-    public List<VisionOutput> update() {
+    public void updateInputs(VisionCameraIOInputsAutoLogged inputs) {
+        inputs.outputs = new VisionOutput[0];
         if(disconnected)
-            return new ArrayList<>();
+            return;
+
+        List<VisionOutput> outputs;
 
         List<PhotonPipelineResult> results;
         try {
             results = camera.getAllUnreadResults();
             if(results.isEmpty())
-                return outputs;
+                return;
 
             outputs = new ArrayList<>();
             for (int i = 0; i < results.size(); i++) {
@@ -56,11 +64,11 @@ public class PhotonVisionCamera extends VisionCamera {
                 outputs.get(i).cameraName = cameraName;
             }
         } catch (Exception e) {
-            System.out.println("Camera " + getName() + " disconnected");
+            System.out.println("Camera " + cameraName + " disconnected");
             System.out.println(e.getMessage());
 
             disconnected = true;
-            return new ArrayList<>();
+            return;
         }
 
         estimator.setFieldTags(constants.fieldLayoutGetter.getFieldLayout(ignoredTags));
@@ -71,7 +79,7 @@ public class PhotonVisionCamera extends VisionCamera {
             outputs.get(i).amountOfTargets = results.get(i).getTargets().size();
 
             if (currentPose.isEmpty())
-                return new ArrayList<>();
+                continue;
 
             targets = currentPose.get().targetsUsed;
             analyze(outputs.get(i));
@@ -85,7 +93,7 @@ public class PhotonVisionCamera extends VisionCamera {
             }
         }
 
-        return outputs;
+        inputs.outputs = outputs.toArray(new VisionOutput[0]);
     }
 
     private void analyze(VisionOutput output) {
@@ -93,10 +101,12 @@ public class PhotonVisionCamera extends VisionCamera {
         output.farthestTargetDist = 0;
         output.maxAmbiguity = 0;
 
-        output.targets = new AprilTag[targets.size()];
+        output.targetsIds = new int[targets.size()];
+        output.targetsPoses = new Pose3d[targets.size()];
         output.cameraToTargetsTransforms = new Transform3d[targets.size()];
         for (int i = 0; i < targets.size(); i++) {
-            output.targets[i] = tags.get(targets.get(i).getFiducialId());
+            output.targetsIds[i] = targets.get(i).getFiducialId();
+            output.targetsPoses[i] = tags.get(targets.get(i).getFiducialId()).pose;
             output.cameraToTargetsTransforms[i] = targets.get(i).getBestCameraToTarget();
 
             double distance = targets.get(i).getBestCameraToTarget().getTranslation().getNorm();
@@ -104,7 +114,8 @@ public class PhotonVisionCamera extends VisionCamera {
 
             if (distance < output.closestTargetDist) {
                 output.closestTargetDist = distance;
-                output.closestTarget = tags.get(targets.get(i).getFiducialId());
+                output.closestTargetId = targets.get(i).getFiducialId();
+                output.closestTargetPose = tags.get(targets.get(i).getFiducialId()).pose;
                 output.cameraToClosestTargetTransform = targets.get(i).getBestCameraToTarget();
             }
 
@@ -117,17 +128,18 @@ public class PhotonVisionCamera extends VisionCamera {
     }
 
     /**
-     * @return The camera processor that is being used by this VisionCamera
-     */
-    public PhotonCamera getCamera() {
-        return camera;
-    }
-
-    /**
-     * @return name of the camera
+     * Adds an apriltag to the ignored apriltags list. If the camera sees a tag in the ignored list, it ignores it.
+     * @param id the id of the apriltag to ignore
      */
     @Override
-    public String getName() {
-        return camera.getName();
+    public void ignoreTag(int id) {
+        ignoredTags.add(id);
+        fillTagsMap();
+    }
+
+    private void fillTagsMap() {
+        tags = new HashMap<>();
+        for (AprilTag tag : constants.fieldLayoutGetter.getFieldLayout(ignoredTags).getTags())
+            tags.put(tag.ID, tag);
     }
 }

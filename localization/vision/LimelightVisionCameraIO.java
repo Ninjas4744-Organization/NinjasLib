@@ -9,21 +9,29 @@ import frc.lib.NinjasLib.statemachine.RobotStateBase;
 import frc.lib.NinjasLib.statemachine.RobotStateWithSwerve;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class LimelightVisionCamera extends VisionCamera {
+public class LimelightVisionCameraIO implements VisionCameraIO {
     private final String cameraName;
     private LimelightHelpers.LimelightTarget_Fiducial[] targets;
+    private final List<Integer> ignoredTags;
+    private final VisionConstants constants;
+    private Map<Integer, AprilTag> tags;
 
-    public LimelightVisionCamera(String name, Transform3d cameraPose, VisionConstants constants) {
-        super(name, cameraPose, constants);
-        this.cameraName = name;
+    public LimelightVisionCameraIO(String name, Transform3d cameraPose, VisionConstants constants) {
+        this.constants = constants;
+        cameraName = name;
         LimelightHelpers.SetIMUMode(cameraName, 0);
+        ignoredTags = new ArrayList<>();
+        fillTagsMap();
     }
 
     @Override
-    public List<VisionOutput> update() {
-        outputs.clear();
+    public void updateInputs(VisionCameraIOInputsAutoLogged inputs) {
+        inputs.outputs = new VisionOutput[0];
+        List<VisionOutput> outputs = new ArrayList<>();
 
         // Set the robot's yaw from the swerve pose estimator
         Rotation2d robotYaw = RobotStateWithSwerve.getInstance().getRobotPose().getRotation();
@@ -38,7 +46,7 @@ public class LimelightVisionCamera extends VisionCamera {
             : LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2(cameraName);
 
         if (estimate.tagCount == 0)
-            return new ArrayList<>();
+            return;
 
         // Populate VisionOutput
         VisionOutput output = new VisionOutput();
@@ -60,7 +68,7 @@ public class LimelightVisionCamera extends VisionCamera {
         }
 
         outputs.add(output);
-        return outputs;
+        inputs.outputs = outputs.toArray(new VisionOutput[0]);
     }
 
     private void analyze(VisionOutput output) {
@@ -90,12 +98,14 @@ public class LimelightVisionCamera extends VisionCamera {
             }
         }
 
-        output.targets = validTags.toArray(new AprilTag[0]);
+        output.targetsIds = validTags.stream().mapToInt(x -> x.ID).toArray();
+        output.targetsPoses = validTags.stream().map(x -> x.pose).toArray(Pose3d[]::new);
         output.cameraToTargetsTransforms = transforms.toArray(new Transform3d[0]);
 
         if (closest != null) {
             output.closestTargetDist = minDist;
-            output.closestTarget = tags.get((int) closest.fiducialID);
+            output.closestTargetId = (int) closest.fiducialID;
+            output.closestTargetPose = tags.get((int) closest.fiducialID).pose;
             output.cameraToClosestTargetTransform = new Transform3d(new Pose3d(), closest.getTargetPose_CameraSpace());
         }
 
@@ -103,18 +113,25 @@ public class LimelightVisionCamera extends VisionCamera {
         output.farthestTargetDist = maxDist;
     }
 
-    @Override
-    public String getName() {
-        return cameraName;
-    }
-
+    /**
+     * Adds an apriltag to the ignored apriltags list. If the camera sees a tag in the ignored list, it ignores it.
+     *
+     * @param id the id of the apriltag to ignore
+     */
     @Override
     public void ignoreTag(int id) {
-        super.ignoreTag(id);
+        ignoredTags.add(id);
         // Dynamically update filter list in Limelight
         LimelightHelpers.SetFiducialIDFiltersOverride(
             cameraName,
             tags.keySet().stream().mapToInt(Integer::intValue).toArray()
         );
+        fillTagsMap();
+    }
+
+    private void fillTagsMap() {
+        tags = new HashMap<>();
+        for (AprilTag tag : constants.fieldLayoutGetter.getFieldLayout(ignoredTags).getTags())
+            tags.put(tag.ID, tag);
     }
 }

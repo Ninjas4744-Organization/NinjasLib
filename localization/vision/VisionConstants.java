@@ -3,7 +3,6 @@ package frc.lib.NinjasLib.localization.vision;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform3d;
-import frc.lib.NinjasLib.localization.FieldLayoutGetter;
 
 import java.util.Map;
 import java.util.function.Supplier;
@@ -13,22 +12,11 @@ public class VisionConstants {
     public double maxAmbiguity;
     public double maxDistance;
     public FieldLayoutGetter fieldLayoutGetter;
-    public SimulationConstants simulationConstants;
+    public boolean isReplay;
+    public Supplier<Pose2d> robotPoseSupplier;
 
     public enum CameraType{
         PhotonVision,
         Limelight
-    }
-
-    public static class SimulationConstants {
-        public int resolutionWidth;
-        public int resolutionHeight;
-        public double FOV;
-        public double averageError;
-        public double errorStdDev;
-        public int FPS;
-        public int averageLatency;
-        public int latencyStdDev;
-        public Supplier<Pose2d> robotPoseSupplier;
     }
 }

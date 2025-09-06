@@ -1,4 +1,4 @@
-package frc.lib.NinjasLib.localization;
+package frc.lib.NinjasLib.localization.vision;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 
