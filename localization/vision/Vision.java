@@ -13,10 +13,10 @@ import java.util.List;
 
 public class Vision extends SubsystemBase {
 	private static Vision instance;
-	private HashMap<String, VisionCameraIO> cameras;
-	private HashMap<String, VisionCameraIOInputsAutoLogged> inputs;
+	private final HashMap<String, VisionCameraIO> cameras;
+    private final HashMap<String, VisionCameraIOInputsAutoLogged> inputs;
 	private VisionSystemSim sim;
-	private VisionConstants constants;
+	private final VisionConstants constants;
 
 	public static Vision getInstance() {
 		if (instance == null)
@@ -29,7 +29,7 @@ public class Vision extends SubsystemBase {
 	}
 
 	public Vision(VisionConstants constants) {
-		String[] camerasNames = constants.cameras.keySet().toArray(new String[0]);
+        String[] camerasNames = constants.cameras.keySet().toArray(new String[0]);
 
 		this.constants = constants;
 		if (Robot.isSimulation() && !constants.isReplay) {
@@ -42,26 +42,35 @@ public class Vision extends SubsystemBase {
 		for (int i = 0; i < constants.cameras.size(); i++) {
 			Pair<Transform3d, VisionConstants.CameraType> cameraInfo = constants.cameras.get(camerasNames[i]);
 
-			if (Robot.isReal()) {
-				if (cameraInfo.getSecond() == VisionConstants.CameraType.PhotonVision)
-					cameras.put(camerasNames[i], new PhotonVisionCameraIO(camerasNames[i], cameraInfo.getFirst(), constants));
-				else
-					cameras.put(camerasNames[i], new LimelightVisionCameraIO(camerasNames[i], cameraInfo.getFirst(), constants));
-			} else if (!constants.isReplay) {
-				PhotonVisionSimCameraIO cam = new PhotonVisionSimCameraIO(camerasNames[i], cameraInfo.getFirst(), constants);
-				cameras.put(camerasNames[i], cam);
-				sim.addCamera(cam.getSim(), cameraInfo.getFirst());
-			} else
-				cameras.put(camerasNames[i], new VisionCameraIO() {
-				});
+            try {
+                if (Robot.isReal()) {
+                    if (cameraInfo.getSecond() == VisionConstants.CameraType.PhotonVision)
+                        cameras.put(camerasNames[i], new PhotonVisionCameraIO(camerasNames[i], cameraInfo.getFirst(), constants));
+                    else
+                        cameras.put(camerasNames[i], new LimelightVisionCameraIO(camerasNames[i], cameraInfo.getFirst(), constants));
+                } else if (!constants.isReplay) {
+                    PhotonVisionSimCameraIO cam = new PhotonVisionSimCameraIO(camerasNames[i], cameraInfo.getFirst(), constants);
+                    cameras.put(camerasNames[i], cam);
+                    sim.addCamera(cam.getSim(), cameraInfo.getFirst());
+                } else
+                    cameras.put(camerasNames[i], new VisionCameraIO() {
+                    });
+            } catch (Exception e) {
+				System.out.println("Camera name: "+ camerasNames[i]+" not found");
+				continue;
+			}
 
-			inputs.put(camerasNames[i], new VisionCameraIOInputsAutoLogged());
+            inputs.put(camerasNames[i], new VisionCameraIOInputsAutoLogged());
 		}
 	}
 
 	@Override
 	public void periodic() {
 		for (String name : cameras.keySet()) {
+			if (name == null) {
+				continue;
+			}
+
 			cameras.get(name).updateInputs(inputs.get(name));
 			Logger.processInputs("Vision/" + name, inputs.get(name));
 		}
@@ -91,6 +100,11 @@ public class Vision extends SubsystemBase {
 	 * @return distance from the closest tag to this camera
 	 */
 	public double getClosestTargetDistance(String camera) {
+		if (!cameras.containsKey(camera)) {
+			System.out.println("Camera name: "+camera+" not found");
+			return -1;
+		}
+
 		return inputs.get(camera).outputs[inputs.get(camera).outputs.length - 1].closestTargetDist;
 	}
 
@@ -99,6 +113,11 @@ public class Vision extends SubsystemBase {
 	 * @return closest tag to this camera
 	 */
 	public int getClosestTarget(String camera) {
+        if (!cameras.containsKey(camera)) {
+			System.out.println("Camera name: "+camera+" not found");
+			return -1;
+        }
+
 		return inputs.get(camera).outputs[inputs.get(camera).outputs.length - 1].closestTargetId;
 	}
 
@@ -107,6 +126,12 @@ public class Vision extends SubsystemBase {
 	 * @return distance from the farthest tag to this camera
 	 */
 	public double getFarthestTargetDistance(String camera) {
+		if (!cameras.containsKey(camera)) {
+			System.out.println("Camera name: "+camera+" not found");
+			return -1;
+		}
+
+
 		return inputs.get(camera).outputs[inputs.get(camera).outputs.length - 1].farthestTargetDist;
 	}
 
@@ -115,14 +140,32 @@ public class Vision extends SubsystemBase {
 	 * @return ambiguity of the most ambiguous tag from this camera
 	 */
 	public double getMaxAmbiguity(String camera) {
+		if (!cameras.containsKey(camera)) {
+			System.out.println("Camera name: "+camera+" not found");
+			return -1;
+		}
+
+
 		return inputs.get(camera).outputs[inputs.get(camera).outputs.length - 1].maxAmbiguity;
 	}
 
 	public Transform3d getCameraToClosestTargetTransform(String camera) {
+		if (!cameras.containsKey(camera)) {
+			System.out.println("Camera name: "+camera+" not found");
+			return new Transform3d();
+		}
+
+
 		return inputs.get(camera).outputs[inputs.get(camera).outputs.length - 1].cameraToClosestTargetTransform;
 	}
 
 	public Transform3d[] getCameraToTargetsTransforms(String camera) {
+		if (!cameras.containsKey(camera)) {
+			System.out.println("Camera name: "+camera+" not found");
+			return new Transform3d[0];
+		}
+
+
 		return inputs.get(camera).outputs[inputs.get(camera).outputs.length - 1].cameraToTargetsTransforms;
 	}
 
@@ -131,6 +174,11 @@ public class Vision extends SubsystemBase {
 	 * @return if this camera has targets
 	 */
 	public boolean hasTargets(String camera) {
+		if (!cameras.containsKey(camera)) {
+			System.out.println("Camera name: "+camera+" not found");
+			return false;
+		}
+
 		if (inputs.get(camera).outputs.length == 0)
 			return false;
 		return inputs.get(camera).outputs[inputs.get(camera).outputs.length - 1].hasTargets;
@@ -141,6 +189,11 @@ public class Vision extends SubsystemBase {
 	 */
 	public boolean hasTargets() {
 		for (String camera : cameras.keySet()) {
+			if (!cameras.containsKey(camera)) {
+				System.out.println("Camera name: "+camera+" not found");
+				continue;
+			}
+
 			if (hasTargets(camera)) return true;
 		}
 		return false;
@@ -152,7 +205,13 @@ public class Vision extends SubsystemBase {
 	 * @param id ID of the apriltag to ignore
 	 */
 	public void ignoreTag(int id) {
-		for (String name : cameras.keySet())
+		for (String name : cameras.keySet()) {
+			if (!cameras.containsKey(name)) {
+				System.out.println("Camera name: "+name+" not found");
+				continue;
+			}
+
 			cameras.get(name).ignoreTag(id);
+		}
 	}
 }
