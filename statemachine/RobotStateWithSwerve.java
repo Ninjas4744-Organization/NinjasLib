@@ -1,20 +1,22 @@
 package frc.lib.NinjasLib.statemachine;
 
-import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import frc.lib.NinjasLib.localization.NinjasSwervePoseTracker;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import frc.lib.NinjasLib.localization.vision.VisionOutput;
 import frc.lib.NinjasLib.swerve.Swerve;
 import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
 
 public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<StateEnum> {
-    private final NinjasSwervePoseTracker poseTracker;
+    private final SwerveDrivePoseEstimator poseEstimator;
 
     public static RobotStateWithSwerve getInstance() {
         return (RobotStateWithSwerve) RobotStateBase.getInstance();
@@ -27,10 +29,10 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
      */
     public RobotStateWithSwerve(SwerveDriveKinematics kinematics) {
         if (Robot.isReal()) {
-            poseTracker = new NinjasSwervePoseTracker(kinematics, Swerve.getInstance().getGyro().getYaw(),
+            poseEstimator = new SwerveDrivePoseEstimator(kinematics, Swerve.getInstance().getGyro().getYaw(),
                 Swerve.getInstance().getModulePositions(), new Pose2d());
         } else {
-            poseTracker = new NinjasSwervePoseTracker(kinematics, new Rotation2d(),
+            poseEstimator = new SwerveDrivePoseEstimator(kinematics, new Rotation2d(),
                 new SwerveModulePosition[]{
                     new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
                     new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
@@ -44,7 +46,7 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
      * @return 2D position of the robot on the field.
      */
     public Pose2d getRobotPose() {
-        return poseTracker.getEstimatedPosition();
+        return poseEstimator.getEstimatedPosition();
     }
 
     /**
@@ -81,9 +83,9 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
      */
     public void setRobotPose(Pose2d pose) {
         if (Robot.isReal())
-            poseTracker.resetPosition(Swerve.getInstance().getGyro().getYaw(), Swerve.getInstance().getModulePositions(), pose);
+            poseEstimator.resetPosition(Swerve.getInstance().getGyro().getYaw(), Swerve.getInstance().getModulePositions(), pose);
         else
-            poseTracker.resetPosition(Swerve.getInstance().getGyro().getYaw(), new SwerveModulePosition[]{
+            poseEstimator.resetPosition(Swerve.getInstance().getGyro().getYaw(), new SwerveModulePosition[]{
                 new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
                 new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
                 new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
@@ -98,7 +100,7 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
      * @param modulePositions The current position of the swerve modules.
      */
     public void updateRobotPose(SwerveModulePosition[] modulePositions, Rotation2d gyroYaw) {
-        poseTracker.update(gyroYaw, modulePositions);
+        poseEstimator.update(gyroYaw, modulePositions);
         Logger.recordOutput("Robot Pose", getRobotPose());
     }
 
@@ -108,7 +110,7 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
      * @param modulePositions The current position of the swerve modules.
      */
     public void updateRobotPoseWithTime(SwerveModulePosition[] modulePositions, Rotation2d gyroYaw, double timestamp) {
-        poseTracker.updateWithTime(timestamp, gyroYaw, modulePositions);
+        poseEstimator.updateWithTime(timestamp, gyroYaw, modulePositions);
         Logger.recordOutput("Robot Pose", getRobotPose());
     }
 
@@ -117,14 +119,15 @@ public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<Sta
      *
      * @param estimation The vision estimation.
      */
-    public void updateRobotPose(VisionOutput estimation, double odometrySTD, double visionSTD) {
+    public void updateRobotPose(VisionOutput estimation, Matrix<N3, N1> visionSTD) {
         if (!estimation.hasTargets)
             return;
 
-        poseTracker.setMeasurementStdDevs(VecBuilder.fill(odometrySTD, odometrySTD, odometrySTD),
-                VecBuilder.fill(visionSTD, visionSTD, visionSTD));
+//        poseEstimator.setMeasurementStdDevs(VecBuilder.fill(odometrySTD, odometrySTD, odometrySTD),
+//                VecBuilder.fill(visionSTD, visionSTD, visionSTD));
+        poseEstimator.setVisionMeasurementStdDevs(visionSTD);
 
-        poseTracker.addVisionMeasurement(
+        poseEstimator.addVisionMeasurement(
                 estimation.robotPose,
                 estimation.timestamp
         );
