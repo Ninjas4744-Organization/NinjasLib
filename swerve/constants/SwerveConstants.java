@@ -21,9 +21,6 @@ public class SwerveConstants {
     /** Max speed the swerve could possibly rotate, the real thing if you want a speed limit do it in the rotationSpeedLimit, in rad/s */
     public double maxAngularVelocity;
 
-    /** Max acceleration the swerve could possibly drive, in m/s^2 */
-    public double maxAcceleration;
-
     /** Max acceleration the swerve could possibly change movement direction (needs to be calibrated), in m/s^2 */
     public double maxSkidAcceleration;
 
