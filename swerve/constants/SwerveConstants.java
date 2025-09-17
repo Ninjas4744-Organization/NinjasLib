@@ -42,9 +42,7 @@ public class SwerveConstants {
     /** Swerve kinematics class used for calculating swerve movement */
     public SwerveDriveKinematics kinematics;
 
-    /**
-     * Robot config
-     */
+    /** Robot config */
     public RobotConfig robotConfig;
 
     /** Width of bumper from side to side of robot, meters */
@@ -85,4 +83,6 @@ public class SwerveConstants {
     public int gyroID;
 
     public boolean gyroInverted;
+
+    public String CANivore;
 }

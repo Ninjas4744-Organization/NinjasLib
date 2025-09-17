@@ -19,7 +19,10 @@ public class TalonFXController extends Controller {
     public TalonFXController(RealControllerConstants constants) {
         super(constants);
 
-        main = new TalonFX(constants.main.id);
+        if(constants.CANivore.isEmpty())
+            main = new TalonFX(constants.main.id);
+        else
+            main = new TalonFX(constants.main.id, constants.CANivore);
         main.getConfigurator()
           .apply(new TalonFXConfiguration()
             .withSoftwareLimitSwitch(new SoftwareLimitSwitchConfigs()

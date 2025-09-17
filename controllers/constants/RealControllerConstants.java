@@ -75,6 +75,8 @@ public class RealControllerConstants {
     /** Whether to automatically stop the motor and reset the encoder when limit is clicked. */
     public boolean limitSwitchAutoStopReset = true;
 
+    public String CANivore = "";
+
     public static class SimpleControllerConstants {
         /**
          * The ID of the controller, chosen in the device's configuration software like Phoenix Tuner X or Rev

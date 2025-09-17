@@ -1,6 +1,5 @@
 package frc.lib.NinjasLib.statemachine;
 
-import com.ctre.phoenix6.CANBus;
 import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
@@ -10,7 +9,6 @@ import org.littletonrobotics.junction.Logger;
 public abstract class RobotStateBase<StateEnum> {
     protected static RobotStateBase instance;
     protected StateEnum robotState;
-    protected CANBus CANBus;
 
     public static RobotStateBase getInstance() {
         if (instance == null)
@@ -38,10 +36,6 @@ public abstract class RobotStateBase<StateEnum> {
         System.out.println("[Robot State Change] " + robotState.toString() + " -> " + state.toString());
         Logger.recordOutput("Robot State", state.toString());
         robotState = state;
-    }
-
-    public CANBus getCANBus() {
-        return CANBus;
     }
 
     /**
