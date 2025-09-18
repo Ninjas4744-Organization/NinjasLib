@@ -10,6 +10,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import frc.lib.NinjasLib.localization.OdometryThread;
 import frc.lib.NinjasLib.statemachine.RobotStateWithSwerve;
 import frc.lib.NinjasLib.swerve.constants.SwerveConstants;
 import frc.lib.NinjasLib.swerve.gyro.*;
@@ -117,6 +118,9 @@ public class Swerve {
             gyro = new Gyro(new GyroIO() {});
         }
 
+        if(constants.enableOdometryThread)
+            OdometryThread.getInstance().start(constants.odometryThreadFrequency);
+
         resetModulesToAbsolute();
     }
 
@@ -200,10 +204,10 @@ public class Swerve {
                 for (int i = 0; i < sampleCount; i++) {
                     SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
                     for (int j = 0; j < 4; j++) {
-                        int index = moduleInputs[i].ModuleNumber;
-                        double drivePosition = moduleInputs[index].Positions[i];
-                        Rotation2d steerAngle = moduleInputs[index].Angles[i];
-                        modulePositions[index] = new SwerveModulePosition(drivePosition, steerAngle);
+//                        int index = moduleInputs[i].ModuleNumber;
+                        double drivePosition = moduleInputs[j].Positions[i];
+                        Rotation2d steerAngle = moduleInputs[j].Angles[i];
+                        modulePositions[j] = new SwerveModulePosition(drivePosition, steerAngle);
                     }
 
                     RobotStateWithSwerve.getInstance().updateRobotPoseWithTime(modulePositions, gyroYawArray[i], sampleTimestamps[i]);
