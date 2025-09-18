@@ -40,8 +40,11 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
 
         if(swerveConstants.CANivore.isEmpty())
             canCoder = new CANcoder(constants.canCoderID);
-        else
+        else{
             canCoder = new CANcoder(constants.canCoderID, swerveConstants.CANivore);
+            constants.driveMotorConstants.real.CANivore = swerveConstants.CANivore;
+            constants.angleMotorConstants.real.CANivore = swerveConstants.CANivore;
+        }
         canCoder.getConfigurator().apply(
             new CANcoderConfiguration().MagnetSensor
                 .withSensorDirection(constants.invertCANCoder ? SensorDirectionValue.Clockwise_Positive : SensorDirectionValue.CounterClockwise_Positive)
