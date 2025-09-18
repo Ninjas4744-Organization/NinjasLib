@@ -39,6 +39,7 @@ public class OdometryThread extends Thread {
 
     public void start(int odometryFrequency) {
         if (!timestampQueues.isEmpty()) {
+            System.out.println("[Odometry Thread] Starting on " + odometryFrequency + "Hz");
             super.start();
             this.odometryFrequency = odometryFrequency;
         }
@@ -48,6 +49,7 @@ public class OdometryThread extends Thread {
      * Registers a Phoenix signal to be read from the thread.
      */
     public Queue<Double> registerSignal(StatusSignal<Angle> signal) {
+        System.out.println("[Odometry Thread] Making a phoenix queue");
         Queue<Double> queue = new ArrayBlockingQueue<>(20);
         signalsLock.lock();
         Swerve.odometryLock.lock();
@@ -68,6 +70,7 @@ public class OdometryThread extends Thread {
      * Registers a generic signal to be read from the thread.
      */
     public Queue<Double> registerSignal(DoubleSupplier signal) {
+        System.out.println("[Odometry Thread] Making a generic queue");
         Queue<Double> queue = new ArrayBlockingQueue<>(20);
         signalsLock.lock();
         Swerve.odometryLock.lock();
@@ -85,6 +88,7 @@ public class OdometryThread extends Thread {
      * Returns a new queue that returns timestamp values for each sample.
      */
     public Queue<Double> makeTimestampQueue() {
+        System.out.println("[Odometry Thread] Making a timestamp queue");
         Queue<Double> queue = new ArrayBlockingQueue<>(20);
         Swerve.odometryLock.lock();
         try {
@@ -102,8 +106,6 @@ public class OdometryThread extends Thread {
             signalsLock.lock();
             try {
                 if (phoenixSignals.length > 0) {
-//                    System.out.println("Phoenix signals: " + phoenixSignals.length);
-//                    System.out.println("generic signals: " + genericSignals.size());
                     BaseStatusSignal.waitForAll(2.0 / odometryFrequency, phoenixSignals);
                 } else {
                     // "waitForAll" does not support blocking on multiple signals with a bus

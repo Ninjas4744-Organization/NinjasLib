@@ -86,7 +86,7 @@ public class Swerve {
             if(constants.gyroType == SwerveConstants.GyroType.NavX)
                 gyro = new Gyro(new GyroIONavX(constants.odometryThreadFrequency, constants.gyroInverted));
             else
-                gyro = new Gyro(new GyroIOPigeon2(constants.gyroID, constants.odometryThreadFrequency, constants.gyroInverted));
+                gyro = new Gyro(new GyroIOPigeon2(constants.gyroID, constants.gyroInverted, constants.odometryThreadFrequency, constants.CANivore.isEmpty() ? "rio" : constants.CANivore));
 
         } else if (!constants.isReplay) {
             DriveTrainSimulationConfig config = new DriveTrainSimulationConfig(Kilograms.of(constants.robotConfig.massKG),
@@ -199,7 +199,8 @@ public class Swerve {
 
             if (Robot.isReal()) {
                 double[] sampleTimestamps = moduleInputs[0].Timestamps;
-                int sampleCount = sampleTimestamps.length;
+                int sampleCount = Math.min(Math.min(gyroYawArray.length, sampleTimestamps.length), moduleInputs[0].Positions.length);
+                Logger.recordOutput("Odometry Thread/Sample Count", sampleCount);
 
                 for (int i = 0; i < sampleCount; i++) {
                     SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
@@ -210,6 +211,12 @@ public class Swerve {
                         modulePositions[j] = new SwerveModulePosition(drivePosition, steerAngle);
                     }
 
+                    Logger.recordOutput("Odometry Thread/Sample " + i + "/Module 0 Position", modulePositions[0]);
+                    Logger.recordOutput("Odometry Thread/Sample " + i + "/Module 1 Position", modulePositions[1]);
+                    Logger.recordOutput("Odometry Thread/Sample " + i + "/Module 2 Position", modulePositions[2]);
+                    Logger.recordOutput("Odometry Thread/Sample " + i + "/Module 3 Position", modulePositions[3]);
+                    Logger.recordOutput("Odometry Thread/Sample " + i + "/Gyro Yaw", gyroYawArray[i]);
+                    Logger.recordOutput("Odometry Thread/Sample " + i + "/Timestamp", sampleTimestamps[i]);
                     RobotStateWithSwerve.getInstance().updateRobotPoseWithTime(modulePositions, gyroYawArray[i], sampleTimestamps[i]);
                 }
             } else
