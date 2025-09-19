@@ -17,8 +17,8 @@ public class GyroIOPigeon2 implements GyroIO{
     private Queue<Double> yawTimestampQueue;
     private boolean inverted;
 
-    public GyroIOPigeon2(int id, int frequency, boolean inverted) {
-        pigeon = new Pigeon2(id);
+    public GyroIOPigeon2(int id, boolean inverted, int frequency, String canbus) {
+        pigeon = new Pigeon2(id, canbus);
         yaw = pigeon.getYaw();
         if (frequency > 50) {
             yaw.setUpdateFrequency(frequency);

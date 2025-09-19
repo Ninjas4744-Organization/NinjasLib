@@ -144,19 +144,27 @@ public class TalonFXController extends Controller {
         main.setPosition(position);
     }
 
-    public StatusSignal<Angle> getPositionSignal() {
-        return main.getPosition();
+    public StatusSignal<Angle> getPositionSignal(int frequency) {
+        StatusSignal<Angle> signal = main.getPosition();
+        signal.setUpdateFrequency(frequency);
+        return signal;
     }
 
-    public StatusSignal<AngularVelocity> getVelocitySignal() {
-        return main.getVelocity();
+    public StatusSignal<AngularVelocity> getVelocitySignal(int frequency) {
+        StatusSignal<AngularVelocity> signal = main.getVelocity();
+        signal.setUpdateFrequency(frequency);
+        return signal;
     }
 
-    public StatusSignal<AngularAcceleration> getAccelerationSignal() {
-        return main.getAcceleration();
+    public StatusSignal<AngularAcceleration> getAccelerationSignal(int frequency) {
+        StatusSignal<AngularAcceleration> signal = main.getAcceleration();
+        signal.setUpdateFrequency(frequency);
+        return signal;
     }
 
-    public StatusSignal<Current> getCurrentSignal() {
-        return main.getStatorCurrent();
+    public StatusSignal<Current> getCurrentSignal(int frequency) {
+        StatusSignal<Current> signal = main.getStatorCurrent();
+        signal.setUpdateFrequency(frequency);
+        return signal;
     }
 }

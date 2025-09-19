@@ -58,8 +58,8 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
 
         isTalonFX = constants.driveControllerType == Controller.ControllerType.TalonFX && constants.steerControllerType == Controller.ControllerType.TalonFX;
         if (swerveConstants.enableOdometryThread && isTalonFX) {
-            positionQueue = OdometryThread.getInstance().registerSignal(((TalonFXController) driveMotor).getPositionSignal().clone());
-            angleQueue = OdometryThread.getInstance().registerSignal(((TalonFXController) steerMotor).getPositionSignal().clone());
+            positionQueue = OdometryThread.getInstance().registerSignal(((TalonFXController) driveMotor).getPositionSignal(swerveConstants.odometryThreadFrequency).clone());
+            angleQueue = OdometryThread.getInstance().registerSignal(((TalonFXController) steerMotor).getPositionSignal(swerveConstants.odometryThreadFrequency).clone());
             timestampQueue = OdometryThread.getInstance().makeTimestampQueue();
         }
     }
