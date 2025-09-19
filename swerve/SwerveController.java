@@ -126,9 +126,9 @@ public class SwerveController {
      */
     public SwerveInput fromPercent(SwerveInput percent) {
         return new SwerveInput(
-            percent.vxMetersPerSecond * constants.swerveConstants.maxSpeed,
-            percent.vyMetersPerSecond * constants.swerveConstants.maxSpeed,
-            percent.omegaRadiansPerSecond * constants.swerveConstants.maxAngularVelocity,
+            percent.vxMetersPerSecond * constants.swerveConstants.limits.maxSpeed,
+            percent.vyMetersPerSecond * constants.swerveConstants.limits.maxSpeed,
+            percent.omegaRadiansPerSecond * constants.swerveConstants.limits.maxAngularVelocity,
             percent.isFieldRelative()
         );
     }

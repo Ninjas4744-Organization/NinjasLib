@@ -75,7 +75,8 @@ public class RealControllerConstants {
     /** Whether to automatically stop the motor and reset the encoder when limit is clicked. */
     public boolean limitSwitchAutoStopReset = true;
 
-    public String CANivore = "";
+    /** The name of the canbus the swerve is running on. 'rio' by default if CANivore is not present */
+    public String CANBus = "";
 
     public static class SimpleControllerConstants {
         /**

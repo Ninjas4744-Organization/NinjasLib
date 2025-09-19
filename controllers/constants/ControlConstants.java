@@ -3,8 +3,8 @@ package frc.lib.NinjasLib.controllers.constants;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 
 /** Proportional Integral Derivative Feedforward, constants for combining PID and Feedforward */
-public class ControlConstants {
-	public enum SmartControlType{
+public class ControlConstants implements Cloneable {
+    public enum SmartControlType{
 		PID,
 		PROFILED_PID,
 		PROFILE,
@@ -124,5 +124,29 @@ public class ControlConstants {
 	public String toString() {
         return "P: " + P + " I: " + I + " D: " + D + " IZone: " + IZone + " V: " + V + " S: " + S + " G: " + G + " GravityType: " + gravityType.toString()
             + " CruiseVelocity: " + cruiseVelocity + " Acceleration: " + acceleration + " Jerk: " + jerk;
+	}
+
+	@Override
+	public ControlConstants clone() {
+        ControlConstants clone = new ControlConstants();
+
+		clone.P = this.P;
+		clone.I = this.I;
+		clone.D = this.D;
+		clone.IZone = this.IZone;
+
+		clone.S = this.S;
+		clone.V = this.V;
+		clone.G = this.G;
+
+		clone.gravityType = this.gravityType;
+
+		clone.cruiseVelocity = this.cruiseVelocity;
+		clone.acceleration = this.acceleration;
+		clone.jerk = this.jerk;
+
+		clone.type = this.type;
+
+		return clone;
 	}
 }

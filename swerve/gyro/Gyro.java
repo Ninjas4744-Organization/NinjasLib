@@ -49,6 +49,6 @@ public class Gyro {
 
     public void periodic() {
         io.updateInputs(inputs);
-        Logger.processInputs("Gyro", inputs);
+        Logger.processInputs("Swerve/Gyro", inputs);
     }
 }
