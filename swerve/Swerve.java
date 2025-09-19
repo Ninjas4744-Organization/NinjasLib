@@ -86,7 +86,7 @@ public class Swerve {
             if(constants.gyro.gyroType == SwerveConstants.Gyro.GyroType.NavX)
                 gyro = new Gyro(new GyroIONavX(constants.special.odometryThreadFrequency, constants.gyro.gyroInverted));
             else
-                gyro = new Gyro(new GyroIOPigeon2(constants.gyro.gyroID, constants.gyro.gyroInverted, constants.special.odometryThreadFrequency, constants.modules.CANBus.isEmpty() ? "rio" : constants.modules.CANBus));
+                gyro = new Gyro(new GyroIOPigeon2(constants.gyro.gyroID, constants.gyro.gyroInverted, constants.special.odometryThreadFrequency, constants.special.CANBus.isEmpty() ? "rio" : constants.special.CANBus));
 
         } else if (!constants.special.isReplay) {
             DriveTrainSimulationConfig config = new DriveTrainSimulationConfig(Kilograms.of(constants.special.robotConfig.massKG),
@@ -118,8 +118,8 @@ public class Swerve {
             gyro = new Gyro(new GyroIO() {});
         }
 
-        if(constants.enableOdometryThread)
-            OdometryThread.getInstance().start(constants.odometryThreadFrequency);
+        if(constants.special.enableOdometryThread)
+            OdometryThread.getInstance().start(constants.special.odometryThreadFrequency);
 
         resetModulesToAbsolute();
     }

@@ -73,9 +73,6 @@ public class SwerveConstants {
 
         /** The type of the controller of the steer motor */
         public Controller.ControllerType steerControllerType;
-
-        /** The name of the canbus the swerve is running on. 'rio' by default if CANivore is not present */
-        public static String CANBus = "rio";
     }
 
     public static class Gyro {
@@ -121,5 +118,8 @@ public class SwerveConstants {
 
         /** The starting position of the robot */
         public Pose2d robotStartPose;
+
+        /** The name of the canbus the swerve is running on. 'rio' by default if CANivore is not present */
+        public String CANBus = "rio";
     }
 }
