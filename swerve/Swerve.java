@@ -100,10 +100,10 @@ public class Swerve {
             SimulatedArena.getInstance().addDriveTrainSimulation(simulation);
 
             modules = new SwerveModuleIO[]{
-                new SwerveModuleIOSim(constants.modules.moduleConstants[0], simulation.getModules()[0]),
-                new SwerveModuleIOSim(constants.modules.moduleConstants[1], simulation.getModules()[1]),
-                new SwerveModuleIOSim(constants.modules.moduleConstants[2], simulation.getModules()[2]),
-                new SwerveModuleIOSim(constants.modules.moduleConstants[3], simulation.getModules()[3])
+                new SwerveModuleIOSim(constants, constants.modules.moduleConstants[0], simulation.getModules()[0]),
+                new SwerveModuleIOSim(constants, constants.modules.moduleConstants[1], simulation.getModules()[1]),
+                new SwerveModuleIOSim(constants, constants.modules.moduleConstants[2], simulation.getModules()[2]),
+                new SwerveModuleIOSim(constants, constants.modules.moduleConstants[3], simulation.getModules()[3])
             };
 
             gyro = new Gyro(new GyroIOSim(simulation.getGyroSimulation(), constants.gyro.gyroInverted));

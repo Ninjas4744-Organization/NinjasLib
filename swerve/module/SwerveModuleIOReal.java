@@ -10,6 +10,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Units;
 import frc.lib.NinjasLib.controllers.Controller;
 import frc.lib.NinjasLib.controllers.TalonFXController;
+import frc.lib.NinjasLib.controllers.constants.ControllerConstants;
 import frc.lib.NinjasLib.localization.OdometryThread;
 import frc.lib.NinjasLib.swerve.SwerveUtils;
 import frc.lib.NinjasLib.swerve.constants.SwerveConstants;
@@ -19,8 +20,7 @@ import java.util.Queue;
 
 public class SwerveModuleIOReal implements SwerveModuleIO {
     public final int moduleNumber;
-    private SwerveModuleConstants constants;
-    private SwerveConstants swerveConstants;
+    private final SwerveConstants swerveConstants;
 
     private final Controller steerMotor;
     private final Controller driveMotor;
@@ -35,15 +35,22 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
 
     public SwerveModuleIOReal(SwerveModuleConstants constants, SwerveConstants swerveConstants) {
         moduleNumber = constants.moduleNumber;
-        this.constants = constants;
         this.swerveConstants = swerveConstants;
 
-        if(swerveConstants.CANivore.isEmpty())
+        ControllerConstants driveMotorConstants = swerveConstants.modules.driveMotorConstants.clone();
+        driveMotorConstants.real.main.id = constants.driveMotorID;
+        driveMotorConstants.real.main.inverted = constants.driveMotorInverted;
+
+        ControllerConstants steerMotorConstants = swerveConstants.modules.steerMotorConstants.clone();
+        steerMotorConstants.real.main.id = constants.steerMotorID;
+        steerMotorConstants.real.main.inverted = constants.steerMotorInverted;
+
+        if(swerveConstants.special.CANBus.isEmpty())
             canCoder = new CANcoder(constants.canCoderID);
-        else{
-            canCoder = new CANcoder(constants.canCoderID, swerveConstants.CANivore);
-            constants.driveMotorConstants.real.CANivore = swerveConstants.CANivore;
-            constants.angleMotorConstants.real.CANivore = swerveConstants.CANivore;
+        else {
+            canCoder = new CANcoder(constants.canCoderID, swerveConstants.special.CANBus);
+            driveMotorConstants.real.CANBus = swerveConstants.special.CANBus;
+            steerMotorConstants.real.CANBus = swerveConstants.special.CANBus;
         }
         canCoder.getConfigurator().apply(
             new CANcoderConfiguration().MagnetSensor
@@ -51,15 +58,15 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
                 .withMagnetOffset(constants.CANCoderOffset)
         );
 
-        driveMotor = Controller.createController(constants.driveControllerType, constants.driveMotorConstants);
-        steerMotor = Controller.createController(constants.steerControllerType, constants.angleMotorConstants);
+        driveMotor = Controller.createController(swerveConstants.modules.driveControllerType, driveMotorConstants);
+        steerMotor = Controller.createController(swerveConstants.modules.steerControllerType, steerMotorConstants);
 
         lastAngle = Rotation2d.fromRadians(steerMotor.getPosition());
 
-        isTalonFX = constants.driveControllerType == Controller.ControllerType.TalonFX && constants.steerControllerType == Controller.ControllerType.TalonFX;
-        if (swerveConstants.enableOdometryThread && isTalonFX) {
-            positionQueue = OdometryThread.getInstance().registerSignal(((TalonFXController) driveMotor).getPositionSignal(swerveConstants.odometryThreadFrequency).clone());
-            angleQueue = OdometryThread.getInstance().registerSignal(((TalonFXController) steerMotor).getPositionSignal(swerveConstants.odometryThreadFrequency).clone());
+        isTalonFX = swerveConstants.modules.driveControllerType == Controller.ControllerType.TalonFX && swerveConstants.modules.steerControllerType == Controller.ControllerType.TalonFX;
+        if (swerveConstants.special.enableOdometryThread && isTalonFX) {
+            positionQueue = OdometryThread.getInstance().registerSignal(((TalonFXController) driveMotor).getPositionSignal(swerveConstants.special.odometryThreadFrequency).clone());
+            angleQueue = OdometryThread.getInstance().registerSignal(((TalonFXController) steerMotor).getPositionSignal(swerveConstants.special.odometryThreadFrequency).clone());
             timestampQueue = OdometryThread.getInstance().makeTimestampQueue();
         }
     }
@@ -69,12 +76,14 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
         desiredState = SwerveUtils.optimizeModuleState(desiredState, Rotation2d.fromRadians(steerMotor.getPosition()));
 
         //Drive
-        if (isOpenLoop) driveMotor.setPercent(desiredState.speedMetersPerSecond / constants.maxModuleSpeed);
-        else driveMotor.setVelocity(desiredState.speedMetersPerSecond);
+        if (isOpenLoop)
+            driveMotor.setPercent(desiredState.speedMetersPerSecond / swerveConstants.limits.maxSpeed);
+        else
+            driveMotor.setVelocity(desiredState.speedMetersPerSecond);
 
         //Angle
         // Prevent rotating module if speed is less than 3%. Prevents jittering.
-        Rotation2d angle = (Math.abs(desiredState.speedMetersPerSecond) <= (constants.maxModuleSpeed * 0.03)) ? lastAngle : desiredState.angle;
+        Rotation2d angle = (Math.abs(desiredState.speedMetersPerSecond) <= (swerveConstants.limits.maxSpeed * 0.03)) ? lastAngle : desiredState.angle;
         //Prevent jumping from -180 to 180
         double errorBound = (Math.PI - -Math.PI) / 2.0;
         double error = MathUtil.inputModulus(angle.getRadians() - steerMotor.getPosition(), -errorBound, errorBound);
@@ -91,7 +100,7 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
         steerMotor.setEncoder(absolutePosition);
     }
 
-    public Rotation2d getCANCoder() {
+    private Rotation2d getCANCoder() {
         canCoder.getAbsolutePosition().refresh();
         return Rotation2d.fromRadians(canCoder.getAbsolutePosition().getValue().in(Units.Radians));
     }
@@ -103,7 +112,7 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
         inputs.Position = new SwerveModulePosition(driveMotor.getPosition(), Rotation2d.fromRadians(steerMotor.getPosition()));
         inputs.AbsoluteAngle = getCANCoder();
 
-        if (swerveConstants.enableOdometryThread && isTalonFX) {
+        if (swerveConstants.special.enableOdometryThread && isTalonFX) {
             inputs.Positions = positionQueue.stream().mapToDouble((Double value) -> value).toArray();
             inputs.Angles = angleQueue.stream().map(Rotation2d::fromRadians).toArray(Rotation2d[]::new);
             inputs.Timestamps = timestampQueue.stream().mapToDouble((Double value) -> value).toArray();

@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.lib.NinjasLib.swerve.SwerveUtils;
+import frc.lib.NinjasLib.swerve.constants.SwerveConstants;
 import frc.lib.NinjasLib.swerve.constants.SwerveModuleConstants;
 import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
 import org.ironmaple.simulation.motorsims.SimulatedMotorController;
@@ -25,20 +26,20 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
     private Rotation2d lastAngle;
     private final double maxModuleSpeed;
 
-    public SwerveModuleIOSim(SwerveModuleConstants constants, SwerveModuleSimulation simulationModule) {
+    public SwerveModuleIOSim(SwerveConstants swerveConstants, SwerveModuleConstants constants, SwerveModuleSimulation simulationModule) {
         moduleNumber = constants.moduleNumber;
-        maxModuleSpeed = constants.maxModuleSpeed;
+        maxModuleSpeed = swerveConstants.limits.maxSpeed;
 
         this.simulationModule = simulationModule;
 
         driveMotor = simulationModule.useGenericMotorControllerForDrive();
         angleMotor = simulationModule.useGenericControllerForSteer();
 
-        drivePID = new PIDController(constants.driveMotorConstants.real.controlConstants.P, constants.driveMotorConstants.real.controlConstants.I, constants.driveMotorConstants.real.controlConstants.D);
-        drivePID.setIZone(constants.driveMotorConstants.real.controlConstants.IZone);
+        drivePID = new PIDController(swerveConstants.modules.driveMotorConstants.real.controlConstants.P, swerveConstants.modules.driveMotorConstants.real.controlConstants.I, swerveConstants.modules.driveMotorConstants.real.controlConstants.D);
+        drivePID.setIZone(swerveConstants.modules.driveMotorConstants.real.controlConstants.IZone);
 
-        anglePID = new PIDController(constants.angleMotorConstants.real.controlConstants.P, constants.angleMotorConstants.real.controlConstants.I, constants.angleMotorConstants.real.controlConstants.D);
-        anglePID.setIZone(constants.angleMotorConstants.real.controlConstants.IZone);
+        anglePID = new PIDController(swerveConstants.modules.steerMotorConstants.real.controlConstants.P, swerveConstants.modules.steerMotorConstants.real.controlConstants.I, swerveConstants.modules.steerMotorConstants.real.controlConstants.D);
+        anglePID.setIZone(swerveConstants.modules.steerMotorConstants.real.controlConstants.IZone);
 
         lastAngle = simulationModule.getCurrentState().angle;
     }
