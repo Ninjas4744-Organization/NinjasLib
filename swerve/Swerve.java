@@ -39,13 +39,13 @@ public class Swerve {
     private ChassisSpeeds wantedRobotRelativeSpeeds = new ChassisSpeeds();
     private SwerveModuleIOInputsAutoLogged[] moduleInputs;
     private SwerveModulePosition[] previousModulePositions;
+    public static final Lock odometryLock = new ReentrantLock();
 
     private SlewRateLimiter xAccelerationLimit;
     private SlewRateLimiter yAccelerationLimit;
     private SlewRateLimiter rotAccelerationLimit;
 
     private final SwerveConstants constants;
-    public static final Lock odometryLock = new ReentrantLock();
     private SwerveDriveSimulation simulation;
     private static Swerve instance;
 
