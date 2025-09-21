@@ -5,39 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="64c52c3d-b79f-4525-936c-6095f5c3427f" name="Changes" comment="Removed SwerveInput, added getCurrent">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/Build_Robot_Code.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/Deploy_Robot_Code.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/Simulate_Robot_Code.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.vscode/settings.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.wpilib/wpilib_preferences.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/WPILib-License.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradlew" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradlew.bat" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jitpack.yml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/akit_25-02-09_18-29-55.wpilog" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/akit_25-02-09_18-34-41.wpilog" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/akit_25-02-09_18-37-58.wpilog" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/akit_25-02-09_18-50-24.wpilog" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/akit_6379fd9d67bbf898.wpilog" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/akit_ce8443f9c8c9f2e3.wpilog" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/networktables.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.gradle" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/simgui-ds.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/simgui.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/vendordeps/AdvantageKit.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/vendordeps/PathplannerLib-2025.2.3.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/vendordeps/Phoenix5-5.35.1.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/vendordeps/Phoenix6-25.2.2.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/vendordeps/REVLib-2025.0.2.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/vendordeps/Studica-2025.0.1.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/vendordeps/WPILibNewCommands.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/vendordeps/photonlib.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controllers/Controller.java" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/Controller.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -71,7 +40,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="2025" />
+        <entry key="$PROJECT_DIR$" value="2025-OffSeason" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -108,7 +77,8 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "com.codeium.enabled": "true",
-    "git-widget-placeholder": "Converting-To-Submodule",
+    "dart.analysis.tool.window.visible": "false",
+    "git-widget-placeholder": "Adding-Inputs-To-Controller-Inputs",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/eitan/Documents/Projects/Robotics/Robot-Code-2025"
   }
@@ -123,13 +93,6 @@
       <recent name="frc.lib.NinjasLib" />
       <recent name="frc.lib.NinjasLib.Swerve" />
     </key>
-  </component>
-  <component name="RunManager" selected="Gradle.Build Robot Code">
-    <list>
-      <item itemvalue="Gradle.Deploy Robot Code" />
-      <item itemvalue="Gradle.Build Robot Code" />
-      <item itemvalue="Gradle.Simulate Robot Code" />
-    </list>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
