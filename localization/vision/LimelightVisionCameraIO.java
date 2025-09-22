@@ -45,26 +45,28 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
             ? LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(cameraName)
             : LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2(cameraName);
 
-        if (estimate.tagCount == 0)
-            return;
-
-        // Populate VisionOutput
         VisionOutput output = new VisionOutput();
+        output.latency = estimate.latency / 1000;
+        output.timestamp = estimate.timestampSeconds;
         output.cameraName = cameraName;
-        output.amountOfTargets = estimate.tagCount;
-        output.hasTargets = true;
 
-        // Analyze tag info
-        targets = LimelightHelpers.getLatestResults(cameraName).targets_Fiducials;
-        analyze(output);
+        if (estimate.tagCount != 0) {
+            output.amountOfTargets = estimate.tagCount;
+            output.hasTargets = true;
 
-        // Only use if within range
-        if (output.closestTargetDist < constants.maxDistance) {
+            // Analyze tag info
+            targets = LimelightHelpers.getLatestResults(cameraName).targets_Fiducials;
+            analyze(output);
+
             output.robotPose = estimate.pose;
-            output.timestamp = estimate.timestampSeconds;
-        } else {
-            output.hasTargets = false;
-            output.amountOfTargets = 0;
+            // Only use if within range
+    //        if (output.closestTargetDist < constants.maxDistance) {
+    //            output.robotPose = estimate.pose;
+    //            output.timestamp = estimate.timestampSeconds;
+    //        } else {
+    //            output.hasTargets = false;
+    //            output.amountOfTargets = 0;
+    //        }
         }
 
         outputs.add(output);
@@ -109,7 +111,7 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
             output.cameraToClosestTargetTransform = new Transform3d(new Pose3d(), closest.getTargetPose_CameraSpace());
         }
 
-        output.maxAmbiguity = 0; // MegaTag2 handles ambiguity internally
+        output.ambiguity = 0; // MegaTag2 handles ambiguity internally
         output.farthestTargetDist = maxDist;
     }
 

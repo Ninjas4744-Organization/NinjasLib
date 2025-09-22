@@ -16,6 +16,9 @@ public class VisionOutput implements StructSerializable {
 	/** The time at which the pose was detected */
 	public double timestamp = 0;
 
+    /** The time between image capture and publish to NT in seconds */
+    public double latency = 0;
+
 	/**
 	 * The id of the tag which was detected the closest to the camera
 	 */
@@ -46,8 +49,8 @@ public class VisionOutput implements StructSerializable {
 	 */
 	public Transform3d[] cameraToTargetsTransforms = new Transform3d[0];
 
-	/** The ambiguity of the tag which was detected most ambiguously */
-	public double maxAmbiguity = 0;
+	/** The ambiguity of the tag which was detected least ambiguously */
+	public double ambiguity = 0;
 
 	/** The distance from the camera of the tag which was detected the farthest */
 	public double farthestTargetDist = 0;
@@ -61,9 +64,7 @@ public class VisionOutput implements StructSerializable {
 	/** How many targets the camera detected */
 	public int amountOfTargets = 0;
 
-	/**
-	 * The name of the camera
-	 */
+	/** The name of the camera */
 	public String cameraName = "";
 
 	public static final VisionOutputStruct struct = new VisionOutputStruct();
@@ -85,6 +86,7 @@ public class VisionOutput implements StructSerializable {
 			int size = 0;
 			size += Pose2d.struct.getSize(); // robotPose
 			size += kSizeDouble; // timestamp
+			size += kSizeDouble; // latency
 			size += kSizeDouble; // closestTargetId (was int)
 			size += Pose3d.struct.getSize(); // closestTargetPose
 
@@ -93,7 +95,7 @@ public class VisionOutput implements StructSerializable {
 			size += Transform3d.struct.getSize(); // cameraToClosestTargetTransform
 			size += 3 * Transform3d.struct.getSize(); // cameraToTargetsTransforms, max 3
 
-			size += kSizeDouble * 3; // maxAmbiguity, farthestTargetDist, closestTargetDist
+			size += kSizeDouble * 3; // ambiguity, farthestTargetDist, closestTargetDist
 			size += kSizeBool; // hasTargets
 			size += kSizeDouble; // amountOfTargets (was int, now double)
 
@@ -111,10 +113,10 @@ public class VisionOutput implements StructSerializable {
 
 		@Override
 		public String getSchema() {
-			return "Pose2d robotPose;double timestamp;double closestTargetId;Pose3d closestTargetPose;" +
+			return "Pose2d robotPose;double timestamp;double latency;double closestTargetId;Pose3d closestTargetPose;" +
 				"double target1Id;double target2Id;double target3Id;Pose3d target1Pose;Pose3d target2Pose;Pose3d target3Pose;" +
 				"Transform3d cameraToClosestTargetTransform;Transform3d cameraToTarget1Transform;Transform3d cameraToTarget2Transform;Transform3d cameraToTarget3Transform;" +
-				"double maxAmbiguity;double farthestTargetDist;double closestTargetDist;bool hasTargets;double amountOfTargets";
+				"double ambiguity;double farthestTargetDist;double closestTargetDist;bool hasTargets;double amountOfTargets";
 		}
 
 		@Override
@@ -123,6 +125,7 @@ public class VisionOutput implements StructSerializable {
 
 			output.robotPose = Pose2d.struct.unpack(bb);
 			output.timestamp = bb.getDouble();
+			output.latency = bb.getDouble();
 
 			output.closestTargetId = (int) bb.getDouble();
 			output.closestTargetPose = Pose3d.struct.unpack(bb);
@@ -159,7 +162,7 @@ public class VisionOutput implements StructSerializable {
 			if (transform2.getX() != -999) output.cameraToTargetsTransforms[idx++] = transform2;
 			if (transform3.getX() != -999) output.cameraToTargetsTransforms[idx++] = transform3;
 
-			output.maxAmbiguity = bb.getDouble();
+			output.ambiguity = bb.getDouble();
 			output.farthestTargetDist = bb.getDouble();
 			output.closestTargetDist = bb.getDouble();
 
@@ -173,6 +176,7 @@ public class VisionOutput implements StructSerializable {
 		public void pack(ByteBuffer bb, VisionOutput value) {
 			Pose2d.struct.pack(bb, value.robotPose);
 			bb.putDouble(value.timestamp);
+			bb.putDouble(value.latency);
 
 			bb.putDouble(value.closestTargetId);
 			Pose3d.struct.pack(bb, value.closestTargetPose);
@@ -200,7 +204,7 @@ public class VisionOutput implements StructSerializable {
 					Transform3d.struct.pack(bb, new Transform3d(-999, -999, -999, Rotation3d.kZero));
 			}
 
-			bb.putDouble(value.maxAmbiguity);
+			bb.putDouble(value.ambiguity);
 			bb.putDouble(value.farthestTargetDist);
 			bb.putDouble(value.closestTargetDist);
 
@@ -213,5 +217,4 @@ public class VisionOutput implements StructSerializable {
 			return false;
 		}
 	}
-
 }

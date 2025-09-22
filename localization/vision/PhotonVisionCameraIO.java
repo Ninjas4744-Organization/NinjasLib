@@ -77,6 +77,7 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
 
             outputs.get(i).hasTargets = results.get(i).hasTargets();
             outputs.get(i).amountOfTargets = results.get(i).getTargets().size();
+            outputs.get(i).latency = results.get(i).metadata.getLatencyMillis() / 1000;
 
             if (currentPose.isEmpty())
                 continue;
@@ -84,13 +85,15 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
             targets = currentPose.get().targetsUsed;
             analyze(outputs.get(i));
 
-            if (outputs.get(i).maxAmbiguity < constants.maxAmbiguity && outputs.get(i).closestTargetDist < constants.maxDistance) {
-                outputs.get(i).timestamp = currentPose.get().timestampSeconds;
-                outputs.get(i).robotPose = currentPose.get().estimatedPose.toPose2d();
-            } else {
-                outputs.get(i).hasTargets = false;
-                outputs.get(i).amountOfTargets = 0;
-            }
+            outputs.get(i).timestamp = currentPose.get().timestampSeconds;
+            outputs.get(i).robotPose = currentPose.get().estimatedPose.toPose2d();
+//            if (outputs.get(i).maxAmbiguity < constants.maxAmbiguity && outputs.get(i).closestTargetDist < constants.maxDistance) {
+//                outputs.get(i).timestamp = currentPose.get().timestampSeconds;
+//                outputs.get(i).robotPose = currentPose.get().estimatedPose.toPose2d();
+//            } else {
+//                outputs.get(i).hasTargets = false;
+//                outputs.get(i).amountOfTargets = 0;
+//            }
         }
 
         inputs.outputs = outputs.toArray(new VisionOutput[0]);
@@ -99,7 +102,7 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
     private void analyze(VisionOutput output) {
         output.closestTargetDist = Double.MAX_VALUE;
         output.farthestTargetDist = 0;
-        output.maxAmbiguity = 0;
+        output.ambiguity = 0;
 
         output.targetsIds = new int[targets.size()];
         output.targetsPoses = new Pose3d[targets.size()];
@@ -122,8 +125,8 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
             if (distance > output.farthestTargetDist)
                 output.farthestTargetDist = distance;
 
-            if (ambiguity > output.maxAmbiguity)
-                output.maxAmbiguity = ambiguity;
+            if (ambiguity < output.ambiguity)
+                output.ambiguity = ambiguity;
         }
     }
 

@@ -2,7 +2,6 @@ package frc.lib.NinjasLib.localization.vision;
 
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.simulation.VisionSystemSim;
@@ -11,7 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class Vision extends SubsystemBase {
+public class Vision {
 	private static Vision instance;
 	private HashMap<String, VisionCameraIO> cameras;
 	private HashMap<String, VisionCameraIOInputsAutoLogged> inputs;
@@ -59,7 +58,6 @@ public class Vision extends SubsystemBase {
 		}
 	}
 
-	@Override
 	public void periodic() {
 		for (String name : cameras.keySet()) {
 			cameras.get(name).updateInputs(inputs.get(name));
@@ -115,7 +113,7 @@ public class Vision extends SubsystemBase {
 	 * @return ambiguity of the most ambiguous tag from this camera
 	 */
 	public double getMaxAmbiguity(String camera) {
-		return inputs.get(camera).outputs[inputs.get(camera).outputs.length - 1].maxAmbiguity;
+		return inputs.get(camera).outputs[inputs.get(camera).outputs.length - 1].ambiguity;
 	}
 
 	public Transform3d getCameraToClosestTargetTransform(String camera) {
