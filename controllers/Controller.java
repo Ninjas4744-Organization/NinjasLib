@@ -202,6 +202,7 @@ public abstract class Controller {
         public double Output;
         public double Current;
         public double Goal;
+        public boolean AtGoal;
         public boolean LimitSwitch;
         public String ControlState;
         public String ControlType;
@@ -214,6 +215,7 @@ public abstract class Controller {
         inputs.Output = getOutput();
         inputs.Current = getCurrent();
         inputs.Goal = getGoal();
+        inputs.AtGoal = atGoal();
         inputs.LimitSwitch = getLimit();
         inputs.ControlState = controlState.toString();
         inputs.ControlType = constants.controlConstants.type == SmartControlType.NONE ? "N/A" : constants.controlConstants.type.toString();
