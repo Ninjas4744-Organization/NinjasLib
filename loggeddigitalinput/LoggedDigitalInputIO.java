@@ -10,5 +10,5 @@ public interface LoggedDigitalInputIO {
 
     default void updateInputs(LoggedDigitalInputsAutoLogged inputs) {}
 
-    default void setup(int port) {}
+    default void setup(int port, boolean inverted) {}
 }

@@ -9,14 +9,14 @@ public class LoggedDigitalInput {
     private boolean disabledValue;
     private String name;
 
-    public LoggedDigitalInput(String name, int port, boolean enabled, boolean disabledValue, LoggedDigitalInputIO io) {
+    public LoggedDigitalInput(String name, int port, boolean enabled, boolean disabledValue, boolean inverted, LoggedDigitalInputIO io) {
         this.enabled = enabled;
         this.disabledValue = disabledValue;
         this.name = name;
 
         if(enabled){
             this.io = io;
-            io.setup(port);
+            io.setup(port, inverted);
         }
     }
 
