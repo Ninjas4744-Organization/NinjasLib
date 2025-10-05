@@ -6,14 +6,16 @@ import org.littletonrobotics.junction.Logger;
 public class LoggedCommandController {
     private LoggedCommandControllerIOInputsAutoLogged inputs = new LoggedCommandControllerIOInputsAutoLogged();
     private LoggedCommandControllerIO io;
+    private String name;
 
-    public LoggedCommandController(LoggedCommandControllerIO io) {
+    public LoggedCommandController(String name, LoggedCommandControllerIO io) {
         this.io = io;
+        this.name = name;
     }
 
     public void periodic() {
         io.updateInputs(inputs);
-        Logger.processInputs("Controller", inputs);
+        Logger.processInputs(name + " Controller", inputs);
     }
 
     // Face buttons
