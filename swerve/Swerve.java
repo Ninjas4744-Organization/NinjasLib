@@ -184,10 +184,9 @@ public class Swerve {
             constants.special.robotStartPose = new Pose2d(-999, -999, Rotation2d.kZero);
         }
 
-        gyro.periodic();
-
         if (constants.special.enableOdometryThread) {
             odometryLock.lock();
+            gyro.periodic();
             Rotation2d[] gyroYawArray = gyro.getOdometryYawPositions();
             for (int i = 0; i < modules.length; i++) {
                 modules[i].periodic();
@@ -219,9 +218,13 @@ public class Swerve {
                     Logger.recordOutput("Odometry Thread/Sample " + i + "/Timestamp", sampleTimestamps[i]);
                     RobotStateWithSwerve.getInstance().updateRobotPoseWithTime(modulePositions, gyroYawArray[i], sampleTimestamps[i]);
                 }
-            } else
+            } else {
+                gyro.periodic();
                 RobotStateWithSwerve.getInstance().setRobotPose(simulation.getSimulatedDriveTrainPose());
+            }
         } else {
+            gyro.periodic();
+
             for (int i = 0; i < modules.length; i++) {
                 modules[i].periodic();
 
