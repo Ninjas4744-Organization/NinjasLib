@@ -14,9 +14,9 @@ public interface SwerveModuleIO {
         public Rotation2d AbsoluteAngle = Rotation2d.kZero;
 
         // Odometry Thread
-        public Rotation2d[] Angles;
-        public double[] Positions;
-        public double[] Timestamps;
+        public Rotation2d[] Angles = new Rotation2d[0];
+        public double[] Positions = new double[0];
+        public double[] Timestamps = new double[0];
     }
 
     default void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop) {

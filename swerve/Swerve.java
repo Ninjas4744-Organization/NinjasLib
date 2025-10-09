@@ -220,7 +220,8 @@ public class Swerve {
                 }
             } else {
                 gyro.periodic();
-                RobotStateWithSwerve.getInstance().setRobotPose(simulation.getSimulatedDriveTrainPose());
+                if (!constants.special.isReplay)
+                    RobotStateWithSwerve.getInstance().setRobotPose(simulation.getSimulatedDriveTrainPose());
             }
         } else {
             gyro.periodic();
