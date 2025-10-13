@@ -26,10 +26,10 @@ public class SparkMaxController extends Controller {
 		config.inverted(constants.main.inverted);
 		config.smartCurrentLimit((int)constants.currentLimit);
 
-		config.softLimit.forwardSoftLimit(constants.maxSoftLimit != Double.MAX_VALUE ? constants.maxSoftLimit : 0)
-			.reverseSoftLimit(constants.minSoftLimit != Double.MIN_VALUE ? constants.minSoftLimit : 0)
-            .forwardSoftLimitEnabled(constants.maxSoftLimit != Double.MAX_VALUE)
-            .reverseSoftLimitEnabled(constants.minSoftLimit != Double.MIN_VALUE);
+		config.softLimit.forwardSoftLimit(constants.maxSoftLimit != Double.POSITIVE_INFINITY ? constants.maxSoftLimit : 0)
+			.reverseSoftLimit(constants.minSoftLimit != Double.NEGATIVE_INFINITY ? constants.minSoftLimit : 0)
+            .forwardSoftLimitEnabled(constants.maxSoftLimit != Double.POSITIVE_INFINITY)
+            .reverseSoftLimitEnabled(constants.minSoftLimit != Double.NEGATIVE_INFINITY);
 
 		config.closedLoop.pid(constants.controlConstants.P, constants.controlConstants.I, constants.controlConstants.D);
 
