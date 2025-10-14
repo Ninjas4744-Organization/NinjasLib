@@ -48,7 +48,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             if(ends != null) {
                 for(Command end : ends.keySet()) {
                     if(end.isFinished() || !end.isScheduled()) {
-                        System.out.println("[StateMachine] End condition met on state " + getCurrentState().name() + ", switching state to: " + ends.get(end).name());
+                        System.out.println("[StateMachine] Ended state " + getCurrentState().name() + ": " + ends.get(end).name());
                         changeRobotState(ends.get(end), false);
                         break;
                     }
@@ -58,7 +58,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
 
         // Check if transition command ended
         if(currentEdge != null && (currentEdge.isFinished() || !currentEdge.isScheduled())) {
-            System.out.println("[StateMachine] Transition ended from " + getCurrentState().name() + " to " + getTargetState().name());
+            System.out.println("[StateMachine] Ended " + getCurrentState().name() + " -> " + getTargetState().name());
 
             RobotStateBase.getInstance().setRobotState(getTargetState());
             currentEdge = null;
@@ -100,7 +100,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             currentEdge = edge;
             currentEdge.schedule();
 
-            System.out.println("[StateMachine] Transition started from " + getCurrentState().name() + " to " + getTargetState().name());
+            System.out.println("[StateMachine] Started " + getCurrentState().name() + " -> " + getTargetState().name());
         }
     }
 
