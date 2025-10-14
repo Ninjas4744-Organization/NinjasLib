@@ -18,7 +18,7 @@ public class SimulatedController extends Controller {
     public SimulatedController(ControllerConstants constants) {
         super(constants.real);
 
-        motorSim = new DCMotorSim(LinearSystemId.createDCMotorSystem(constants.motorType, 0.001, constants.real.gearRatio), constants.motorType, 0.002, 0.002);
+        motorSim = new DCMotorSim(LinearSystemId.createDCMotorSystem(constants.motorType, 0.001, constants.real.gearRatio), constants.motorType, 0.0005, 0.0005);
 
         profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(
             constants.real.controlConstants.cruiseVelocity,
