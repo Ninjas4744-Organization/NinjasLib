@@ -204,7 +204,6 @@ public class Swerve {
                 for (int i = 0; i < sampleCount; i++) {
                     SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
                     for (int j = 0; j < 4; j++) {
-//                        int index = moduleInputs[i].ModuleNumber;
                         double drivePosition = moduleInputs[j].Positions[i];
                         Rotation2d steerAngle = moduleInputs[j].Angles[i];
                         modulePositions[j] = new SwerveModulePosition(drivePosition, steerAngle);

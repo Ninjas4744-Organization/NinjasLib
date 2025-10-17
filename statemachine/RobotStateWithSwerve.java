@@ -119,6 +119,12 @@ public abstract class RobotStateWithSwerve<StateEnum extends Enum<StateEnum>> ex
         Logger.recordOutput("Robot Pose", getRobotPose());
     }
 
+    public void resetGyro(Rotation2d yaw) {
+        Pose2d currentPose = getRobotPose();
+        setRobotPose(new Pose2d(currentPose.getX(), currentPose.getY(), yaw));
+        Swerve.getInstance().getGyro().resetYaw(yaw);
+    }
+
     /**
      * Updates the robot pose according to odometry parameters.
      *
