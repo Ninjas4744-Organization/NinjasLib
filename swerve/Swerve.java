@@ -233,7 +233,7 @@ public class Swerve {
             }
 
             if (Robot.isReal() || constants.special.isReplay)
-                RobotStateWithSwerve.getInstance().updateRobotPose(getModulePositions(), gyro.getYaw());
+                RobotStateWithSwerve.getInstance().updateRobotPose(getModulePositions(), gyro.getYawOffsetted());
             else
                 RobotStateWithSwerve.getInstance().setRobotPose(simulation.getSimulatedDriveTrainPose());
         }

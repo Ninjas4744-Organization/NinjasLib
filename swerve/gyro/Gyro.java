@@ -15,6 +15,10 @@ public class Gyro {
         return inputs.Yaw;
     }
 
+    public Rotation2d getYawOffsetted() {
+        return inputs.YawOffsetted;
+    }
+
     public Rotation2d getPitch() {
         return inputs.Pitch;
     }

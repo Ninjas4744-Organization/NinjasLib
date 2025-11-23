@@ -8,6 +8,8 @@ import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import frc.lib.NinjasLib.localization.OdometryThread;
 
+import static edu.wpi.first.units.Units.Radians;
+
 import java.util.Queue;
 
 public class GyroIOPigeon2 implements GyroIO{
@@ -16,6 +18,7 @@ public class GyroIOPigeon2 implements GyroIO{
     private Queue<Double> yawPositionQueue;
     private Queue<Double> yawTimestampQueue;
     private boolean inverted;
+    private Rotation2d yawOffset = Rotation2d.kZero;
 
     public GyroIOPigeon2(int id, boolean inverted, int frequency, String canbus) {
         pigeon = new Pigeon2(id, canbus);
@@ -33,6 +36,7 @@ public class GyroIOPigeon2 implements GyroIO{
     public void updateInputs(GyroIOInputsAutoLogged inputs) {
         BaseStatusSignal.refreshAll(yaw);
         inputs.Yaw = Rotation2d.fromRadians((inverted ? -1 : 1) * yaw.getValue().in(Units.Radians));
+        inputs.YawOffsetted = Rotation2d.fromRadians((inverted ? -1 : 1) * yaw.getValue().in(Units.Radians)).plus(yawOffset);
         inputs.Pitch = Rotation2d.fromRadians(pigeon.getPitch().getValue().in(Units.Radians));
         inputs.Roll = Rotation2d.fromRadians(pigeon.getRoll().getValue().in(Units.Radians));
 //        inputs.AccelerationX = pigeon.getAccelerationX().getValue().in(Units.MetersPerSecondPerSecond);
@@ -44,7 +48,7 @@ public class GyroIOPigeon2 implements GyroIO{
                     yawTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
             inputs.odometryYawPositions =
                     yawPositionQueue.stream()
-                            .map(x -> Rotation2d.fromDegrees((inverted ? -1 : 1) * x))
+                            .map(x -> Rotation2d.fromDegrees((inverted ? -1 : 1) * x).plus(yawOffset))
                             .toArray(Rotation2d[]::new);
             yawTimestampQueue.clear();
             yawPositionQueue.clear();
@@ -54,6 +58,7 @@ public class GyroIOPigeon2 implements GyroIO{
     @Override
     public void resetGyroYaw(Rotation2d yaw) {
         System.out.print("Gyro: " + pigeon.getRotation2d().getDegrees() + " -> ");
+        yawOffset = yawOffset.plus(Rotation2d.fromRadians(this.yaw.getValue().in(Radians)).minus(yaw));
         pigeon.setYaw(yaw.getDegrees(), 0);
         System.out.println(pigeon.getRotation2d().getDegrees());
     }
