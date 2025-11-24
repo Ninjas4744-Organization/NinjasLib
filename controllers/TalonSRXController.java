@@ -23,8 +23,8 @@ public class TalonSRXController extends Controller {
         main.configMotionCruiseVelocity(
             constants.controlConstants.cruiseVelocity * constants.conversionFactor / 10);
         main.configMotionAcceleration(constants.controlConstants.acceleration * constants.conversionFactor / 10);
-        main.configForwardSoftLimitEnable(constants.maxSoftLimit != Double.MAX_VALUE);
-        main.configReverseSoftLimitEnable(constants.minSoftLimit != Double.MIN_VALUE);
+        main.configForwardSoftLimitEnable(constants.maxSoftLimit != Double.POSITIVE_INFINITY);
+        main.configReverseSoftLimitEnable(constants.minSoftLimit != Double.NEGATIVE_INFINITY);
         main.configForwardSoftLimitThreshold(constants.maxSoftLimit);
         main.configReverseSoftLimitThreshold(constants.minSoftLimit);
 

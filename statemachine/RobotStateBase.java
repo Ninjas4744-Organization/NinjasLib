@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
 
-public abstract class RobotStateBase<StateEnum> {
+public abstract class RobotStateBase<StateEnum extends Enum<StateEnum>> {
     protected static RobotStateBase instance;
     protected StateEnum robotState;
 
@@ -54,5 +54,9 @@ public abstract class RobotStateBase<StateEnum> {
      */
     public static AllianceStationID getAllianceStation() {
         return Robot.isSimulation() ? DriverStationSim.getAllianceStationId() : DriverStation.getRawAllianceStation();
+    }
+
+    public static boolean isTeleop() {
+        return DriverStation.isTeleop();
     }
 }

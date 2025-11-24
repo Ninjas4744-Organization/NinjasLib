@@ -15,7 +15,7 @@ import frc.lib.NinjasLib.swerve.Swerve;
 import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
 
-public abstract class RobotStateWithSwerve<StateEnum> extends RobotStateBase<StateEnum> {
+public abstract class RobotStateWithSwerve<StateEnum extends Enum<StateEnum>> extends RobotStateBase<StateEnum> {
     private final SwerveDrivePoseEstimator poseEstimator;
     private final SwerveDrivePoseEstimator onlyOdometryEstimator;
 

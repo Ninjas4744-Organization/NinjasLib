@@ -49,10 +49,10 @@ public class RealControllerConstants {
     public double conversionFactor = 1;
 
     /** The down soft limit, makes the system unable to move under it */
-    public double minSoftLimit = Double.MIN_VALUE;
+    public double minSoftLimit = Double.NEGATIVE_INFINITY;
 
     /** The up soft limit, makes the system unable to move above it */
-    public double maxSoftLimit = Double.MAX_VALUE;
+    public double maxSoftLimit = Double.POSITIVE_INFINITY;
 
     /** Whether there is a limit switch related to the subsystem. */
     public boolean isLimitSwitch = false;
