@@ -204,7 +204,6 @@ public class Swerve {
 
         Logger.recordOutput("Swerve/Current Velocity", getChassisSpeeds(true));
         Logger.recordOutput("Swerve/Wanted Velocity", ChassisSpeeds.fromRobotRelativeSpeeds(wantedRobotRelativeSpeeds, gyro.getYaw()));
-        Logger.recordOutput("Swerve/Odometry Thread/Odometry Update Frames Percent", framesWithUpdate / (double)frames * 100);
     }
     
     int frames = 0;
@@ -248,6 +247,8 @@ public class Swerve {
             }
         } else
             RobotStateWithSwerve.getInstance().setRobotPose(simulation.getSimulatedDriveTrainPose());
+
+        Logger.recordOutput("Swerve/Odometry Thread/Odometry Update Frames Percent", framesWithUpdate / (double)frames * 100);
     }
 
     public double getOdometryFrequency() {
