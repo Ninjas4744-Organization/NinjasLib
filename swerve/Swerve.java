@@ -191,13 +191,12 @@ public class Swerve {
 
             for (int i = 0; i < modules.length; i++) {
                 modules[i].periodic();
-
                 modules[i].updateInputs(moduleInputs[i]);
                 Logger.processInputs("Swerve/Module " + moduleInputs[i].ModuleNumber, moduleInputs[i]);
             }
 
             if (Robot.isReal() || constants.special.isReplay)
-                RobotStateWithSwerve.getInstance().updateRobotPose(getModulePositions(), gyro.getYaw());
+                RobotStateWithSwerve.getInstance().updateRobotPose(getModulePositions(), gyro.getYawOffsetted());
             else
                 RobotStateWithSwerve.getInstance().setRobotPose(simulation.getSimulatedDriveTrainPose());
         }
@@ -218,7 +217,6 @@ public class Swerve {
         Rotation2d[] gyroYawArray = gyro.getOdometryYawPositions();
         for (int i = 0; i < modules.length; i++) {
             modules[i].periodic();
-
             modules[i].updateInputs(moduleInputs[i]);
             Logger.processInputs("Swerve/Module " + moduleInputs[i].ModuleNumber, moduleInputs[i]);
         }
