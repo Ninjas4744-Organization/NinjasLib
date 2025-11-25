@@ -101,7 +101,6 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
     }
 
     private Rotation2d getCANCoder() {
-//        canCoder.getAbsolutePosition().refresh();
         return Rotation2d.fromRadians(canCoder.getAbsolutePosition().getValue().in(Units.Radians));
     }
 
@@ -121,21 +120,6 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
             angleQueue.clear();
             timestampQueue.clear();
         }
-
-//        inputs.ModuleNumber = moduleNumber;
-//        inputs.State = new SwerveModuleState();
-//        inputs.Position = new SwerveModulePosition();
-//        inputs.AbsoluteAngle = new Rotation2d();
-//
-//        if (swerveConstants.special.enableOdometryThread && isTalonFX) {
-//            inputs.Positions = new double[5];//positionQueue.stream().mapToDouble((Double value) -> value).toArray();
-//            inputs.Angles = new Rotation2d[] { Rotation2d.kZero, Rotation2d.kZero, Rotation2d.kZero, Rotation2d.kZero, Rotation2d.kZero };//angleQueue.stream().map(Rotation2d::fromRadians).toArray(Rotation2d[]::new);
-//            inputs.Timestamps = new double[5];//timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
-//
-//            positionQueue.clear();
-//            angleQueue.clear();
-//            timestampQueue.clear();
-//        }
     }
 
     @Override

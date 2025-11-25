@@ -53,25 +53,6 @@ public class GyroIOPigeon2 implements GyroIO{
             yawTimestampQueue.clear();
             yawPositionQueue.clear();
         }
-
-//        BaseStatusSignal.refreshAll(yaw);
-//        inputs.Yaw = new Rotation2d();//Rotation2d.fromRadians((inverted ? -1 : 1) * yaw.getValue().in(Units.Radians));
-//        inputs.Pitch = new Rotation2d();//Rotation2d.fromRadians(pigeon.getPitch().getValue().in(Units.Radians));
-//        inputs.Roll = new Rotation2d();//Rotation2d.fromRadians(pigeon.getRoll().getValue().in(Units.Radians));
-////        inputs.AccelerationX = pigeon.getAccelerationX().getValue().in(Units.MetersPerSecondPerSecond);
-////        inputs.AccelerationY = pigeon.getAccelerationY().getValue().in(Units.MetersPerSecondPerSecond);
-////        inputs.AccelerationZ = pigeon.getAccelerationZ().getValue().in(Units.MetersPerSecondPerSecond);
-//
-//        if (yawTimestampQueue != null) {
-//            inputs.odometryYawTimestamps =
-//                    new double[0];//yawTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
-//            inputs.odometryYawPositions =
-//                    new Rotation2d[0];//yawPositionQueue.stream()
-//                            //.map(x -> Rotation2d.fromDegrees((inverted ? -1 : 1) * x))
-//                            //.toArray(Rotation2d[]::new);
-//            yawTimestampQueue.clear();
-//            yawPositionQueue.clear();
-//        }
     }
 
     @Override
