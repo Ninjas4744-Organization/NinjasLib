@@ -7,6 +7,7 @@ public interface GyroIO {
     @AutoLog
     class GyroIOInputs {
         public Rotation2d Yaw = Rotation2d.kZero;
+        public Rotation2d YawOffsetted = Rotation2d.kZero;
         public Rotation2d Pitch = Rotation2d.kZero;
         public Rotation2d Roll = Rotation2d.kZero;
         public double AccelerationX;
