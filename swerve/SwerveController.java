@@ -1,15 +1,17 @@
 package frc.lib.NinjasLib.swerve;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import frc.lib.NinjasLib.statemachine.RobotStateWithSwerve;
 import frc.lib.NinjasLib.swerve.constants.SwerveControllerConstants;
 import org.littletonrobotics.junction.Logger;
 
 public class SwerveController {
-    private final PIDController anglePID;
+    private final ProfiledPIDController anglePID;
     private final PIDController drivePID;
     private final SwerveControllerConstants constants;
 
@@ -39,10 +41,11 @@ public class SwerveController {
         previousChannel = "";
         lastInput = new SwerveInput();
 
-        anglePID = new PIDController(
+        anglePID = new ProfiledPIDController(
             constants.rotationPIDConstants.P,
             constants.rotationPIDConstants.I,
-            constants.rotationPIDConstants.D
+            constants.rotationPIDConstants.D,
+            new TrapezoidProfile.Constraints(constants.rotationPIDConstants.cruiseVelocity, constants.rotationPIDConstants.acceleration)
         );
         anglePID.setIZone(constants.rotationPIDConstants.IZone);
         anglePID.enableContinuousInput(constants.rotationPIDContinuousConnections.getFirst(), constants.rotationPIDContinuousConnections.getSecond());
@@ -59,8 +62,8 @@ public class SwerveController {
      *
      * @param angle the angle to look at
      */
-    public double lookAt(double angle) {
-        return anglePID.calculate(Swerve.getInstance().getGyro().getYaw().getRadians(), angle);
+    public double lookAt(Rotation2d angle) {
+        return anglePID.calculate(Swerve.getInstance().getGyro().getYaw().getRadians(), angle.getRadians());
     }
 
     /**
@@ -70,14 +73,18 @@ public class SwerveController {
      */
     public double lookAt(Translation2d direction) {
         if (!(direction.getX() == 0 && direction.getY() == 0))
-            return lookAt(direction.getAngle().getRadians());
+            return lookAt(direction.getAngle());
 
         return 0;
     }
 
-    public double lookAtTarget(Pose2d target, Rotation2d offset) {
+    public double lookAt(Pose2d target, Rotation2d offset) {
         Translation2d lookAtTranslation = RobotStateWithSwerve.getInstance().getTransform(target).getTranslation().rotateBy(offset);
         return lookAt(lookAtTranslation);
+    }
+
+    public void resetLookAt() {
+        anglePID.reset(RobotStateWithSwerve.getInstance().getRobotPose().getRotation().getRadians());
     }
 
     public Translation2d pidTo(Translation2d target) {
