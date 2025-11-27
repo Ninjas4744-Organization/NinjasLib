@@ -101,7 +101,6 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
     }
 
     private Rotation2d getCANCoder() {
-//        canCoder.getAbsolutePosition().refresh();
         return Rotation2d.fromRadians(canCoder.getAbsolutePosition().getValue().in(Units.Radians));
     }
 
