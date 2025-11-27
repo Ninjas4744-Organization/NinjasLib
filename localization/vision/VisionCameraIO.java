@@ -5,7 +5,7 @@ import org.littletonrobotics.junction.AutoLog;
 public interface VisionCameraIO {
     @AutoLog
     class VisionCameraIOInputs {
-        public VisionOutput[] outputs = new VisionOutput[1];
+        public VisionOutput[] outputs = new VisionOutput[] { new VisionOutput() };
     }
 
     default void updateInputs(VisionCameraIOInputsAutoLogged inputs) {
