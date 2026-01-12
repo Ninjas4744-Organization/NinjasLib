@@ -2,13 +2,13 @@ package frc.lib.NinjasLib.subsystem_interfaces;
 
 import edu.wpi.first.wpilibj2.command.Command;
 
-public final class Subsystem {
-    private Subsystem() {} // Prevent instantiation
+public final class SubsystemTools {
+    private SubsystemTools() {} // Prevent instantiation
 
     /** Can be reset to a known baseline state. */
     public interface Resettable {
         boolean isReset();
-        void reset();
+        Command reset();
     }
 
     /** Requires logic to run periodically. */
@@ -32,6 +32,13 @@ public final class Subsystem {
     public interface PercentControlled {
         Command setPercent(double percent);
         double getPercent();
+    }
+
+    /**
+     * Supports commanding the velocity of the subsystem. the measurement is for the user to decide.
+     */
+    public interface VelocityControlled {
+        Command setVelocity(double velocity);
     }
 
     /** Can report whether its control goal has been reached. */

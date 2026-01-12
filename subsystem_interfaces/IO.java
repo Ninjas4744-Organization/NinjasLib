@@ -20,6 +20,7 @@ public final class IO {
      */
     public interface Controllable<INPUTS> extends BaseIO<INPUTS> {
         default void setPosition(Object position) {}
+        default void setVelocity(double velocity) {}
         default void setPercent(double percent) {}
         default void setEncoder(double position) {}
     }
