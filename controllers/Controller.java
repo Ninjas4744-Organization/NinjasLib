@@ -1,5 +1,8 @@
 package frc.lib.NinjasLib.controllers;
 
+import com.ctre.phoenix6.hardware.CANcoder;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotController;
 import frc.lib.NinjasLib.controllers.constants.ControlConstants.SmartControlType;
@@ -25,8 +28,11 @@ public abstract class Controller {
     protected ControlState controlState = ControlState.PERCENT_OUTPUT;
     protected RealControllerConstants constants;
     protected double goal = 0;
+
     private DigitalInput limitSwitch;
     private boolean preLimit = false;
+
+    private CANcoder CANCoder;
 
     /**
      * Creates a new Ninjas controller
@@ -36,8 +42,13 @@ public abstract class Controller {
     public Controller(RealControllerConstants constants) {
         this.constants = constants;
 
-        if(constants.isLimitSwitch && !constants.isVirtualLimit){
-            limitSwitch = new DigitalInput(constants.limitSwitchID);
+        if (constants.hardLimit.enable && !constants.hardLimit.isVirtual){
+            limitSwitch = new DigitalInput(constants.hardLimit.id);
+        }
+
+        if (constants.canCoder.enable && constants.canCoder.mode == RealControllerConstants.CANCoder.CANCoderMode.Normal) {
+            CANCoder = new CANcoder(constants.canCoder.id);
+            CANCoder.getConfigurator().apply(constants.canCoder.config);
         }
     }
 
@@ -94,6 +105,15 @@ public abstract class Controller {
     public abstract double getPosition();
 
     /**
+     * @return the rotational position of the absolute encoder. If there is no CANCoder, or it's not on normal mode, then will return null.
+     */
+    public Rotation2d getAbsolutePosition() {
+        if (CANCoder != null)
+            return Rotation2d.fromRadians(CANCoder.getAbsolutePosition().getValue().in(Units.Radians));
+        return null;
+    }
+
+    /**
      * @return the rotational velocity of the motor
      */
     public abstract double getVelocity();
@@ -126,7 +146,7 @@ public abstract class Controller {
      * @see #isHomed
      */
     public void resetEncoder() {
-        setEncoder(constants.homePosition);
+        setEncoder(constants.hardLimit.homePosition);
     }
 
     /**
@@ -134,7 +154,7 @@ public abstract class Controller {
      * @see #resetEncoder
      */
     public boolean isHomed() {
-        return Math.abs(constants.homePosition - getPosition()) < constants.positionGoalTolerance;
+        return Math.abs(constants.hardLimit.homePosition - getPosition()) < constants.control.positionGoalTolerance;
     }
 
     /**
@@ -151,9 +171,9 @@ public abstract class Controller {
      */
     public boolean atGoal() {
         if (controlState == ControlState.POSITION)
-            return Math.abs(getGoal() - getPosition()) < constants.positionGoalTolerance;
+            return Math.abs(getGoal() - getPosition()) < constants.control.positionGoalTolerance;
         else if (controlState == ControlState.VELOCITY)
-            return Math.abs(getGoal() - getVelocity()) < constants.velocityGoalTolerance;
+            return Math.abs(getGoal() - getVelocity()) < constants.control.velocityGoalTolerance;
 
         return false;
     }
@@ -162,22 +182,22 @@ public abstract class Controller {
      * @return Whether the limit switch of the system is clicked now
      */
     public boolean getLimit() {
-        if (!constants.isLimitSwitch)
+        if (!constants.hardLimit.enable)
             return false;
 
         if (Robot.isReal())
-            return constants.isVirtualLimit
-                ? (Math.abs(getCurrent() / RobotController.getBatteryVoltage()) > constants.virtualLimitStallThreshold && Math.signum(getOutput()) == constants.limitSwitchDirection) || (preLimit && Math.signum(getOutput()) != -constants.limitSwitchDirection)
-                : constants.limitSwitchInverted != limitSwitch.get();
+            return constants.hardLimit.isVirtual
+                ? (Math.abs(getCurrent() / RobotController.getBatteryVoltage()) > constants.hardLimit.virtualStallThreshold && Math.signum(getOutput()) == constants.hardLimit.direction) || (preLimit && Math.signum(getOutput()) != -constants.hardLimit.direction)
+                : constants.hardLimit.inverted != limitSwitch.get();
         else
-            return Math.abs(constants.homePosition - getPosition()) < constants.positionGoalTolerance;
+            return Math.abs(constants.hardLimit.homePosition - getPosition()) < constants.control.positionGoalTolerance;
     }
 
     /** Runs controller periodic tasks, run it on the subsystem periodic */
     public void periodic() {
-        if (constants.limitSwitchAutoStopReset && getLimit() && !preLimit)
+        if (constants.hardLimit.autoStopReset && getLimit() && !preLimit)
             resetEncoder();
-        if (constants.limitSwitchAutoStopReset && getLimit() && Math.signum(getOutput()) == constants.limitSwitchDirection)
+        if (constants.hardLimit.autoStopReset && getLimit() && Math.signum(getOutput()) == constants.hardLimit.direction)
             stop();
         preLimit = getLimit();
     }
@@ -204,6 +224,7 @@ public abstract class Controller {
         public double Goal;
         public boolean AtGoal;
         public boolean LimitSwitch;
+        public Rotation2d AbsolutePosition;
         public String ControlState;
         public String ControlType;
     }
@@ -217,7 +238,8 @@ public abstract class Controller {
         inputs.Goal = getGoal();
         inputs.AtGoal = atGoal();
         inputs.LimitSwitch = getLimit();
+        inputs.AbsolutePosition = getAbsolutePosition();
         inputs.ControlState = controlState.toString();
-        inputs.ControlType = constants.controlConstants.type == SmartControlType.NONE ? "N/A" : constants.controlConstants.type.toString();
+        inputs.ControlType = constants.control.controlConstants.type == SmartControlType.NONE ? "N/A" : constants.control.controlConstants.type.toString();
     }
 }

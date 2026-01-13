@@ -20,42 +20,41 @@ public class SparkMaxController extends Controller {
     public SparkMaxController(RealControllerConstants constants) {
 		super(constants);
 
-        main = new SparkMax(constants.main.id, SparkMax.MotorType.kBrushless);
+        main = new SparkMax(constants.base.main.id, SparkMax.MotorType.kBrushless);
 
 		SparkMaxConfig config = new SparkMaxConfig();
-		config.inverted(constants.main.inverted);
-		config.smartCurrentLimit((int)constants.currentLimit);
+		config.inverted(constants.base.main.inverted);
+		config.smartCurrentLimit((int)constants.base.currentLimit);
 
-		config.softLimit.forwardSoftLimit(constants.maxSoftLimit != Double.POSITIVE_INFINITY ? constants.maxSoftLimit : 0)
-			.reverseSoftLimit(constants.minSoftLimit != Double.NEGATIVE_INFINITY ? constants.minSoftLimit : 0)
-            .forwardSoftLimitEnabled(constants.maxSoftLimit != Double.POSITIVE_INFINITY)
-            .reverseSoftLimitEnabled(constants.minSoftLimit != Double.NEGATIVE_INFINITY);
+		config.softLimit.forwardSoftLimit(constants.softLimits.max != Double.POSITIVE_INFINITY ? constants.softLimits.max : 0)
+			.reverseSoftLimit(constants.softLimits.min != Double.NEGATIVE_INFINITY ? constants.softLimits.min : 0)
+            .forwardSoftLimitEnabled(constants.softLimits.max != Double.POSITIVE_INFINITY)
+            .reverseSoftLimitEnabled(constants.softLimits.min != Double.NEGATIVE_INFINITY);
 
-		config.closedLoop.pid(constants.controlConstants.P, constants.controlConstants.I, constants.controlConstants.D);
+		config.closedLoop.pid(constants.control.controlConstants.P, constants.control.controlConstants.I, constants.control.controlConstants.D);
 
-		config.encoder.positionConversionFactor(constants.conversionFactor / constants.gearRatio)
-				.velocityConversionFactor(constants.conversionFactor / constants.gearRatio / 60);
+		config.encoder.positionConversionFactor(constants.control.conversionFactor / constants.control.gearRatio)
+				.velocityConversionFactor(constants.control.conversionFactor / constants.control.gearRatio / 60);
 
         main.configure(config, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
 
-        followers = new SparkMax[constants.followers.length];
+        followers = new SparkMax[constants.base.followers.length];
         for (int i = 0; i < followers.length; i++) {
-            followers[i] = new SparkMax(constants.followers[i].id, SparkMax.MotorType.kBrushless);
+            followers[i] = new SparkMax(constants.base.followers[i].id, SparkMax.MotorType.kBrushless);
 
 			SparkMaxConfig followerConfig = new SparkMaxConfig();
-            followerConfig.follow(main, constants.followers[i].inverted);
+            followerConfig.follow(main, constants.base.followers[i].inverted);
             followers[i].configure(followerConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
 		}
 
         profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(
-            constants.controlConstants.cruiseVelocity, constants.controlConstants.acceleration));
+            constants.control.controlConstants.cruiseVelocity, constants.control.controlConstants.acceleration));
 
         profiledPIDController = new ProfiledPIDController(
-				constants.controlConstants.P,
-				constants.controlConstants.I,
-				constants.controlConstants.D,
-				new TrapezoidProfile.Constraints(
-                    constants.controlConstants.cruiseVelocity, constants.controlConstants.acceleration));
+				constants.control.controlConstants.P,
+				constants.control.controlConstants.I,
+				constants.control.controlConstants.D,
+				new TrapezoidProfile.Constraints(constants.control.controlConstants.cruiseVelocity, constants.control.controlConstants.acceleration));
 	}
 
 	@Override
@@ -69,7 +68,7 @@ public class SparkMaxController extends Controller {
 	public void setPosition(double position) {
 		super.setPosition(position);
 
-        if (constants.controlConstants.type == SmartControlType.PID)
+        if (constants.control.controlConstants.type == SmartControlType.PID)
             main.getClosedLoopController().setReference(getGoal(), SparkBase.ControlType.kPosition);
 
         profiledPIDController.setGoal(position);
@@ -79,7 +78,7 @@ public class SparkMaxController extends Controller {
 	public void setVelocity(double velocity) {
 		super.setVelocity(velocity);
 
-        if (constants.controlConstants.type == SmartControlType.PID)
+        if (constants.control.controlConstants.type == SmartControlType.PID)
             main.getClosedLoopController().setReference(getGoal(), SparkBase.ControlType.kVelocity);
 
         profiledPIDController.setGoal(velocity);
@@ -124,7 +123,7 @@ public class SparkMaxController extends Controller {
 
 	@Override
 	public void periodic() {
-        switch (constants.controlConstants.type) {
+        switch (constants.control.controlConstants.type) {
 			case PROFILED_PID:
 				isCurrentlyPiding = true;
 

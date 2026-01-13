@@ -1,5 +1,6 @@
 package frc.lib.NinjasLib.swerve.module;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
@@ -38,19 +39,19 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
         this.swerveConstants = swerveConstants;
 
         ControllerConstants driveMotorConstants = swerveConstants.modules.driveMotorConstants.clone();
-        driveMotorConstants.real.main.id = constants.driveMotorID;
-        driveMotorConstants.real.main.inverted = constants.driveMotorInverted;
+        driveMotorConstants.real.base.main.id = constants.driveMotorID;
+        driveMotorConstants.real.base.main.inverted = constants.driveMotorInverted;
 
         ControllerConstants steerMotorConstants = swerveConstants.modules.steerMotorConstants.clone();
-        steerMotorConstants.real.main.id = constants.steerMotorID;
-        steerMotorConstants.real.main.inverted = constants.steerMotorInverted;
+        steerMotorConstants.real.base.main.id = constants.steerMotorID;
+        steerMotorConstants.real.base.main.inverted = constants.steerMotorInverted;
 
-        if(swerveConstants.special.CANBus.isEmpty())
+        if(swerveConstants.special.CANBus.equals("rio"))
             canCoder = new CANcoder(constants.canCoderID);
         else {
-            canCoder = new CANcoder(constants.canCoderID, swerveConstants.special.CANBus);
-            driveMotorConstants.real.CANBus = swerveConstants.special.CANBus;
-            steerMotorConstants.real.CANBus = swerveConstants.special.CANBus;
+            canCoder = new CANcoder(constants.canCoderID, new CANBus(swerveConstants.special.CANBus));
+            driveMotorConstants.real.base.CANBus = swerveConstants.special.CANBus;
+            steerMotorConstants.real.base.CANBus = swerveConstants.special.CANBus;
         }
         canCoder.getConfigurator().apply(
             new CANcoderConfiguration().MagnetSensor
@@ -109,7 +110,7 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
         inputs.ModuleNumber = moduleNumber;
         inputs.State = new SwerveModuleState(driveMotor.getVelocity(), Rotation2d.fromRadians(steerMotor.getPosition()));
         inputs.Position = new SwerveModulePosition(driveMotor.getPosition(), Rotation2d.fromRadians(steerMotor.getPosition()));
-        inputs.AbsoluteAngle = getCANCoder();
+        inputs.AbsolutePosition = getCANCoder();
 
         if (swerveConstants.special.enableOdometryThread && isTalonFX) {
             inputs.Positions = positionQueue.stream().mapToDouble((Double value) -> value).toArray();

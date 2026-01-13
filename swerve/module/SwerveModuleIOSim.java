@@ -35,11 +35,11 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
         driveMotor = simulationModule.useGenericMotorControllerForDrive();
         angleMotor = simulationModule.useGenericControllerForSteer();
 
-        drivePID = new PIDController(swerveConstants.modules.driveMotorConstants.real.controlConstants.P, swerveConstants.modules.driveMotorConstants.real.controlConstants.I, swerveConstants.modules.driveMotorConstants.real.controlConstants.D);
-        drivePID.setIZone(swerveConstants.modules.driveMotorConstants.real.controlConstants.IZone);
+        drivePID = new PIDController(swerveConstants.modules.driveMotorConstants.real.control.controlConstants.P, swerveConstants.modules.driveMotorConstants.real.control.controlConstants.I, swerveConstants.modules.driveMotorConstants.real.control.controlConstants.D);
+        drivePID.setIZone(swerveConstants.modules.driveMotorConstants.real.control.controlConstants.IZone);
 
-        anglePID = new PIDController(swerveConstants.modules.steerMotorConstants.real.controlConstants.P, swerveConstants.modules.steerMotorConstants.real.controlConstants.I, swerveConstants.modules.steerMotorConstants.real.controlConstants.D);
-        anglePID.setIZone(swerveConstants.modules.steerMotorConstants.real.controlConstants.IZone);
+        anglePID = new PIDController(swerveConstants.modules.steerMotorConstants.real.controlConstants.P, swerveConstants.modules.steerMotorConstants.real.control.controlConstants.I, swerveConstants.modules.steerMotorConstants.real.control.controlConstants.D);
+        anglePID.setIZone(swerveConstants.modules.steerMotorConstants.real.control.controlConstants.IZone);
 
         lastAngle = simulationModule.getCurrentState().angle;
     }
@@ -70,6 +70,6 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
         inputs.ModuleNumber = moduleNumber;
         inputs.State = simulationModule.getCurrentState();
         inputs.Position = new SwerveModulePosition(simulationModule.getDriveWheelFinalPosition().in(Radians) * simulationModule.config.WHEEL_RADIUS.in(Meters), inputs.State.angle);
-        inputs.AbsoluteAngle = Rotation2d.kZero;
+        inputs.AbsolutePosition = Rotation2d.kZero;
     }
 }

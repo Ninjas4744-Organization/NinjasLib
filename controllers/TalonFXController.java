@@ -1,10 +1,13 @@
 package frc.lib.NinjasLib.controllers;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.*;
 import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularAcceleration;
@@ -19,48 +22,50 @@ public class TalonFXController extends Controller {
     public TalonFXController(RealControllerConstants constants) {
         super(constants);
 
-        if(constants.CANBus.isEmpty())
-            main = new TalonFX(constants.main.id);
+        if(constants.base.CANBus.isEmpty())
+            main = new TalonFX(constants.base.main.id);
         else
-            main = new TalonFX(constants.main.id, constants.CANBus);
+            main = new TalonFX(constants.base.main.id, new CANBus(constants.base.CANBus));
         main.getConfigurator()
           .apply(new TalonFXConfiguration()
             .withSoftwareLimitSwitch(new SoftwareLimitSwitchConfigs()
-                .withForwardSoftLimitEnable(constants.maxSoftLimit != Double.POSITIVE_INFINITY)
-                .withReverseSoftLimitEnable(constants.minSoftLimit != Double.NEGATIVE_INFINITY)
-                    .withForwardSoftLimitThreshold(constants.maxSoftLimit != Double.POSITIVE_INFINITY ? constants.maxSoftLimit : 0)
-                    .withReverseSoftLimitThreshold(constants.minSoftLimit != Double.NEGATIVE_INFINITY ? constants.minSoftLimit : 0))
+                .withForwardSoftLimitEnable(constants.softLimits.max != Double.POSITIVE_INFINITY)
+                .withReverseSoftLimitEnable(constants.softLimits.min != Double.NEGATIVE_INFINITY)
+                    .withForwardSoftLimitThreshold(constants.softLimits.max != Double.POSITIVE_INFINITY ? constants.softLimits.max : 0)
+                    .withReverseSoftLimitThreshold(constants.softLimits.min != Double.NEGATIVE_INFINITY ? constants.softLimits.min : 0))
                   .withAudio(new AudioConfigs().withBeepOnBoot(false))
             .withMotorOutput(new MotorOutputConfigs()
               .withInverted(
-                constants.main.inverted
+                constants.base.main.inverted
                   ? InvertedValue.CounterClockwise_Positive
                   : InvertedValue.Clockwise_Positive)
-                    .withNeutralMode(constants.isBrakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast))
+                    .withNeutralMode(constants.base.isBrakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast))
             .withMotionMagic(new MotionMagicConfigs()
-                .withMotionMagicAcceleration(constants.controlConstants.acceleration)
-                .withMotionMagicCruiseVelocity(constants.controlConstants.cruiseVelocity)
-                .withMotionMagicJerk(constants.controlConstants.jerk))
+                .withMotionMagicAcceleration(constants.control.controlConstants.acceleration)
+                .withMotionMagicCruiseVelocity(constants.control.controlConstants.cruiseVelocity)
+                .withMotionMagicJerk(constants.control.controlConstants.jerk))
             .withCurrentLimits(new CurrentLimitsConfigs()
-              .withStatorCurrentLimit(constants.currentLimit)
+              .withStatorCurrentLimit(constants.base.currentLimit)
               .withStatorCurrentLimitEnable(true)
-              .withSupplyCurrentLimit(constants.currentLimit)
+              .withSupplyCurrentLimit(constants.base.currentLimit)
               .withSupplyCurrentLimitEnable(true))
             .withSlot0(new Slot0Configs()
-              .withKP(constants.controlConstants.P)
-              .withKI(constants.controlConstants.I)
-              .withKD(constants.controlConstants.D)
-              .withKS(constants.controlConstants.S)
-              .withKV(constants.controlConstants.V)
-              .withKG(constants.controlConstants.G)
-                    .withGravityType(constants.controlConstants.gravityType))
-              .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(constants.gearRatio / constants.conversionFactor)));
+              .withKP(constants.control.controlConstants.P)
+              .withKI(constants.control.controlConstants.I)
+              .withKD(constants.control.controlConstants.D)
+              .withKS(constants.control.controlConstants.S)
+              .withKV(constants.control.controlConstants.V)
+              .withKG(constants.control.controlConstants.G)
+                    .withGravityType(constants.control.controlConstants.gravityType))
+              .withFeedback(constants.canCoder.enable && constants.canCoder.mode != RealControllerConstants.CANCoder.CANCoderMode.Normal
+                    ? new FeedbackConfigs().withFeedbackRemoteSensorID(constants.canCoder.id).withFeedbackSensorSource(constants.canCoder.mode == RealControllerConstants.CANCoder.CANCoderMode.Fused ? FeedbackSensorSourceValue.FusedCANcoder : FeedbackSensorSourceValue.SyncCANcoder)
+                    : new FeedbackConfigs().withSensorToMechanismRatio(constants.control.gearRatio / constants.control.conversionFactor)));
 
-        followers = new TalonFX[constants.followers.length];
+        followers = new TalonFX[constants.base.followers.length];
         for (int i = 0; i < followers.length; i++) {
-            followers[i] = new TalonFX(constants.followers[i].id);
-            followers[i].getConfigurator().apply(new TalonFXConfiguration().MotorOutput.withNeutralMode(constants.isBrakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast));
-            followers[i].setControl(new Follower(constants.main.id, constants.followers[i].inverted));
+            followers[i] = new TalonFX(constants.base.followers[i].id, new CANBus(constants.base.CANBus));
+            followers[i].getConfigurator().apply(new TalonFXConfiguration().MotorOutput.withNeutralMode(constants.base.isBrakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast));
+            followers[i].setControl(new Follower(constants.base.main.id, constants.base.followers[i].inverted ? MotorAlignmentValue.Opposed : MotorAlignmentValue.Aligned));
         }
     }
 
@@ -75,7 +80,7 @@ public class TalonFXController extends Controller {
     public void setPosition(double position) {
         super.setPosition(position);
 
-        switch (constants.controlConstants.type) {
+        switch (constants.control.controlConstants.type) {
             case PROFILED_PID, PROFILE:
                 main.setControl(new MotionMagicVoltage(position));
                 break;
@@ -94,7 +99,7 @@ public class TalonFXController extends Controller {
     public void setVelocity(double velocity) {
         super.setVelocity(velocity);
 
-        switch (constants.controlConstants.type) {
+        switch (constants.control.controlConstants.type) {
             case PROFILED_PID, PROFILE:
                 main.setControl(new MotionMagicVelocityVoltage(velocity));
                 break;

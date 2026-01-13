@@ -11,7 +11,7 @@ public interface SwerveModuleIO {
         public int ModuleNumber;
         public SwerveModuleState State = new SwerveModuleState();
         public SwerveModulePosition Position = new SwerveModulePosition();
-        public Rotation2d AbsoluteAngle = Rotation2d.kZero;
+        public Rotation2d AbsolutePosition = Rotation2d.kZero;
 
         // Odometry Thread
         public Rotation2d[] Angles = new Rotation2d[0];

@@ -16,39 +16,41 @@ public class ControllerConstants implements Cloneable {
 		ControllerConstants clone = new ControllerConstants();
 
 		clone.real = new RealControllerConstants();
-		clone.real.main = new RealControllerConstants.SimpleControllerConstants();
-		clone.real.main.id = this.real.main.id;
-		clone.real.main.inverted = this.real.main.inverted;
+		clone.real.base.main = new RealControllerConstants.Base.SimpleControllerConstants();
+		clone.real.base.main.id = this.real.base.main.id;
+		clone.real.base.main.inverted = this.real.base.main.inverted;
 
-		clone.real.isBrakeMode = this.real.isBrakeMode;
+		clone.real.base.isBrakeMode = this.real.base.isBrakeMode;
 
-		clone.real.followers = new RealControllerConstants.SimpleControllerConstants[this.real.followers.length];
-		for (int i = 0; i < this.real.followers.length; i++) {
-			RealControllerConstants.SimpleControllerConstants followerClone =
-				new RealControllerConstants.SimpleControllerConstants();
-			followerClone.id = this.real.followers[i].id;
-			followerClone.inverted = this.real.followers[i].inverted;
-			clone.real.followers[i] = followerClone;
+		clone.real.base.followers = new RealControllerConstants.Base.SimpleControllerConstants[this.real.base.followers.length];
+		for (int i = 0; i < this.real.base.followers.length; i++) {
+			RealControllerConstants.Base.SimpleControllerConstants followerClone =
+				new RealControllerConstants.Base.SimpleControllerConstants();
+			followerClone.id = this.real.base.followers[i].id;
+			followerClone.inverted = this.real.base.followers[i].inverted;
+			clone.real.base.followers[i] = followerClone;
 		}
 
-		clone.real.currentLimit = this.real.currentLimit;
-		clone.real.positionGoalTolerance = this.real.positionGoalTolerance;
-		clone.real.velocityGoalTolerance = this.real.velocityGoalTolerance;
-		clone.real.homePosition = this.real.homePosition;
-		clone.real.gearRatio = this.real.gearRatio;
-		clone.real.conversionFactor = this.real.conversionFactor;
-		clone.real.minSoftLimit = this.real.minSoftLimit;
-		clone.real.maxSoftLimit = this.real.maxSoftLimit;
-		clone.real.isLimitSwitch = this.real.isLimitSwitch;
-		clone.real.isVirtualLimit = this.real.isVirtualLimit;
-		clone.real.virtualLimitStallThreshold = this.real.virtualLimitStallThreshold;
-		clone.real.limitSwitchID = this.real.limitSwitchID;
-		clone.real.limitSwitchInverted = this.real.limitSwitchInverted;
-		clone.real.limitSwitchDirection = this.real.limitSwitchDirection;
-		clone.real.limitSwitchAutoStopReset = this.real.limitSwitchAutoStopReset;
-		clone.real.CANBus = this.real.CANBus;
+		clone.real.base.currentLimit = this.real.base.currentLimit;
+		clone.real.base.CANBus = this.real.base.CANBus;
 
-		clone.real.controlConstants = this.real.controlConstants.clone();
+		clone.real.control.gearRatio = this.real.control.gearRatio;
+		clone.real.control.conversionFactor = this.real.control.conversionFactor;
+		clone.real.control.positionGoalTolerance = this.real.control.positionGoalTolerance;
+		clone.real.control.velocityGoalTolerance = this.real.control.velocityGoalTolerance;
+		clone.real.control.controlConstants = this.real.control.controlConstants.clone();
+
+		clone.real.softLimits.min = this.real.softLimits.min;
+		clone.real.softLimits.max = this.real.softLimits.max;
+
+		clone.real.hardLimit.homePosition = this.real.hardLimit.homePosition;
+		clone.real.hardLimit.enable = this.real.hardLimit.enable;
+		clone.real.hardLimit.isVirtual = this.real.hardLimit.isVirtual;
+		clone.real.hardLimit.virtualStallThreshold = this.real.hardLimit.virtualStallThreshold;
+		clone.real.hardLimit.id = this.real.hardLimit.id;
+		clone.real.hardLimit.inverted = this.real.hardLimit.inverted;
+		clone.real.hardLimit.direction = this.real.hardLimit.direction;
+		clone.real.hardLimit.autoStopReset = this.real.hardLimit.autoStopReset;
 
 		clone.motorType = this.motorType;
 
