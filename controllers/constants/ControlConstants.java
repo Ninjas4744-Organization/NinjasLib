@@ -47,6 +47,11 @@ public class ControlConstants implements Cloneable {
 	public double V = 0;
 
 	/**
+	 * Wanted acceleration to voltage feedforward
+	 */
+	public double A = 0;
+
+	/**
 	 * How much voltage to overcome gravity
 	 */
 	public double G = 0;
@@ -82,20 +87,21 @@ public class ControlConstants implements Cloneable {
 		return constants;
 	}
 
-    public static ControlConstants createProfile(double cruiseVelocity, double acceleration, double jerk, double V, double S, double G, GravityTypeValue gravityType) {
+    public static ControlConstants createProfile(double cruiseVelocity, double acceleration, double jerk, double V, double A, double S, double G, GravityTypeValue gravityType) {
 		ControlConstants constants = new ControlConstants();
 		constants.type = SmartControlType.PROFILE;
         constants.cruiseVelocity = cruiseVelocity;
         constants.acceleration = acceleration;
         constants.jerk = jerk;
 		constants.V = V;
+		constants.A = A;
 		constants.S = S;
 		constants.G = G;
         constants.gravityType = gravityType;
 		return constants;
 	}
 
-    public static ControlConstants createProfiledPID(double P, double I, double D, double IZone, double cruiseVelocity, double acceleration, double jerk, double V, double S, double G, GravityTypeValue gravityType) {
+    public static ControlConstants createProfiledPID(double P, double I, double D, double IZone, double cruiseVelocity, double acceleration, double jerk, double V, double A, double S, double G, GravityTypeValue gravityType) {
 		ControlConstants constants = new ControlConstants();
 		constants.type = SmartControlType.PROFILED_PID;
 		constants.P = P;
@@ -106,23 +112,25 @@ public class ControlConstants implements Cloneable {
         constants.acceleration = acceleration;
         constants.jerk = jerk;
 		constants.V = V;
+		constants.A = A;
 		constants.S = S;
         constants.G = G;
         constants.gravityType = gravityType;
 		return constants;
 	}
 
-	public static ControlConstants createTorqueCurrent(double P, double S) {
+	public static ControlConstants createTorqueCurrent(double P, double A, double S) {
 		ControlConstants constants = new ControlConstants();
 		constants.type = SmartControlType.TORQUE_CURRENT;
 		constants.P = P;
+		constants.A = A;
 		constants.S = S;
 		return constants;
 	}
 
 	@Override
 	public String toString() {
-        return "P: " + P + " I: " + I + " D: " + D + " IZone: " + IZone + " V: " + V + " S: " + S + " G: " + G + " GravityType: " + gravityType.toString()
+        return "P: " + P + " I: " + I + " D: " + D + " IZone: " + IZone + " V: " + V + " A: " + A + " S: " + S + " G: " + G + " GravityType: " + gravityType.toString()
             + " CruiseVelocity: " + cruiseVelocity + " Acceleration: " + acceleration + " Jerk: " + jerk;
 	}
 
@@ -137,6 +145,7 @@ public class ControlConstants implements Cloneable {
 
 		clone.S = this.S;
 		clone.V = this.V;
+		clone.A = this.A;
 		clone.G = this.G;
 
 		clone.gravityType = this.gravityType;
