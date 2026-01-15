@@ -18,26 +18,26 @@ public class SimulatedController extends Controller {
     public SimulatedController(ControllerConstants constants) {
         super(constants.real);
 
-        motorSim = new DCMotorSim(LinearSystemId.createDCMotorSystem(constants.motorType, 0.001, constants.real.gearRatio), constants.motorType, 0.0005, 0.0005);
+        motorSim = new DCMotorSim(LinearSystemId.createDCMotorSystem(constants.motorType, 0.001, constants.real.control.gearRatio), constants.motorType, 0.0005, 0.0005);
 
         profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(
-            constants.real.controlConstants.cruiseVelocity,
-            constants.real.controlConstants.acceleration));
+            constants.real.control.controlConstants.cruiseVelocity,
+            constants.real.control.controlConstants.acceleration));
 
         profiledPIDController = new ProfiledPIDController(
-            constants.real.controlConstants.P,
-            constants.real.controlConstants.I,
-            constants.real.controlConstants.D,
+            constants.real.control.controlConstants.P,
+            constants.real.control.controlConstants.I,
+            constants.real.control.controlConstants.D,
           new TrapezoidProfile.Constraints(
-              constants.real.controlConstants.cruiseVelocity, constants.real.controlConstants.acceleration));
-        profiledPIDController.setIZone(constants.real.controlConstants.IZone);
+              constants.real.control.controlConstants.cruiseVelocity, constants.real.control.controlConstants.acceleration));
+        profiledPIDController.setIZone(constants.real.control.controlConstants.IZone);
 
         PIDController = new PIDController(
-            constants.real.controlConstants.P,
-            constants.real.controlConstants.I,
-            constants.real.controlConstants.D
+            constants.real.control.controlConstants.P,
+            constants.real.control.controlConstants.I,
+            constants.real.control.controlConstants.D
         );
-        PIDController.setIZone(constants.real.controlConstants.IZone);
+        PIDController.setIZone(constants.real.control.controlConstants.IZone);
     }
 
     @Override
@@ -70,12 +70,12 @@ public class SimulatedController extends Controller {
 
     @Override
     public double getPosition() {
-        return motorSim.getAngularPositionRotations() * constants.conversionFactor;
+        return motorSim.getAngularPositionRotations() * constants.control.conversionFactor;
     }
 
     @Override
     public double getVelocity() {
-        return motorSim.getAngularVelocityRPM() / 60 * constants.conversionFactor;
+        return motorSim.getAngularVelocityRPM() / 60 * constants.control.conversionFactor;
     }
 
     @Override
@@ -102,7 +102,7 @@ public class SimulatedController extends Controller {
 
     @Override
     public void periodic() {
-        switch (constants.controlConstants.type) {
+        switch (constants.control.controlConstants.type) {
             case PROFILED_PID:
                 isCurrentlyProfiling = true;
 
@@ -125,13 +125,13 @@ public class SimulatedController extends Controller {
                       0.02,
                       new TrapezoidProfile.State(getPosition(), getVelocity()),
                       new TrapezoidProfile.State(getGoal(), 0))
-                        .velocity * constants.controlConstants.V);
+                        .velocity * constants.control.controlConstants.V);
                 else if (controlState == ControlState.VELOCITY)
                     motorSim.setInputVoltage(profile.calculate(
                       0.02,
                       new TrapezoidProfile.State(getPosition(), getVelocity()),
                       new TrapezoidProfile.State(getPosition(), getGoal()))
-                        .velocity * constants.controlConstants.V);
+                        .velocity * constants.control.controlConstants.V);
                 break;
         }
 
@@ -139,14 +139,14 @@ public class SimulatedController extends Controller {
             profiledPIDController.reset(new TrapezoidProfile.State(getPosition(), getVelocity()));
         isCurrentlyProfiling = false;
 
-        if (getPosition() >= constants.maxSoftLimit) {
+        if (getPosition() >= constants.softLimits.max) {
             stop();
-            setEncoder(constants.maxSoftLimit);
+            setEncoder(constants.softLimits.max);
         }
 
-        if (getPosition() <= constants.minSoftLimit) {
+        if (getPosition() <= constants.softLimits.min) {
             stop();
-            setEncoder(constants.minSoftLimit);
+            setEncoder(constants.softLimits.min);
         }
 
         motorSim.update(0.02);

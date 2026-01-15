@@ -5,22 +5,22 @@ import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import frc.lib.NinjasLib.controllers.constants.RealControllerConstants;
 
 public class VictorSPXController extends Controller {
-	private final VictorSPX _main;
-	private final VictorSPX[] _followers;
+	private final VictorSPX main;
+	private final VictorSPX[] followers;
 
     public VictorSPXController(RealControllerConstants constants) {
 		super(constants);
 
-		_main = new VictorSPX(constants.main.id);
-		_main.configFactoryDefault();
-		_main.setInverted(constants.main.inverted);
+		main = new VictorSPX(constants.base.main.id);
+		main.configFactoryDefault();
+		main.setInverted(constants.base.main.inverted);
 
-		_followers = new VictorSPX[constants.followers.length];
-		for (int i = 0; i < _followers.length; i++) {
-			_followers[i] = new VictorSPX(constants.followers[i].id);
-			_followers[i].configFactoryDefault();
-			_followers[i].follow(_main);
-			_followers[i].setInverted(constants.followers[i].inverted ^ constants.main.inverted);
+		followers = new VictorSPX[constants.base.followers.length];
+		for (int i = 0; i < followers.length; i++) {
+			followers[i] = new VictorSPX(constants.base.followers[i].id);
+			followers[i].configFactoryDefault();
+			followers[i].follow(main);
+			followers[i].setInverted(constants.base.followers[i].inverted ^ constants.base.main.inverted);
 		}
 	}
 
@@ -28,7 +28,7 @@ public class VictorSPXController extends Controller {
 	public void setPercent(double percent) {
 		super.setPercent(percent);
 
-		_main.set(VictorSPXControlMode.PercentOutput, percent);
+		main.set(VictorSPXControlMode.PercentOutput, percent);
 	}
 
 	@Override
@@ -43,7 +43,7 @@ public class VictorSPXController extends Controller {
 
 	@Override
 	public void stop() {
-		_main.set(VictorSPXControlMode.PercentOutput, 0);
+		main.set(VictorSPXControlMode.PercentOutput, 0);
 	}
 
 	@Override
@@ -63,12 +63,12 @@ public class VictorSPXController extends Controller {
 
 	@Override
 	public double getOutput() {
-		return _main.getMotorOutputPercent();
+		return main.getMotorOutputPercent();
 	}
 
 	@Override
 	public double getCurrent() {
-		return _main.getBusVoltage();
+		return main.getBusVoltage();
 	}
 
 	@Override

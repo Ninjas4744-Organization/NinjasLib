@@ -4,9 +4,7 @@ public final class IO {
     private IO() {} // Prevent instantiation
 
     /**
-     * Base interface that all SubsystemIO interfaces extend
-     * <p>
-     * Includes methods for the lifecycle of the SubsystemIO
+     * Base interface that all Subsystems' IO's need.
      */
     public interface BaseIO<INPUTS> {
         default void setup() {}
@@ -15,13 +13,40 @@ public final class IO {
     }
 
     /**
-     * Your typical IO behavior.
-     * Lets you control the inputs and outputs of the motor/s - such as setting the motor's percent voltage, the encoder's position, and the subsystem's physical position.
+     * Position controlled IO behavior.
+     * Control the position of the motor.
      */
-    public interface Controllable<INPUTS> extends BaseIO<INPUTS> {
-        default void setPosition(Object position) {}
+    public interface PositionControlled {
+        default void setPosition(double position) {}
+    }
+
+    /**
+     * Velocity controlled IO behavior.
+     * Control the velocity of the motor.
+     */
+    public interface VelocityControlled {
         default void setVelocity(double velocity) {}
+    }
+
+    /**
+     * Percent controlled IO behavior.
+     * Control the percent of the motor.
+     */
+    public interface PercentControlled {
         default void setPercent(double percent) {}
+    }
+
+    /**
+     * Access to encoder.
+     */
+    public interface Encoder {
         default void setEncoder(double position) {}
+    }
+
+    /**
+     * Stoppable
+     */
+    public interface Stoppable {
+        default void stopMotor() {}
     }
 }

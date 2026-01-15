@@ -1,95 +1,128 @@
 package frc.lib.NinjasLib.controllers.constants;
 
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+
 public class RealControllerConstants {
-    /**
-     * Controller constants for the main controller in the subsystem
-     */
-    public SimpleControllerConstants main = new SimpleControllerConstants();
+    public Base base;
+    public Control control;
+    public SoftLimits softLimits;
+    public HardLimit hardLimit;
+    public CANCoder canCoder;
 
-    /**
-     * Whether the neutral mode of the controller should be brake or coast(in brake mode setting motor to 0 makes a sudden stop, in coast mode setting motor to 0 makes it free and slowly climb down to zero due to friction).
-     */
-    public boolean isBrakeMode = true;
-
-    /**
-     * Controller constants for the controllers that follow the main controller in the subsystem.
-     */
-    public SimpleControllerConstants[] followers = new SimpleControllerConstants[0];
-
-    /**
-     * Current limit
-     */
-    public double currentLimit = 60;
-
-    /**
-     * Control constants
-     */
-    public ControlConstants controlConstants = new ControlConstants();
-
-    /** The error which is considered atGoal(). if the error from the position goal is smaller than this value it will be considered atGoal(). */
-    public double positionGoalTolerance = 0.05;
-
-    /** The error which is considered atGoal(). if the error from the velocity goal is smaller than this value it will be considered atGoal(). */
-    public double velocityGoalTolerance = 0.05;
-
-    /**
-     * The home position of the subsystem where the limit switch is and is usually 0. when the limit
-     * switch is hit the encoder will reset to this value.
-     */
-    public double homePosition = 0;
-
-    /** The gear ratio between the motor and the subsystem including gears, pullies, gearboxes, etc. */
-    public double gearRatio = 1;
-
-    /**
-     * Conversion between rotations of subsystem to whatever.
-     * The calculation is: (rotations of motor) / gearRatio * conversionFactor.
-     * So for example if I have an arm with gear ratio of 10, and I want it to be in degrees I would put 360.
-     */
-    public double conversionFactor = 1;
-
-    /** The down soft limit, makes the system unable to move under it */
-    public double minSoftLimit = Double.NEGATIVE_INFINITY;
-
-    /** The up soft limit, makes the system unable to move above it */
-    public double maxSoftLimit = Double.POSITIVE_INFINITY;
-
-    /** Whether there is a limit switch related to the subsystem. */
-    public boolean isLimitSwitch = false;
-
-    /** Whether to use a virtual limit switch (according to the current the motor takes) instead of a real one. */
-    public boolean isVirtualLimit = false;
-
-    /** How much normalized current (current / voltage) is needed to activate the virtual limit to behave like a real limit switch */
-    public double virtualLimitStallThreshold = 30 / 12.0;
-
-    /** ID of limit switch used in the subsystem. */
-    public int limitSwitchID = 0;
-
-    /** Whether the limit switch is inverted. */
-    public boolean limitSwitchInverted = false;
-
-    /** the direction of movement in which the limit will be clicked, for example if an elevator goes down when given minus as output and the limit switch is at the bottom then this value should be -1. */
-    public int limitSwitchDirection = -1;
-
-    /** Whether to automatically stop the motor and reset the encoder when limit is clicked. */
-    public boolean limitSwitchAutoStopReset = true;
-
-    /** The name of the canbus the swerve is running on. 'rio' by default if CANivore is not present */
-    public String CANBus = "";
-
-    public static class SimpleControllerConstants {
-        /**
-         * The ID of the controller, chosen in the device's configuration software like Phoenix Tuner X or Rev
-         * Hardware Client
-         */
-        public int id;
+    public static class Base {
+        /** Controller constants for the main controller in the subsystem */
+        public SimpleControllerConstants main = new SimpleControllerConstants();
 
         /**
-         * Whether to invert the output of this controller. If this controller is a follower it
-         * will invert the main controller's output so if the main controller is inverted and this
-         * follower is inverted it will be inverted twice so not inverted.
+         * Whether the neutral mode of the controller should be brake or coast(in brake mode setting motor to 0 makes a sudden stop,
+         * in coast mode setting motor to 0 makes it free and slowly climb down to zero due to friction).
          */
+        public boolean isBrakeMode = true;
+
+        /** Current limit*/
+        public double currentLimit = 60;
+
+        /** Controller constants for the controllers that follow the main controller in the subsystem. */
+        public SimpleControllerConstants[] followers = new SimpleControllerConstants[0];
+
+        /** The name of the canbus the swerve is running on. 'rio' by default if CANivore is not present */
+        public String CANBus = "rio";
+
+        public static class SimpleControllerConstants {
+            /**
+             * The ID of the controller, chosen in the device's configuration software like Phoenix Tuner X or Rev
+             * Hardware Client
+             */
+            public int id;
+
+            /**
+             * Whether to invert the output of this controller. If this controller is a follower it
+             * will invert the main controller's output so if the main controller is inverted and this
+             * follower is inverted it will be inverted twice so not inverted.
+             */
+            public boolean inverted = false;
+        }
+    }
+
+    public static class Control {
+        /** Control constants*/
+        public ControlConstants controlConstants = new ControlConstants();
+
+        /** The gear ratio between the motor and the subsystem including gears, pullies, gearboxes, etc. */
+        public double gearRatio = 1;
+
+        /**
+         * Conversion between rotations of subsystem to whatever.
+         * The calculation is: (rotations of motor) / gearRatio * conversionFactor.
+         * So for example if I have an arm with gear ratio of 10, and I want it to be in degrees I would put 360.
+         */
+        public double conversionFactor = 1;
+
+        /** The error which is considered atGoal(). if the error from the position goal is smaller than this value it will be considered atGoal(). */
+        public double positionGoalTolerance = 0.05;
+
+        /** The error which is considered atGoal(). if the error from the velocity goal is smaller than this value it will be considered atGoal(). */
+        public double velocityGoalTolerance = 0.05;
+    }
+
+    public static class SoftLimits {
+        /** The down soft limit, makes the system unable to move under it */
+        public double min = Double.NEGATIVE_INFINITY;
+
+        /** The up soft limit, makes the system unable to move above it */
+        public double max = Double.POSITIVE_INFINITY;
+    }
+
+    public static class HardLimit {
+        /** Whether there is a limit switch related to the subsystem. */
+        public boolean enable = false;
+
+        /** Whether to use a virtual limit switch (according to the current the motor takes) instead of a real one. */
+        public boolean isVirtual = false;
+
+        /** How much normalized current (current / voltage) is needed to activate the virtual limit to behave like a real limit switch */
+        public double virtualStallThreshold = 30 / 12.0;
+
+        /** ID of limit switch used in the subsystem. */
+        public int id = 0;
+
+        /** Whether the limit switch is inverted. */
         public boolean inverted = false;
+
+        /** the direction of movement in which the limit will be clicked, for example if an elevator goes down when given minus as output and the limit switch is at the bottom then this value should be -1. */
+        public int direction = -1;
+
+        /** Whether to automatically stop the motor and reset the encoder when limit is clicked. */
+        public boolean autoStopReset = true;
+
+        /**
+         * The home position of the subsystem where the limit switch is and is usually 0. when the limit
+         * switch is hit the encoder will reset to this value.
+         */
+        public double homePosition = 0;
+    }
+
+    public static class CANCoder {
+        /** Whether a CANCoder is connected to the motor */
+        public boolean enable = false;
+
+        /** ID of the CANCoder in CAN */
+        public int id = 0;
+
+        /** Config of the CANCoder: offset and direction */
+        public CANcoderConfiguration config = new CANcoderConfiguration();
+
+        /** The mode of the CANCoder- Normal, Fused, Sync.
+         * Normal: Enables the CANCoder through code and resets the encoder's position on command by robot code.
+         * Fused: Resets position of encoder to CANCoder on motor startup, then there is no more connection to it.
+         * Sync: Updates the encoder's position automatically to CANCoder every time it can. Through Phoenix Pro.
+         */
+        public CANCoderMode mode = CANCoderMode.Normal;
+
+        public enum CANCoderMode {
+            Normal,
+            Fused,
+            Sync
+        }
     }
 }
