@@ -15,13 +15,33 @@ public final class IO {
     }
 
     /**
-     * Your typical IO behavior.
-     * Lets you control the inputs and outputs of the motor/s - such as setting the motor's percent voltage, the encoder's position, and the subsystem's physical position.
+     * Position controlled IO behavior.
+     * Control the position of the motor.
      */
-    public interface Controllable<INPUTS> extends BaseIO<INPUTS> {
-        default void setPosition(Object position) {}
+    public interface PositionControlled<INPUTS> extends BaseIO<INPUTS> {
+        default void setPosition(double position) {}
+    }
+
+    /**
+     * Velocity controlled IO behavior.
+     * Control the velocity of the motor.
+     */
+    public interface VelocityControlled<INPUTS> extends BaseIO<INPUTS> {
         default void setVelocity(double velocity) {}
+    }
+
+    /**
+     * Percent controlled IO behavior.
+     * Control the percent of the motor.
+     */
+    public interface PercentControlled<INPUTS> extends BaseIO<INPUTS> {
         default void setPercent(double percent) {}
+    }
+
+    /**
+     * Access to encoder.
+     */
+    public interface Encoder<INPUTS> extends BaseIO<INPUTS> {
         default void setEncoder(double position) {}
     }
 }

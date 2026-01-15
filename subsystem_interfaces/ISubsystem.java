@@ -5,18 +5,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 public final class ISubsystem {
     private ISubsystem() {} // Prevent instantiation
 
-    /** Can be reset to a known baseline state. */
+    /** Can be reset. */
     public interface Resettable {
         boolean isReset();
         Command reset();
     }
 
-    /** Requires logic to run periodically. */
-    public interface Periodicable {
-        void periodic();
-    }
-
-    /** Supports commanding and reading the physical position of the subsystem. */
+    /** Supports commanding and reading the position. */
     public interface PositionControlled<MEASUREMENT> {
         Command setPosition(MEASUREMENT position);
         MEASUREMENT getPosition();
@@ -28,25 +23,25 @@ public final class ISubsystem {
         MEASUREMENT getAngle();
     }
 
-    /** Supports commanding and reading a normalized percent output. */
+    /** Supports commanding and reading the percent output. */
     public interface PercentControlled {
         Command setPercent(double percent);
-        double getPercent();
+        double getOutput();
     }
 
-    /**
-     * Supports commanding the velocity of the subsystem. the measurement is for the user to decide.
-     */
-    public interface VelocityControlled {
-        Command setVelocity(double velocity);
+    /** Supports commanding and reading the velocity. */
+    public interface VelocityControlled<MEASUREMENT> {
+        Command setVelocity(MEASUREMENT velocity);
+        MEASUREMENT getVelocity();
     }
 
-    /** Can report whether its control goal has been reached. */
+    /** Supports reporting its control goal. */
     public interface GoalOriented {
         boolean atGoal();
+        boolean getGoal();
     }
 
-    /** Can be commanded to immediately stop all motions or output. */
+    /** Supports being commanded to immediately stop all motions or output. */
     public interface Stoppable {
         Command stop();
     }
