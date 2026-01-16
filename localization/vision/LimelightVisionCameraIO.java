@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class LimelightVisionCameraIO implements VisionCameraIO {
     private final String cameraName;
-    private LimelightHelpers.LimelightTarget_Fiducial[] targets;
+    private LimelightHelpers.RawFiducial[] targets;
     private final List<Integer> ignoredTags;
     private final VisionConstants constants;
     private Map<Integer, AprilTag> tags;
@@ -33,14 +33,12 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
         inputs.outputs = new VisionOutput[0];
         List<VisionOutput> outputs = new ArrayList<>();
 
-        // Set the robot's yaw from the swerve pose estimator
         Rotation2d robotYaw = RobotStateWithSwerve.getInstance().getRobotPose().getRotation();
         if (RobotStateBase.getAlliance() == DriverStation.Alliance.Red) {
             robotYaw = robotYaw.unaryMinus();
         }
         LimelightHelpers.SetRobotOrientation(cameraName, robotYaw.getDegrees(), 0, 0, 0, 0, 0);
 
-        // Get pose estimate from the Limelight (MegaTag2 mode)
         LimelightHelpers.PoseEstimate estimate = (RobotStateBase.getAlliance() == DriverStation.Alliance.Blue)
             ? LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(cameraName)
             : LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2(cameraName);
@@ -54,19 +52,10 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
             output.amountOfTargets = estimate.tagCount;
             output.hasTargets = true;
 
-            // Analyze tag info
-            targets = LimelightHelpers.getLatestResults(cameraName).targets_Fiducials;
+            targets = estimate.rawFiducials;
             analyze(output);
 
             output.robotPose = estimate.pose;
-            // Only use if within range
-    //        if (output.closestTargetDist < constants.maxDistance) {
-    //            output.robotPose = estimate.pose;
-    //            output.timestamp = estimate.timestampSeconds;
-    //        } else {
-    //            output.hasTargets = false;
-    //            output.amountOfTargets = 0;
-    //        }
         }
 
         outputs.add(output);
@@ -74,7 +63,7 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
     }
 
     private void analyze(VisionOutput output) {
-        LimelightHelpers.LimelightTarget_Fiducial closest = null;
+        LimelightHelpers.RawFiducial closest = null;
 
         double minDist = Double.MAX_VALUE;
         double maxDist = -1;
@@ -82,15 +71,15 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
         List<AprilTag> validTags = new ArrayList<>();
         List<Transform3d> transforms = new ArrayList<>();
 
-        for (LimelightHelpers.LimelightTarget_Fiducial target : targets) {
-            if (!tags.containsKey((int) target.fiducialID))
+        for (LimelightHelpers.RawFiducial target : targets) {
+            if (!tags.containsKey(target.id))
                 continue;
 
-            AprilTag tag = tags.get((int) target.fiducialID);
+            AprilTag tag = tags.get(target.id);
             validTags.add(tag);
-            transforms.add(new Transform3d(new Pose3d(), target.getTargetPose_CameraSpace()));
+            transforms.add(new Transform3d());
 
-            double dist = target.getCameraPose_TargetSpace().getTranslation().getNorm();
+            double dist = target.distToCamera;
             if (dist < minDist) {
                 minDist = dist;
                 closest = target;
@@ -106,12 +95,12 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
 
         if (closest != null) {
             output.closestTargetDist = minDist;
-            output.closestTargetId = (int) closest.fiducialID;
-            output.closestTargetPose = tags.get((int) closest.fiducialID).pose;
-            output.cameraToClosestTargetTransform = new Transform3d(new Pose3d(), closest.getTargetPose_CameraSpace());
+            output.closestTargetId = closest.id;
+            output.closestTargetPose = tags.get(closest.id).pose;
+            output.cameraToClosestTargetTransform = new Transform3d();
         }
 
-        output.ambiguity = 0; // MegaTag2 handles ambiguity internally
+        output.ambiguity = 0;
         output.farthestTargetDist = maxDist;
     }
 
