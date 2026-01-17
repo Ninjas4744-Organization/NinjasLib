@@ -51,7 +51,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
                 for(Command end : ends.keySet()) {
                     if((end.isFinished() || !end.isScheduled()) && canTransitionTo(ends.get(end))) {
                         System.out.println("[StateMachine] Ended state " + getCurrentState().name() + ": " + ends.get(end).name());
-                        changeRobotState(ends.get(end), false);
+                        changeRobotState(ends.get(end));
                         break;
                     }
                 }
@@ -82,10 +82,30 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      * Tries to set the state of the robot to the given state by the connecting edge between the current state and the wanted one.
      *
      * @param wantedState The state to change the robot state to.
-     * @param force Whether to transition to a robot state even though the robot is currently already transitioning to a state.
+     * @param forceTransition Whether to transition to a robot state even though the robot is currently already transitioning to a state.
+     * @param forceState Whether to set the robot state to the wanted state no matter what. Doesn't run a transition command. Cancels current edge command and state ends.
      */
-    public void changeRobotState(StateEnum wantedState, boolean force) {
-        if(isTransitioning() && !force)
+    public void changeRobotState(StateEnum wantedState, boolean forceTransition, boolean forceState) {
+        if (forceState) {
+            if (currentEdge != null)
+                currentEdge.cancel();
+
+            Map<Command, StateEnum> ends = stateEnds.get(getCurrentState());
+            if(ends != null) {
+                for(Command end : ends.keySet()) {
+                    if (end.isScheduled() && !end.isFinished())
+                        end.cancel();
+                }
+            }
+
+            currentEdge = null;
+            System.out.println("[StateMachine] Force state change " + getCurrentState().name() + " -> " + wantedState.name());
+            RobotStateBase.getInstance().setRobotState(wantedState);
+
+            return;
+        }
+
+        if(isTransitioning() && !forceTransition)
             return;
 
         Command edge = graph.getEdge(getCurrentState(), wantedState);
@@ -113,7 +133,23 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      * @param wantedState The state to change the robot state to.
      */
     public void changeRobotState(StateEnum wantedState) {
-        changeRobotState(wantedState, false);
+        changeRobotState(wantedState, false, false);
+    }
+
+    /**
+     * @return Instant command that runs changeRobotState.
+     * @see #changeRobotState(Enum, boolean, boolean)
+     */
+    public Command changeRobotStateCommand(StateEnum wantedState, boolean forceTransition, boolean forceState) {
+        return Commands.runOnce(() -> changeRobotState(wantedState, forceTransition, forceState));
+    }
+
+    /**
+     * @return Instant command that runs changeRobotState.
+     * @see #changeRobotState(Enum)
+     */
+    public Command changeRobotStateCommand(StateEnum wantedState) {
+        return Commands.runOnce(() -> changeRobotState(wantedState));
     }
 
     /**
@@ -206,7 +242,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      * @param command The edge command.
      * @see #addEdge(Enum, Enum, Command)
      */
-    protected void addMultiEdge(List<StateEnum> start, StateEnum end, Supplier<Command> command) {
+    protected void addEdge(List<StateEnum> start, StateEnum end, Supplier<Command> command) {
         for(StateEnum state : start){
             if(state != end) {
                 addEdge(state, end, command.get());
@@ -221,8 +257,8 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      * @see #addEdge(Enum, Enum, Command)
      * @see #addEdge(Enum, Enum)
      */
-    protected void addMultiEdge(List<StateEnum> start, StateEnum end) {
-        addMultiEdge(start, end, Commands::none);
+    protected void addEdge(List<StateEnum> start, StateEnum end) {
+        addEdge(start, end, Commands::none);
     }
 
     /**
