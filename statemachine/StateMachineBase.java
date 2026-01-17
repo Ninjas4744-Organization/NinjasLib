@@ -1,6 +1,7 @@
 package frc.lib.NinjasLib.statemachine;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.jgrapht.Graph;
@@ -67,7 +68,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             Map<Command, StateEnum> ends = stateEnds.get(getCurrentState());
             if(ends != null) {
                 for(Command end : ends.keySet()) {
-                    end.schedule();
+                    CommandScheduler.getInstance().schedule(end);
                 }
             }
         }
@@ -100,7 +101,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             }
 
             currentEdge = edge;
-            currentEdge.schedule();
+            CommandScheduler.getInstance().schedule(currentEdge);
 
             System.out.println("[StateMachine] Started " + getCurrentState().name() + " -> " + getTargetState().name());
         }

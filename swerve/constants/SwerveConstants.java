@@ -1,5 +1,6 @@
 package frc.lib.NinjasLib.swerve.constants;
 
+import com.ctre.phoenix6.CANBus;
 import com.pathplanner.lib.config.RobotConfig;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -120,6 +121,6 @@ public class SwerveConstants {
         public Pose2d robotStartPose;
 
         /** The name of the canbus the swerve is running on. 'rio' by default if CANivore is not present */
-        public String CANBus = "rio";
+        public CANBus CANBus = com.ctre.phoenix6.CANBus.roboRIO();
     }
 }

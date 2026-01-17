@@ -1,7 +1,6 @@
 package frc.lib.NinjasLib.controllers;
 
 import com.ctre.phoenix6.hardware.CANcoder;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotController;
@@ -105,12 +104,12 @@ public abstract class Controller {
     public abstract double getPosition();
 
     /**
-     * @return the rotational position of the absolute encoder. If there is no CANCoder, or it's not on normal mode, then will return null.
+     * @return the rotational position of the absolute encoder in rotations. If there is no CANCoder, or it's not on normal mode, then will return 0.
      */
-    public Rotation2d getAbsolutePosition() {
+    public double getAbsolutePosition() {
         if (CANCoder != null)
-            return Rotation2d.fromRadians(CANCoder.getAbsolutePosition().getValue().in(Units.Radians));
-        return null;
+            return CANCoder.getAbsolutePosition().getValue().in(Units.Rotations);
+        return 0;
     }
 
     /**
@@ -224,7 +223,7 @@ public abstract class Controller {
         public double Goal;
         public boolean AtGoal;
         public boolean LimitSwitch;
-        public Rotation2d AbsolutePosition;
+        public double AbsolutePosition;
         public String ControlState;
         public String ControlType;
     }

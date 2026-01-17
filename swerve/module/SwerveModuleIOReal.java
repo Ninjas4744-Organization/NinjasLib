@@ -1,6 +1,5 @@
 package frc.lib.NinjasLib.swerve.module;
 
-import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
@@ -46,10 +45,10 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
         steerMotorConstants.real.base.main.id = constants.steerMotorID;
         steerMotorConstants.real.base.main.inverted = constants.steerMotorInverted;
 
-        if(swerveConstants.special.CANBus.equals("rio"))
+        if(swerveConstants.special.CANBus.getName().equals("rio"))
             canCoder = new CANcoder(constants.canCoderID);
         else {
-            canCoder = new CANcoder(constants.canCoderID, new CANBus(swerveConstants.special.CANBus));
+            canCoder = new CANcoder(constants.canCoderID, swerveConstants.special.CANBus);
             driveMotorConstants.real.base.CANBus = swerveConstants.special.CANBus;
             steerMotorConstants.real.base.CANBus = swerveConstants.special.CANBus;
         }

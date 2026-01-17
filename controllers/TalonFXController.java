@@ -1,6 +1,5 @@
 package frc.lib.NinjasLib.controllers;
 
-import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.*;
 import com.ctre.phoenix6.controls.*;
@@ -22,10 +21,7 @@ public class TalonFXController extends Controller {
     public TalonFXController(RealControllerConstants constants) {
         super(constants);
 
-        if(constants.base.CANBus.isEmpty())
-            main = new TalonFX(constants.base.main.id);
-        else
-            main = new TalonFX(constants.base.main.id, new CANBus(constants.base.CANBus));
+        main = new TalonFX(constants.base.main.id, constants.base.CANBus);
         main.getConfigurator()
           .apply(new TalonFXConfiguration()
             .withSoftwareLimitSwitch(new SoftwareLimitSwitchConfigs()
@@ -63,7 +59,7 @@ public class TalonFXController extends Controller {
 
         followers = new TalonFX[constants.base.followers.length];
         for (int i = 0; i < followers.length; i++) {
-            followers[i] = new TalonFX(constants.base.followers[i].id, new CANBus(constants.base.CANBus));
+            followers[i] = new TalonFX(constants.base.followers[i].id, constants.base.CANBus);
             followers[i].getConfigurator().apply(new TalonFXConfiguration().MotorOutput.withNeutralMode(constants.base.isBrakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast));
             followers[i].setControl(new Follower(constants.base.main.id, constants.base.followers[i].inverted ? MotorAlignmentValue.Opposed : MotorAlignmentValue.Aligned));
         }

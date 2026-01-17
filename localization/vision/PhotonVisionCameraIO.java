@@ -34,11 +34,7 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
 
         camera = new PhotonCamera(name);
 
-        estimator = new PhotonPoseEstimator(
-            this.constants.fieldLayoutGetter.getFieldLayout(List.of()),
-                PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
-                cameraPose);
-        estimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
+        estimator = new PhotonPoseEstimator(constants.fieldLayoutGetter.getFieldLayout(List.of()), cameraPose);
     }
 
     /**
@@ -73,7 +69,7 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
 
         estimator.setFieldTags(constants.fieldLayoutGetter.getFieldLayout(ignoredTags));
         for (int i = 0; i < results.size(); i++) {
-            Optional<EstimatedRobotPose> currentPose = estimator.update(results.get(i));
+            Optional<EstimatedRobotPose> currentPose = estimator.estimateCoprocMultiTagPose(results.get(i));
 
             outputs.get(i).hasTargets = results.get(i).hasTargets();
             outputs.get(i).amountOfTargets = results.get(i).getTargets().size();
@@ -87,13 +83,6 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
 
             outputs.get(i).timestamp = currentPose.get().timestampSeconds;
             outputs.get(i).robotPose = currentPose.get().estimatedPose.toPose2d();
-//            if (outputs.get(i).maxAmbiguity < constants.maxAmbiguity && outputs.get(i).closestTargetDist < constants.maxDistance) {
-//                outputs.get(i).timestamp = currentPose.get().timestampSeconds;
-//                outputs.get(i).robotPose = currentPose.get().estimatedPose.toPose2d();
-//            } else {
-//                outputs.get(i).hasTargets = false;
-//                outputs.get(i).amountOfTargets = 0;
-//            }
         }
 
         inputs.outputs = outputs.toArray(new VisionOutput[0]);

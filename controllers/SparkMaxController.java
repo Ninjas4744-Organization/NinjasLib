@@ -36,7 +36,7 @@ public class SparkMaxController extends Controller {
 		config.encoder.positionConversionFactor(constants.control.conversionFactor / constants.control.gearRatio)
 				.velocityConversionFactor(constants.control.conversionFactor / constants.control.gearRatio / 60);
 
-        main.configure(config, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
+        main.configure(config, com.revrobotics.ResetMode.kResetSafeParameters, com.revrobotics.PersistMode.kPersistParameters);
 
         followers = new SparkMax[constants.base.followers.length];
         for (int i = 0; i < followers.length; i++) {
@@ -44,7 +44,7 @@ public class SparkMaxController extends Controller {
 
 			SparkMaxConfig followerConfig = new SparkMaxConfig();
             followerConfig.follow(main, constants.base.followers[i].inverted);
-            followers[i].configure(followerConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
+            followers[i].configure(followerConfig, com.revrobotics.ResetMode.kResetSafeParameters, com.revrobotics.PersistMode.kPersistParameters);
 		}
 
         profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(
@@ -69,7 +69,7 @@ public class SparkMaxController extends Controller {
 		super.setPosition(position);
 
         if (constants.control.controlConstants.type == SmartControlType.PID)
-            main.getClosedLoopController().setReference(getGoal(), SparkBase.ControlType.kPosition);
+            main.getClosedLoopController().setSetpoint(getGoal(), SparkBase.ControlType.kPosition);
 
         profiledPIDController.setGoal(position);
 	}
@@ -79,7 +79,7 @@ public class SparkMaxController extends Controller {
 		super.setVelocity(velocity);
 
         if (constants.control.controlConstants.type == SmartControlType.PID)
-            main.getClosedLoopController().setReference(getGoal(), SparkBase.ControlType.kVelocity);
+            main.getClosedLoopController().setSetpoint(getGoal(), SparkBase.ControlType.kVelocity);
 
         profiledPIDController.setGoal(velocity);
 	}

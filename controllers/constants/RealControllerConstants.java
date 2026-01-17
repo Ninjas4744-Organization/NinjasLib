@@ -1,13 +1,14 @@
 package frc.lib.NinjasLib.controllers.constants;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 
 public class RealControllerConstants {
-    public Base base;
-    public Control control;
-    public SoftLimits softLimits;
-    public HardLimit hardLimit;
-    public CANCoder canCoder;
+    public Base base = new Base();
+    public Control control = new Control();
+    public SoftLimits softLimits = new SoftLimits();
+    public HardLimit hardLimit = new HardLimit();
+    public CANCoder canCoder = new CANCoder();
 
     public static class Base {
         /** Controller constants for the main controller in the subsystem */
@@ -26,7 +27,7 @@ public class RealControllerConstants {
         public SimpleControllerConstants[] followers = new SimpleControllerConstants[0];
 
         /** The name of the canbus the swerve is running on. 'rio' by default if CANivore is not present */
-        public String CANBus = "rio";
+        public CANBus CANBus = com.ctre.phoenix6.CANBus.roboRIO();
 
         public static class SimpleControllerConstants {
             /**

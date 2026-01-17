@@ -1,6 +1,7 @@
 package frc.lib.NinjasLib.swerve.gyro;
 
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -8,9 +9,9 @@ import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import frc.lib.NinjasLib.localization.OdometryThread;
 
-import static edu.wpi.first.units.Units.Radians;
-
 import java.util.Queue;
+
+import static edu.wpi.first.units.Units.Radians;
 
 public class GyroIOPigeon2 implements GyroIO{
     private Pigeon2 pigeon;
@@ -20,7 +21,7 @@ public class GyroIOPigeon2 implements GyroIO{
     private boolean inverted;
     private Rotation2d yawOffset = Rotation2d.kZero;
 
-    public GyroIOPigeon2(int id, boolean inverted, int frequency, String canbus) {
+    public GyroIOPigeon2(int id, boolean inverted, int frequency, CANBus canbus) {
         pigeon = new Pigeon2(id, canbus);
         yaw = pigeon.getYaw();
         if (frequency > 50) {
@@ -57,9 +58,8 @@ public class GyroIOPigeon2 implements GyroIO{
 
     @Override
     public void resetGyroYaw(Rotation2d yaw) {
-        System.out.print("Gyro: " + pigeon.getRotation2d().getDegrees() + " -> ");
+        System.out.print("Gyro: " + pigeon.getRotation2d().getDegrees() + " -> " + yaw.getDegrees());
         yawOffset = yawOffset.plus(Rotation2d.fromRadians(this.yaw.getValue().in(Radians)).minus(yaw));
         pigeon.setYaw(yaw.getDegrees(), 0);
-        System.out.println(pigeon.getRotation2d().getDegrees());
     }
 }
