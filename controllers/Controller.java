@@ -96,7 +96,9 @@ public abstract class Controller {
      * @see #setPosition(double)
      * @see #setVelocity(double)
      */
-    public abstract void stop();
+    public void stop() {
+        controlState = ControlState.PERCENT_OUTPUT;
+    }
 
     /**
      * @return the rotational position of the motor

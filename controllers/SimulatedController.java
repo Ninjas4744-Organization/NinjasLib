@@ -65,6 +65,7 @@ public class SimulatedController extends Controller {
 
     @Override
     public void stop() {
+        super.stop();
         motorSim.setInputVoltage(0);
     }
 

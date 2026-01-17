@@ -86,6 +86,7 @@ public class SparkMaxController extends Controller {
 
 	@Override
 	public void stop() {
+		super.stop();
         main.stopMotor();
 	}
 

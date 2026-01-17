@@ -79,6 +79,7 @@ public class TalonSRXController extends Controller {
 
 	@Override
 	public void stop() {
+		super.stop();
         main.set(TalonSRXControlMode.PercentOutput, 0);
 	}
 

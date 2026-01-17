@@ -43,6 +43,7 @@ public class VictorSPXController extends Controller {
 
 	@Override
 	public void stop() {
+		super.stop();
 		main.set(VictorSPXControlMode.PercentOutput, 0);
 	}
 

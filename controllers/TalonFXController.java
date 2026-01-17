@@ -112,6 +112,7 @@ public class TalonFXController extends Controller {
 
     @Override
     public void stop() {
+        super.stop();
         main.stopMotor();
     }
 
