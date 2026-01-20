@@ -6,7 +6,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.lib.NinjasLib.statemachine.RobotStateBase;
-import frc.lib.NinjasLib.statemachine.RobotStateWithSwerve;
+import frc.lib.NinjasLib.swerve.Swerve;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,15 +33,18 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
         inputs.outputs = new VisionOutput[0];
         List<VisionOutput> outputs = new ArrayList<>();
 
-        Rotation2d robotYaw = RobotStateWithSwerve.getInstance().getRobotPose().getRotation();
+        Rotation2d robotYaw = Swerve.getInstance().getGyro().getYaw();
         if (RobotStateBase.getAlliance() == DriverStation.Alliance.Red) {
-            robotYaw = robotYaw.unaryMinus();
+            robotYaw = robotYaw.rotateBy(Rotation2d.k180deg);
         }
         LimelightHelpers.SetRobotOrientation(cameraName, robotYaw.getDegrees(), 0, 0, 0, 0, 0);
 
         LimelightHelpers.PoseEstimate estimate = (RobotStateBase.getAlliance() == DriverStation.Alliance.Blue)
             ? LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(cameraName)
             : LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2(cameraName);
+
+        if (estimate == null)
+            return;
 
         VisionOutput output = new VisionOutput();
         output.latency = estimate.latency / 1000;
