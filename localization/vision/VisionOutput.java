@@ -10,8 +10,11 @@ import edu.wpi.first.util.struct.StructSerializable;
 import java.nio.ByteBuffer;
 
 public class VisionOutput implements StructSerializable {
-	/** The pose of the robot */
+	/** The pose of the robot. If using limelight, this will be MegaTag2 */
 	public Pose2d robotPose = new Pose2d();
+
+	/** The pose of the robot from MegaTag1. Only works with limelight */
+	public Pose2d robotPoseMegaTag1 = new Pose2d();
 
 	/** The time at which the pose was detected */
 	public double timestamp = 0;
@@ -85,6 +88,7 @@ public class VisionOutput implements StructSerializable {
 		public int getSize() {
 			int size = 0;
 			size += Pose2d.struct.getSize(); // robotPose
+			size += Pose2d.struct.getSize(); // robotPoseMegaTag1
 			size += kSizeDouble; // timestamp
 			size += kSizeDouble; // latency
 			size += kSizeDouble; // closestTargetId (was int)
@@ -105,7 +109,7 @@ public class VisionOutput implements StructSerializable {
 		@Override
 		public Struct<?>[] getNested() {
 			return new Struct<?>[]{
-				Pose2d.struct,          // robotPose
+				Pose2d.struct,          // robotPose and robotPoseMegaTag1
 				Pose3d.struct,          // closestTargetPose
 				Transform3d.struct      // cameraToClosestTargetTransform and cameraToTargetsTransforms
 			};
@@ -113,7 +117,7 @@ public class VisionOutput implements StructSerializable {
 
 		@Override
 		public String getSchema() {
-			return "Pose2d robotPose;double timestamp;double latency;double closestTargetId;Pose3d closestTargetPose;" +
+			return "Pose2d robotPose;Pose2d robotPoseMegaTag1;double timestamp;double latency;double closestTargetId;Pose3d closestTargetPose;" +
 				"double target1Id;double target2Id;double target3Id;Pose3d target1Pose;Pose3d target2Pose;Pose3d target3Pose;" +
 				"Transform3d cameraToClosestTargetTransform;Transform3d cameraToTarget1Transform;Transform3d cameraToTarget2Transform;Transform3d cameraToTarget3Transform;" +
 				"double ambiguity;double farthestTargetDist;double closestTargetDist;bool hasTargets;double amountOfTargets";
@@ -124,6 +128,7 @@ public class VisionOutput implements StructSerializable {
 			VisionOutput output = new VisionOutput();
 
 			output.robotPose = Pose2d.struct.unpack(bb);
+			output.robotPoseMegaTag1 = Pose2d.struct.unpack(bb);
 			output.timestamp = bb.getDouble();
 			output.latency = bb.getDouble();
 
@@ -175,6 +180,7 @@ public class VisionOutput implements StructSerializable {
 		@Override
 		public void pack(ByteBuffer bb, VisionOutput value) {
 			Pose2d.struct.pack(bb, value.robotPose);
+			Pose2d.struct.pack(bb, value.robotPoseMegaTag1);
 			bb.putDouble(value.timestamp);
 			bb.putDouble(value.latency);
 

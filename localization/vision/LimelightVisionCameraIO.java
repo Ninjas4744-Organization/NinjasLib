@@ -43,6 +43,10 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
             ? LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(cameraName)
             : LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2(cameraName);
 
+        LimelightHelpers.PoseEstimate estimateMegaTag1 = (RobotStateBase.getAlliance() == DriverStation.Alliance.Blue)
+                ? LimelightHelpers.getBotPoseEstimate_wpiBlue(cameraName)
+                : LimelightHelpers.getBotPoseEstimate_wpiRed(cameraName);
+
         if (estimate == null)
             return;
 
@@ -60,6 +64,8 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
 
             output.robotPose = estimate.pose;
         }
+
+        output.robotPoseMegaTag1 = estimateMegaTag1.pose;
 
         outputs.add(output);
         inputs.outputs = outputs.toArray(new VisionOutput[0]);
