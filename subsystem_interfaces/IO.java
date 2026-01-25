@@ -49,4 +49,6 @@ public final class IO {
     public interface Stoppable {
         default void stopMotor() {}
     }
+
+    public interface All<INPUTS> extends BaseIO<INPUTS>, PositionControlled, VelocityControlled, PercentControlled, Encoder, Stoppable {}
 }
