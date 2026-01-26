@@ -10,6 +10,9 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.NinjasLib.localization.OdometryThread;
 import frc.lib.NinjasLib.statemachine.RobotStateWithSwerve;
 import frc.lib.NinjasLib.swerve.constants.SwerveConstants;
@@ -148,6 +151,34 @@ public class Swerve {
 
     public void stop() {
         drive(new SwerveInput());
+    }
+
+    public Command lockWheelsToX() {
+        return Commands.sequence(
+            Commands.runOnce(() -> {
+                System.out.println("Locking wheels to X");
+                setModuleStates(new SwerveModuleState[] {
+                    new SwerveModuleState(0.3, Rotation2d.fromDegrees(45)),
+                    new SwerveModuleState(0.3, Rotation2d.fromDegrees(-45)),
+                    new SwerveModuleState(0.3, Rotation2d.fromDegrees(-45)),
+                    new SwerveModuleState(0.3, Rotation2d.fromDegrees(45)),
+                }, constants.modules.openLoop);
+            }),
+            Commands.waitUntil(() ->
+                       Math.abs(moduleInputs[0].Position.angle.minus(Rotation2d.fromDegrees(45)) .getCos()) > Math.cos(Units.degreesToRadians(5))
+                    && Math.abs(moduleInputs[1].Position.angle.minus(Rotation2d.fromDegrees(-45)).getCos()) > Math.cos(Units.degreesToRadians(5))
+                    && Math.abs(moduleInputs[2].Position.angle.minus(Rotation2d.fromDegrees(-45)).getCos()) > Math.cos(Units.degreesToRadians(5))
+                    && Math.abs(moduleInputs[3].Position.angle.minus(Rotation2d.fromDegrees(45)) .getCos()) > Math.cos(Units.degreesToRadians(5))),
+            Commands.runOnce(() -> {
+                System.out.println("Stopping wheels on X");
+                setModuleStates(new SwerveModuleState[] {
+                    new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
+                    new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
+                    new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
+                    new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
+                }, constants.modules.openLoop);
+            })
+        );
     }
 
     public void setAccelerationLimit(double accelerationLimit) {
