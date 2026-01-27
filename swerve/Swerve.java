@@ -6,7 +6,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -39,7 +38,7 @@ public class Swerve {
     private final SwerveDriveKinematics kinematics;
     private final Gyro gyro;
 
-    private ChassisSpeeds wantedRobotRelativeSpeeds = new ChassisSpeeds();
+    private SwerveSpeeds wantedSpeeds = new SwerveSpeeds();
     private SwerveModuleIOInputsAutoLogged[] moduleInputs;
     private SwerveModulePosition[] previousModulePositions;
     public static final Lock odometryLock = new ReentrantLock();
@@ -132,31 +131,31 @@ public class Swerve {
      *
      * @param input The input to drive: speed, angular speed and field/robot relative
      */
-    public void drive(SwerveInput input) {
-        Translation2d currentVelocity = new SwerveInput(getChassisSpeeds(input.isFieldRelative()), input.isFieldRelative()).toTranslation();
+    public void drive(SwerveSpeeds input) {
+        Translation2d currentVelocity = getSpeeds().toTranslation();
         Translation2d wantedVelocity = input.toTranslation();
 
         wantedVelocity = SwerveUtils.limitSkidAcceleration(currentVelocity, wantedVelocity, constants.limits.maxSkidAcceleration);
-        ChassisSpeeds robotRelativeSpeeds = new SwerveInput(wantedVelocity.getX(), wantedVelocity.getY(), input.omegaRadiansPerSecond, input.isFieldRelative()).getAsRobotRelative(gyro.getYaw());
+        SwerveSpeeds robotRelativeSpeeds = new SwerveSpeeds(wantedVelocity.getX(), wantedVelocity.getY(), input.omegaRadiansPerSecond, input.fieldRelative).getAsRobotRelative(gyro.getYaw());
 
-        robotRelativeSpeeds = new ChassisSpeeds(
+        robotRelativeSpeeds = new SwerveSpeeds(
             xAccelerationLimit.calculate(MathUtil.clamp(robotRelativeSpeeds.vxMetersPerSecond, -constants.limits.speedLimit, constants.limits.speedLimit)),
             yAccelerationLimit.calculate(MathUtil.clamp(robotRelativeSpeeds.vyMetersPerSecond, -constants.limits.speedLimit, constants.limits.speedLimit)),
-            rotAccelerationLimit.calculate(MathUtil.clamp(robotRelativeSpeeds.omegaRadiansPerSecond, -constants.limits.rotationSpeedLimit, constants.limits.rotationSpeedLimit))
+            rotAccelerationLimit.calculate(MathUtil.clamp(robotRelativeSpeeds.omegaRadiansPerSecond, -constants.limits.rotationSpeedLimit, constants.limits.rotationSpeedLimit)),
+            false
         );
 
-        wantedRobotRelativeSpeeds = robotRelativeSpeeds;
-        setModuleStates(kinematics.toSwerveModuleStates(wantedRobotRelativeSpeeds), constants.modules.openLoop);
+        wantedSpeeds = robotRelativeSpeeds;
+        setModuleStates(kinematics.toSwerveModuleStates(wantedSpeeds), constants.modules.openLoop);
     }
 
     public void stop() {
-        drive(new SwerveInput());
+        drive(new SwerveSpeeds());
     }
 
     public Command lockWheelsToX() {
         return Commands.sequence(
             Commands.runOnce(() -> {
-                System.out.println("Locking wheels to X");
                 setModuleStates(new SwerveModuleState[] {
                     new SwerveModuleState(0.3, Rotation2d.fromDegrees(45)),
                     new SwerveModuleState(0.3, Rotation2d.fromDegrees(-45)),
@@ -170,7 +169,6 @@ public class Swerve {
                     && Math.abs(moduleInputs[2].Position.angle.minus(Rotation2d.fromDegrees(-45)).getCos()) > Math.cos(Units.degreesToRadians(5))
                     && Math.abs(moduleInputs[3].Position.angle.minus(Rotation2d.fromDegrees(45)) .getCos()) > Math.cos(Units.degreesToRadians(5))),
             Commands.runOnce(() -> {
-                System.out.println("Stopping wheels on X");
                 setModuleStates(new SwerveModuleState[] {
                     new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
                     new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
@@ -232,8 +230,8 @@ public class Swerve {
                 RobotStateWithSwerve.getInstance().setRobotPose(simulation.getSimulatedDriveTrainPose());
         }
 
-        Logger.recordOutput("Swerve/Current Velocity", getChassisSpeeds(true));
-        Logger.recordOutput("Swerve/Wanted Velocity", ChassisSpeeds.fromRobotRelativeSpeeds(wantedRobotRelativeSpeeds, gyro.getYaw()));
+        Logger.recordOutput("Swerve/Current Velocity", getSpeeds().getAsFieldRelative(RobotStateWithSwerve.getInstance().getRobotPose().getRotation()));
+        Logger.recordOutput("Swerve/Wanted Velocity", wantedSpeeds.getAsFieldRelative(RobotStateWithSwerve.getInstance().getRobotPose().getRotation()));
     }
     
     int frames = 0;
@@ -299,9 +297,12 @@ public class Swerve {
         return states;
     }
 
-    public ChassisSpeeds getChassisSpeeds(boolean fieldRelative) {
-        ChassisSpeeds speeds = kinematics.toChassisSpeeds(getModuleStates());
-        return fieldRelative ? ChassisSpeeds.fromRobotRelativeSpeeds(speeds, gyro.getYaw()) : speeds;
+    public SwerveSpeeds getSpeeds() {
+        return new SwerveSpeeds(kinematics.toChassisSpeeds(getModuleStates()), false);
+    }
+
+    public SwerveSpeeds getWantedSpeeds() {
+        return wantedSpeeds;
     }
 
     public SwerveModulePosition[] getModulePositions() {

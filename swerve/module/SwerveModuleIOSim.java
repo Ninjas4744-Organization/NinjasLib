@@ -25,6 +25,7 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
     private final PIDController anglePID;
     private Rotation2d lastAngle;
     private final double maxModuleSpeed;
+    private SwerveModuleState desiredState = new SwerveModuleState();
 
     public SwerveModuleIOSim(SwerveConstants swerveConstants, SwerveModuleConstants constants, SwerveModuleSimulation simulationModule) {
         moduleNumber = constants.moduleNumber;
@@ -47,6 +48,7 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
     @Override
     public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop) {
         desiredState = SwerveUtils.optimizeModuleState(desiredState, simulationModule.getCurrentState().angle);
+        this.desiredState = desiredState;
 
         //Drive
         if (isOpenLoop) driveMotor.requestVoltage(Volts.of(desiredState.speedMetersPerSecond / maxModuleSpeed * 12));
@@ -69,6 +71,7 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
     public void updateInputs(SwerveModuleIOInputsAutoLogged inputs) {
         inputs.ModuleNumber = moduleNumber;
         inputs.State = simulationModule.getCurrentState();
+        inputs.DesiredState = desiredState;
         inputs.Position = new SwerveModulePosition(simulationModule.getDriveWheelFinalPosition().in(Radians) * simulationModule.config.WHEEL_RADIUS.in(Meters), inputs.State.angle);
         inputs.AbsolutePosition = Rotation2d.kZero;
     }

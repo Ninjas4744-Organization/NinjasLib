@@ -9,6 +9,7 @@ public interface SwerveModuleIO {
     @AutoLog
     class SwerveModuleIOInputs {
         public int ModuleNumber;
+        public SwerveModuleState DesiredState = new SwerveModuleState();
         public SwerveModuleState State = new SwerveModuleState();
         public SwerveModulePosition Position = new SwerveModulePosition();
         public Rotation2d AbsolutePosition = Rotation2d.kZero;

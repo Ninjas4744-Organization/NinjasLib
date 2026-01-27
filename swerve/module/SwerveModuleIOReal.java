@@ -27,6 +27,7 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
 
     private Rotation2d lastAngle;
     private final CANcoder canCoder;
+    private SwerveModuleState desiredState = new SwerveModuleState();
 
     private final boolean isTalonFX;
     private Queue<Double> positionQueue;
@@ -74,6 +75,7 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
     @Override
     public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop) {
         desiredState = SwerveUtils.optimizeModuleState(desiredState, Rotation2d.fromRadians(steerMotor.getPosition()));
+        this.desiredState = desiredState;
 
         //Drive
         if (isOpenLoop)
@@ -108,6 +110,7 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
     public void updateInputs(SwerveModuleIOInputsAutoLogged inputs) {
         inputs.ModuleNumber = moduleNumber;
         inputs.State = new SwerveModuleState(driveMotor.getVelocity(), Rotation2d.fromRadians(steerMotor.getPosition()));
+        inputs.DesiredState = desiredState;
         inputs.Position = new SwerveModulePosition(driveMotor.getPosition(), Rotation2d.fromRadians(steerMotor.getPosition()));
         inputs.AbsolutePosition = getCANCoder();
 

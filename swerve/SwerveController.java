@@ -11,11 +11,13 @@ import frc.lib.NinjasLib.swerve.constants.SwerveControllerConstants;
 import org.littletonrobotics.junction.Logger;
 
 public class SwerveController {
-    private final ProfiledPIDController anglePID;
+    private ProfiledPIDController rotationProfiledPID;
+    private PIDController rotationPID;
     private final PIDController drivePID;
     private final SwerveControllerConstants constants;
+    private final boolean isProfiledRotationPID;
 
-    private SwerveInput lastInput;
+    private SwerveSpeeds lastInput;
     private String channel;
     private String previousChannel;
 
@@ -39,16 +41,29 @@ public class SwerveController {
 
         channel = "";
         previousChannel = "";
-        lastInput = new SwerveInput();
+        lastInput = new SwerveSpeeds();
 
-        anglePID = new ProfiledPIDController(
-            constants.rotationPIDConstants.P,
-            constants.rotationPIDConstants.I,
-            constants.rotationPIDConstants.D,
-            new TrapezoidProfile.Constraints(constants.rotationPIDConstants.cruiseVelocity, constants.rotationPIDConstants.acceleration)
-        );
-        anglePID.setIZone(constants.rotationPIDConstants.IZone);
-        anglePID.enableContinuousInput(constants.rotationPIDContinuousConnections.getFirst(), constants.rotationPIDContinuousConnections.getSecond());
+        isProfiledRotationPID = !(constants.rotationPIDConstants.cruiseVelocity == 0
+                && constants.rotationPIDConstants.acceleration == 0);
+
+        if (isProfiledRotationPID) {
+            rotationProfiledPID = new ProfiledPIDController(
+                constants.rotationPIDConstants.P,
+                constants.rotationPIDConstants.I,
+                constants.rotationPIDConstants.D,
+                new TrapezoidProfile.Constraints(constants.rotationPIDConstants.cruiseVelocity, constants.rotationPIDConstants.acceleration)
+            );
+            rotationProfiledPID.setIZone(constants.rotationPIDConstants.IZone);
+            rotationProfiledPID.enableContinuousInput(constants.rotationPIDContinuousConnections.getFirst(), constants.rotationPIDContinuousConnections.getSecond());
+        } else {
+            rotationPID = new PIDController(
+                constants.rotationPIDConstants.P,
+                constants.rotationPIDConstants.I,
+                constants.rotationPIDConstants.D
+            );
+            rotationPID.setIZone(constants.rotationPIDConstants.IZone);
+            rotationPID.enableContinuousInput(constants.rotationPIDContinuousConnections.getFirst(), constants.rotationPIDContinuousConnections.getSecond());
+        }
 
         drivePID = new PIDController(
                 constants.drivePIDConstants.P,
@@ -63,7 +78,9 @@ public class SwerveController {
      * @param angle the angle to look at
      */
     public double lookAt(Rotation2d angle) {
-        return anglePID.calculate(Swerve.getInstance().getGyro().getYaw().getRadians(), angle.getRadians());
+        if (isProfiledRotationPID)
+            return rotationProfiledPID.calculate(Swerve.getInstance().getGyro().getYaw().getRadians(), angle.getRadians());
+        return rotationPID.calculate(Swerve.getInstance().getGyro().getYaw().getRadians(), angle.getRadians());
     }
 
     /**
@@ -84,7 +101,10 @@ public class SwerveController {
     }
 
     public void resetLookAt() {
-        anglePID.reset(RobotStateWithSwerve.getInstance().getRobotPose().getRotation().getRadians());
+        if (isProfiledRotationPID)
+            rotationProfiledPID.reset(RobotStateWithSwerve.getInstance().getRobotPose().getRotation().getRadians());
+        else
+            System.out.println("Tried to reset a non profiled swerve rotation pid");
     }
 
     public Translation2d pidTo(Translation2d target) {
@@ -92,7 +112,7 @@ public class SwerveController {
         return RobotStateWithSwerve.getInstance().getTranslation(new Pose2d(target, Rotation2d.kZero)).div(dist).times(drivePID.calculate(-dist));
     }
 
-    public void setControl(SwerveInput input, String channel) {
+    public void setControl(SwerveSpeeds input, String channel) {
         if (channel.equals(this.channel)) {
             Swerve.getInstance().drive(input);
             lastInput = input;
@@ -122,7 +142,7 @@ public class SwerveController {
         return previousChannel;
     }
 
-    public SwerveInput getLastInput() {
+    public SwerveSpeeds getLastInput() {
         return lastInput;
     }
 
@@ -131,12 +151,12 @@ public class SwerveController {
      * @param percent the percent chassis speeds to convert
      * @return the m/s chassis speeds to give the swerve
      */
-    public SwerveInput fromPercent(SwerveInput percent) {
-        return new SwerveInput(
+    public SwerveSpeeds fromPercent(SwerveSpeeds percent) {
+        return new SwerveSpeeds(
             percent.vxMetersPerSecond * constants.swerveConstants.limits.maxSpeed,
             percent.vyMetersPerSecond * constants.swerveConstants.limits.maxSpeed,
             percent.omegaRadiansPerSecond * constants.swerveConstants.limits.maxAngularVelocity,
-            percent.isFieldRelative()
+            percent.fieldRelative
         );
     }
 
