@@ -132,20 +132,19 @@ public class Swerve {
      * @param input The input to drive: speed, angular speed and field/robot relative
      */
     public void drive(SwerveSpeeds input) {
-        Translation2d currentVelocity = getSpeeds().toTranslation();
-        Translation2d wantedVelocity = input.toTranslation();
+        Translation2d currentVelocity = getSpeeds().getAsRobotRelative(RobotStateWithSwerve.getInstance().getRobotPose().getRotation()).toTranslation();
+        Translation2d wantedVelocity = input.getAsRobotRelative(RobotStateWithSwerve.getInstance().getRobotPose().getRotation()).toTranslation();
 
         wantedVelocity = SwerveUtils.limitSkidAcceleration(currentVelocity, wantedVelocity, constants.limits.maxSkidAcceleration);
-        SwerveSpeeds robotRelativeSpeeds = new SwerveSpeeds(wantedVelocity.getX(), wantedVelocity.getY(), input.omegaRadiansPerSecond, input.fieldRelative).getAsRobotRelative(gyro.getYaw());
+        wantedSpeeds = new SwerveSpeeds(wantedVelocity.getX(), wantedVelocity.getY(), input.omegaRadiansPerSecond, false);
 
-        robotRelativeSpeeds = new SwerveSpeeds(
-            xAccelerationLimit.calculate(MathUtil.clamp(robotRelativeSpeeds.vxMetersPerSecond, -constants.limits.speedLimit, constants.limits.speedLimit)),
-            yAccelerationLimit.calculate(MathUtil.clamp(robotRelativeSpeeds.vyMetersPerSecond, -constants.limits.speedLimit, constants.limits.speedLimit)),
-            rotAccelerationLimit.calculate(MathUtil.clamp(robotRelativeSpeeds.omegaRadiansPerSecond, -constants.limits.rotationSpeedLimit, constants.limits.rotationSpeedLimit)),
+        wantedSpeeds = new SwerveSpeeds(
+            xAccelerationLimit.calculate(MathUtil.clamp(wantedSpeeds.vxMetersPerSecond, -constants.limits.speedLimit, constants.limits.speedLimit)),
+            yAccelerationLimit.calculate(MathUtil.clamp(wantedSpeeds.vyMetersPerSecond, -constants.limits.speedLimit, constants.limits.speedLimit)),
+            rotAccelerationLimit.calculate(MathUtil.clamp(wantedSpeeds.omegaRadiansPerSecond, -constants.limits.rotationSpeedLimit, constants.limits.rotationSpeedLimit)),
             false
         );
 
-        wantedSpeeds = robotRelativeSpeeds;
         setModuleStates(kinematics.toSwerveModuleStates(wantedSpeeds), constants.modules.openLoop);
     }
 

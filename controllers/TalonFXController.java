@@ -51,6 +51,7 @@ public class TalonFXController extends Controller {
               .withKD(constants.control.controlConstants.D)
               .withKS(constants.control.controlConstants.S)
               .withKV(constants.control.controlConstants.V)
+              .withKA(constants.control.controlConstants.A)
               .withKG(constants.control.controlConstants.G)
                     .withGravityType(constants.control.controlConstants.gravityType))
               .withFeedback(constants.canCoder.enable && constants.canCoder.mode != RealControllerConstants.CANCoder.CANCoderMode.Normal
