@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.NinjasLib.commands.BackgroundCommand;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import org.littletonrobotics.junction.Logger;
@@ -15,10 +16,12 @@ import java.util.function.Supplier;
 
 public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extends SubsystemBase {
     private static StateMachineBase instance;
-    protected Graph<StateEnum, Command> graph;
-    protected Map<StateEnum, Map<Command, StateEnum>> stateEnds;
-    protected Command currentEdge;
-    private Class<StateEnum> stateEnumClass;
+    private final Graph<StateEnum, Command> graph;
+    private final Map<StateEnum, Map<Command, StateEnum>> stateEnds;
+    private final Class<StateEnum> stateEnumClass;
+    private final Map<StateEnum, Command> stateCommands;
+    private final BackgroundCommand stateCommand;
+    private Command currentEdge;
 
     public static StateMachineBase getInstance() {
         if (instance == null)
@@ -28,7 +31,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
 
     public static void setInstance(StateMachineBase instance) {
         StateMachineBase.instance = instance;
-        instance.defineGraph();
+        instance.define();
         instance.printGraph();
     }
 
@@ -40,6 +43,9 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
         for(StateEnum state : states.getEnumConstants()) {
             graph.addVertex(state);
         }
+
+        stateCommands = new HashMap<>();
+        stateCommand = new BackgroundCommand();
     }
 
     @Override
@@ -71,6 +77,10 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
                     CommandScheduler.getInstance().schedule(end);
                 }
             }
+
+            Command stateTask = stateCommands.get(getCurrentState());
+            if (stateTask != null)
+                stateCommand.setNewTask(stateTask);
         }
 
         Logger.recordOutput("StateMachine/Is Transitioning", isTransitioning());
@@ -119,6 +129,8 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
                     end.cancel();
                 }
             }
+
+            stateCommand.stop();
 
             currentEdge = edge;
             CommandScheduler.getInstance().schedule(currentEdge);
@@ -208,7 +220,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      * @see #addEdge(Enum, Enum, Command)
      * @see #addStateEnd(Enum, Map)
      */
-    protected abstract void defineGraph();
+    protected abstract void define();
 
     /**
      * Add an edge command connecting the start state to the end state in the statemachine's graph.
@@ -276,30 +288,6 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
     }
 
     /**
-     * Add the same edge for the transition from state1 to state2, and for the transition from state2 to state1.
-     * @param state1 A state.
-     * @param state2 Another state.
-     * @param command The edge command. It is a supplier instead of a command so each edge will get a duplicate of the command to avoid errors.
-     * @see #addEdge(Enum, Enum, Command)
-     */
-    protected void addCommutativeEdge(StateEnum state1, StateEnum state2, Supplier<Command> command) {
-        addEdge(state1, state2, command.get());
-        addEdge(state2, state1, command.get());
-    }
-
-    /**
-     * Add the same edge for the transition from state1 to state2, and for the transition from state2 to state1.
-     * @param state1 A state.
-     * @param state2 Another state.
-     * @see #addEdge(Enum, Enum, Command)
-     * @see #addEdge(Enum, Enum)
-     */
-    protected void addCommutativeEdge(StateEnum state1, StateEnum state2) {
-        addEdge(state1, state2);
-        addEdge(state2, state1);
-    }
-
-    /**
      * Add an end condition for a state.
      * When the command finishes running, the statemachine will fire the transition command between the state to the wanted state.
      * The commands MUST NOT convey actual logic, but should only be for waiting for some event.
@@ -312,12 +300,24 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
     }
 
     /**
+     * Set a command to run when the robot is in the given state.
+     * The command starts running when a transition has ended and the target state is the given one.
+     * The command ends when starting a transition to another state.
+     * If the command finished early it will NOT be run again in a loop.
+     * @param state The state to set its command
+     * @param command The command to run on the state
+     */
+    protected void addStateCommand(StateEnum state, Command command) {
+        stateCommands.put(state, command);
+    }
+
+    /**
      * Prints the statemachine graph including states and edges to the console.
      */
     public void printGraph() {
         System.out.println("---------------StateMachine Graph---------------");
         for (Object vertex : instance.graph.vertexSet()) {
-            System.out.println("Vertex: " + vertex);
+            System.out.println("State: " + vertex);
 
             var outgoingEdges = graph.outgoingEdgesOf((StateEnum) vertex);
             if (outgoingEdges.isEmpty()) {
@@ -325,7 +325,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             } else {
                 for (Command edge : outgoingEdges) {
                     StateEnum target = graph.getEdgeTarget(edge);
-                    System.out.println("  → " + target);
+                    System.out.println("  -> " + target);
                 }
             }
             System.out.println();
