@@ -1,4 +1,4 @@
-package frc.lib.NinjasLib.subsystem_interfaces;
+package frc.lib.NinjasLib.subsystem;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -14,26 +14,30 @@ public final class ISubsystem {
 
     /** Supports commanding and reading the position. */
     public interface PositionControlled {
-        Command setPosition(double position);
         double getPosition();
+        void setPosition(double position);
+        Command setPositionCmd(double position);
     }
 
     /** Supports commanding and reading an angular position. */
     public interface AngleControlled {
-        Command setAngle(Rotation2d angle);
         Rotation2d getAngle();
+        void setAngle(Rotation2d angle);
+        Command setAngleCmd(Rotation2d angle);
     }
 
     /** Supports commanding and reading the velocity. */
     public interface VelocityControlled {
-        Command setVelocity(double velocity);
         double getVelocity();
+        void setVelocity(double velocity);
+        Command setVelocityCmd(double velocity);
     }
 
     /** Supports commanding and reading the percent output. */
     public interface PercentControlled {
-        Command setPercent(double percent);
         double getOutput();
+        void setPercent(double percent);
+        Command setPercentCmd(double percent);
     }
 
     /** Supports reporting its control goal. */
@@ -44,6 +48,7 @@ public final class ISubsystem {
 
     /** Supports being commanded to immediately stop all motions or output. */
     public interface Stoppable {
-        Command stop();
+        void stop();
+        Command stopCmd();
     }
 }

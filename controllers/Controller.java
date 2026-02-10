@@ -8,6 +8,7 @@ import frc.lib.NinjasLib.controllers.constants.ControlConstants.SmartControlType
 import frc.lib.NinjasLib.controllers.constants.ControllerConstants;
 import frc.lib.NinjasLib.controllers.constants.RealControllerConstants;
 import frc.robot.Robot;
+import org.littletonrobotics.junction.AutoLog;
 
 public abstract class Controller {
     public enum ControlState {
@@ -216,6 +217,7 @@ public abstract class Controller {
         return new SimulatedController(constants);
     }
 
+    @AutoLog
     public static class ControllerIOInputs {
         public double Position;
         public double Velocity;
