@@ -3,7 +3,6 @@ package frc.lib.NinjasLib.controllers;
 import com.ctre.phoenix6.hardware.CANcoder;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.RobotController;
 import frc.lib.NinjasLib.controllers.constants.ControlConstants.SmartControlType;
 import frc.lib.NinjasLib.controllers.constants.ControllerConstants;
 import frc.lib.NinjasLib.controllers.constants.RealControllerConstants;
@@ -160,16 +159,14 @@ public abstract class Controller {
     }
 
     /**
-     * @return goal/setpoint/reference of the controller, the target of PIDF / PID / Motion
-     *     Magic...
+     * @return Goal/Setpoint/Reference of the controller, the target of Profiled PID / PID / Motion Magic, etc...
      */
     public double getGoal() {
         return goal;
     }
 
     /**
-     * @return whether the controller is at the goal, the target of PIDF / PID / Motion Magic...
-     *     Will return false if not in position or velocity control
+     * @return Whether the controller is at its goal, the target of Profiled PID / PID / Motion Magic, etc... Will return false if not in position or velocity control
      */
     public boolean atGoal() {
         if (controlState == ControlState.POSITION)
@@ -189,7 +186,7 @@ public abstract class Controller {
 
         if (Robot.isReal())
             return constants.hardLimit.isVirtual
-                ? (Math.abs(getCurrent() / RobotController.getBatteryVoltage()) > constants.hardLimit.virtualStallThreshold && Math.signum(getOutput()) == constants.hardLimit.direction) || (preLimit && Math.signum(getOutput()) != -constants.hardLimit.direction)
+                ? (Math.abs(getCurrent()) > constants.hardLimit.virtualStallThreshold && Math.signum(getOutput()) == constants.hardLimit.direction) || (preLimit && Math.signum(getOutput()) != -constants.hardLimit.direction)
                 : constants.hardLimit.inverted != limitSwitch.get();
         else
             return Math.abs(constants.hardLimit.homePosition - getPosition()) < constants.control.positionGoalTolerance;

@@ -1,6 +1,5 @@
 package frc.lib.NinjasLib.swerve;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -132,18 +131,28 @@ public class Swerve {
      * @param input The input to drive: speed, angular speed and field/robot relative
      */
     public void drive(SwerveSpeeds input) {
-        Translation2d currentVelocity = getSpeeds().getAsRobotRelative(RobotStateWithSwerve.getInstance().getRobotPose().getRotation()).toTranslation();
-        Translation2d wantedVelocity = input.getAsRobotRelative(RobotStateWithSwerve.getInstance().getRobotPose().getRotation()).toTranslation();
+//        SwerveSpeeds currentVelocity = getSpeeds();
+//        if (input.fieldRelative)
+//            currentVelocity = currentVelocity.getAsFieldRelative();
 
-        wantedVelocity = SwerveUtils.limitSkidAcceleration(currentVelocity, wantedVelocity, constants.limits.maxSkidAcceleration);
-        wantedSpeeds = new SwerveSpeeds(wantedVelocity.getX(), wantedVelocity.getY(), input.omegaRadiansPerSecond, false);
-
+//        wantedSpeeds = new SwerveSpeeds(SwerveUtils.limitForwardAcceleration(wantedSpeeds.getAs(input.fieldRelative).toTranslation(), input.toTranslation(), constants.limits.maxForwardAcceleration, constants.limits.maxSpeed), input.omegaRadiansPerSecond, input.fieldRelative);
+//        wantedSpeeds = new SwerveSpeeds(SwerveUtils.limitSkidAcceleration(wantedSpeeds.getAs(input.fieldRelative).toTranslation(), input.toTranslation(), constants.limits.maxSkidAcceleration), input.omegaRadiansPerSecond, input.fieldRelative);
         wantedSpeeds = new SwerveSpeeds(
-            xAccelerationLimit.calculate(MathUtil.clamp(wantedSpeeds.vxMetersPerSecond, -constants.limits.speedLimit, constants.limits.speedLimit)),
-            yAccelerationLimit.calculate(MathUtil.clamp(wantedSpeeds.vyMetersPerSecond, -constants.limits.speedLimit, constants.limits.speedLimit)),
-            rotAccelerationLimit.calculate(MathUtil.clamp(wantedSpeeds.omegaRadiansPerSecond, -constants.limits.rotationSpeedLimit, constants.limits.rotationSpeedLimit)),
-            false
-        );
+            SwerveUtils.limitForwardAndSkidAcceleration(
+                wantedSpeeds.getAs(input.fieldRelative).toTranslation(),
+                input.toTranslation(),
+                constants.limits.maxForwardAcceleration,
+                constants.limits.maxSkidAcceleration,
+                constants.limits.maxSpeed),
+            input.omegaRadiansPerSecond,
+            input.fieldRelative);
+//        wantedSpeeds = new SwerveSpeeds(
+//            xAccelerationLimit.calculate(MathUtil.clamp(wantedSpeeds.vxMetersPerSecond, -constants.limits.speedLimit, constants.limits.speedLimit)),
+//            yAccelerationLimit.calculate(MathUtil.clamp(wantedSpeeds.vyMetersPerSecond, -constants.limits.speedLimit, constants.limits.speedLimit)),
+//            rotAccelerationLimit.calculate(MathUtil.clamp(wantedSpeeds.omegaRadiansPerSecond, -constants.limits.rotationSpeedLimit, constants.limits.rotationSpeedLimit)),
+//            false
+//        );
+        wantedSpeeds = wantedSpeeds.getAsRobotRelative();
 
         setModuleStates(kinematics.toSwerveModuleStates(wantedSpeeds), constants.modules.openLoop);
     }
@@ -229,8 +238,8 @@ public class Swerve {
                 RobotStateWithSwerve.getInstance().setRobotPose(simulation.getSimulatedDriveTrainPose());
         }
 
-        Logger.recordOutput("Swerve/Current Velocity", getSpeeds().getAsFieldRelative(RobotStateWithSwerve.getInstance().getRobotPose().getRotation()));
-        Logger.recordOutput("Swerve/Wanted Velocity", wantedSpeeds.getAsFieldRelative(RobotStateWithSwerve.getInstance().getRobotPose().getRotation()));
+        Logger.recordOutput("Swerve/Current Velocity", getSpeeds().getAsFieldRelative());
+        Logger.recordOutput("Swerve/Wanted Velocity", wantedSpeeds.getAsFieldRelative());
     }
     
     int frames = 0;

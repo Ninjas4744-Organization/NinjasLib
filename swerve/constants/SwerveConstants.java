@@ -43,6 +43,9 @@ public class SwerveConstants {
         /** Max acceleration the swerve could possibly change movement direction (needs to be calibrated), in m/s^2 */
         public double maxSkidAcceleration;
 
+        /** Max acceleration the swerve could possibly change speed from 0 m/s (needs to be calibrated), in m/s^2 */
+        public double maxForwardAcceleration;
+
         /** Swerve speed limit, the swerve can't drive faster than this number +-, in m/s */
         public double speedLimit;
 

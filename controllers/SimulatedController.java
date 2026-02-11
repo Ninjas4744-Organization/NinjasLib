@@ -2,23 +2,24 @@ package frc.lib.NinjasLib.controllers;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import frc.lib.NinjasLib.DerivativeCalculator;
 import frc.lib.NinjasLib.controllers.constants.ControllerConstants;
 
 public class SimulatedController extends Controller {
+    private DCMotorSim motorSim;
+    private DerivativeCalculator accelerationCalculator;
+
     private final TrapezoidProfile profile;
     private final ProfiledPIDController profiledPIDController;
     private final PIDController PIDController;
     private boolean isCurrentlyProfiling = false;
-    private DCMotorSim motorSim;
-    private double lastVelocity;
 
     public SimulatedController(ControllerConstants constants) {
         super(constants.real);
 
-        motorSim = new DCMotorSim(LinearSystemId.createDCMotorSystem(constants.motorType, 0.001, constants.real.control.gearRatio), constants.motorType, 0.0005, 0.0005);
+        motorSim = new DCMotorSim(constants.simSystem, constants.simMotor, 0.001, 0.01);
 
         profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(
             constants.real.control.controlConstants.cruiseVelocity,
@@ -38,6 +39,8 @@ public class SimulatedController extends Controller {
             constants.real.control.controlConstants.D
         );
         PIDController.setIZone(constants.real.control.controlConstants.IZone);
+
+        accelerationCalculator = new DerivativeCalculator(5);
     }
 
     @Override
@@ -81,9 +84,7 @@ public class SimulatedController extends Controller {
 
     @Override
     public double getAcceleration() {
-        double acc = (getVelocity() - lastVelocity) / 0.02;
-        lastVelocity = getVelocity();
-        return acc;
+        return accelerationCalculator.get();
     }
 
     @Override
@@ -110,14 +111,14 @@ public class SimulatedController extends Controller {
                 if (controlState == ControlState.POSITION)
                     motorSim.setInputVoltage(profiledPIDController.calculate(getPosition()));
                 else if (controlState == ControlState.VELOCITY)
-                    motorSim.setInputVoltage(profiledPIDController.calculate(getVelocity()));
+                    motorSim.setInputVoltage(constants.control.controlConstants.V * getGoal() + profiledPIDController.calculate(getVelocity()));
                 break;
 
             case PID, TORQUE_CURRENT:
                 if (controlState == ControlState.POSITION)
                     motorSim.setInputVoltage(PIDController.calculate(getPosition()));
                 else if (controlState == ControlState.VELOCITY)
-                    motorSim.setInputVoltage(PIDController.calculate(getVelocity()));
+                    motorSim.setInputVoltage(constants.control.controlConstants.V * getGoal() + PIDController.calculate(getVelocity()));
                 break;
 
             case PROFILE:
@@ -149,6 +150,8 @@ public class SimulatedController extends Controller {
             stop();
             setEncoder(constants.softLimits.min);
         }
+
+        accelerationCalculator.calculate(getVelocity());
 
         motorSim.update(0.02);
 

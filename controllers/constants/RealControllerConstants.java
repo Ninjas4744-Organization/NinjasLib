@@ -81,8 +81,8 @@ public class RealControllerConstants {
         /** Whether to use a virtual limit switch (according to the current the motor takes) instead of a real one. */
         public boolean isVirtual = false;
 
-        /** How much normalized current (current / voltage) is needed to activate the virtual limit to behave like a real limit switch */
-        public double virtualStallThreshold = 30 / 12.0;
+        /** How much current is needed to activate the virtual limit to behave like a real limit switch */
+        public double virtualStallThreshold = 70;
 
         /** ID of limit switch used in the subsystem. */
         public int id = 0;

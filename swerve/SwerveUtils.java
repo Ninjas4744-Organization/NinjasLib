@@ -24,7 +24,7 @@ public class SwerveUtils {
 
     public static Translation2d limitForwardAcceleration(Translation2d currentVelocity, Translation2d desiredVelocity, double maxAcceleration, double maxVelocity) {
         // Compute the velocity direction (normalize to get unit vector)
-        Translation2d velocityDirection = currentVelocity.getNorm() > 0 ? currentVelocity.div(currentVelocity.getNorm()) : new Translation2d();
+        Translation2d velocityDirection = currentVelocity.getNorm() > 0.05 ? currentVelocity.div(currentVelocity.getNorm()) : desiredVelocity.div(desiredVelocity.getNorm());
 
         // Compute max allowed acceleration in the current velocity direction
         double forwardMaxAccel = maxAcceleration * (1 - (currentVelocity.getNorm() / maxVelocity));
@@ -33,7 +33,7 @@ public class SwerveUtils {
         Translation2d wantedAccel = desiredVelocity.minus(currentVelocity).div(0.02);
 
         // Project acceleration onto the velocity direction
-        double forwardAccel = wantedAccel.toVector().dot(velocityDirection.toVector());
+        double forwardAccel = wantedAccel.dot(velocityDirection);
 
         // Limit forward acceleration
         if (forwardAccel > forwardMaxAccel) {
@@ -47,6 +47,33 @@ public class SwerveUtils {
     public static Translation2d limitSkidAcceleration(Translation2d currentVelocity, Translation2d desiredVelocity, double maxSkidAcceleration) {
         // Compute the wanted acceleration
         Translation2d wantedAccel = desiredVelocity.minus(currentVelocity).div(0.02);
+
+        // If the magnitude of wantedAccel exceeds maxSkidAcceleration, scale it down
+        if (wantedAccel.getNorm() > maxSkidAcceleration) {
+            wantedAccel = wantedAccel.times(maxSkidAcceleration / wantedAccel.getNorm());
+        }
+
+        // Compute the next velocity
+        return currentVelocity.plus(wantedAccel.times(0.02));
+    }
+
+    public static Translation2d limitForwardAndSkidAcceleration(Translation2d currentVelocity, Translation2d desiredVelocity, double maxForwardAcceleration, double maxSkidAcceleration, double maxVelocity) {
+        // Compute the velocity direction (normalize to get unit vector)
+        Translation2d velocityDirection = currentVelocity.getNorm() > 0.05 ? currentVelocity.div(currentVelocity.getNorm()) : desiredVelocity.div(desiredVelocity.getNorm());
+
+        // Compute max allowed acceleration in the current velocity direction
+        double forwardMaxAccel = maxForwardAcceleration * (1 - (currentVelocity.getNorm() / maxVelocity));
+
+        // Compute wanted acceleration
+        Translation2d wantedAccel = desiredVelocity.minus(currentVelocity).div(0.02);
+
+        // Project acceleration onto the velocity direction
+        double forwardAccel = wantedAccel.dot(velocityDirection);
+
+        // Limit forward acceleration
+        if (forwardAccel > forwardMaxAccel) {
+            wantedAccel = wantedAccel.minus(velocityDirection.times(forwardAccel - forwardMaxAccel));
+        }
 
         // If the magnitude of wantedAccel exceeds maxSkidAcceleration, scale it down
         if (wantedAccel.getNorm() > maxSkidAcceleration) {

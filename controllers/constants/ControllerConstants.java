@@ -1,19 +1,24 @@
 package frc.lib.NinjasLib.controllers.constants;
 
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N2;
+import edu.wpi.first.math.system.LinearSystem;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.system.plant.LinearSystemId;
 
 public class ControllerConstants implements Cloneable {
 	/** Regular controller constants */
 	public RealControllerConstants real = new RealControllerConstants();
 
-	/**
-	 * Type of motor for simulation control
-	 */
-	public DCMotor motorType = DCMotor.getKrakenX60(1);
+	/** Type of motor for simulation control */
+	public DCMotor simMotor = DCMotor.getKrakenX60(real.base.followers.length + 1);
+
+	/** Type of system for simulation control */
+	public LinearSystem<N2, N1, N2> simSystem = LinearSystemId.createElevatorSystem(simMotor, 6, 0.03, real.control.gearRatio);
 
 	@Override
 	public ControllerConstants clone() {
-		ControllerConstants clone = new ControllerConstants();
+        ControllerConstants clone = new ControllerConstants();
 
 		clone.real = new RealControllerConstants();
 		clone.real.base.main = new RealControllerConstants.Base.SimpleControllerConstants();
@@ -52,7 +57,8 @@ public class ControllerConstants implements Cloneable {
 		clone.real.hardLimit.direction = this.real.hardLimit.direction;
 		clone.real.hardLimit.autoStopReset = this.real.hardLimit.autoStopReset;
 
-		clone.motorType = this.motorType;
+		clone.simMotor = this.simMotor;
+		clone.simSystem = this.simSystem;
 
 		return clone;
 	}

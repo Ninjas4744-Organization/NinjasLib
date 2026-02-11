@@ -5,6 +5,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.util.struct.Struct;
 import edu.wpi.first.util.struct.StructSerializable;
+import frc.lib.NinjasLib.statemachine.RobotStateWithSwerve;
 
 import java.nio.ByteBuffer;
 
@@ -16,16 +17,17 @@ public class SwerveSpeeds extends ChassisSpeeds implements StructSerializable {
         fieldRelative = false;
     }
 
-    public SwerveSpeeds(ChassisSpeeds speeds, boolean fieldRelative) {
-        vxMetersPerSecond = speeds.vxMetersPerSecond;
-        vyMetersPerSecond = speeds.vyMetersPerSecond;
-        omegaRadiansPerSecond = speeds.omegaRadiansPerSecond;
-        this.fieldRelative = fieldRelative;
-    }
-
     public SwerveSpeeds(double vxMetersPerSecond, double vyMetersPerSecond, double omegaRadiansPerSecond, boolean fieldRelative) {
         super(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond);
         this.fieldRelative = fieldRelative;
+    }
+
+    public SwerveSpeeds(ChassisSpeeds speeds, boolean fieldRelative) {
+        this(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond, fieldRelative);
+    }
+
+    public SwerveSpeeds(Translation2d speeds, double omegaRadiansPerSecond, boolean fieldRelative) {
+        this(speeds.getX(), speeds.getY(), omegaRadiansPerSecond, fieldRelative);
     }
 
     public Translation2d toTranslation() {
@@ -42,10 +44,30 @@ public class SwerveSpeeds extends ChassisSpeeds implements StructSerializable {
         return new SwerveSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, true);
     }
 
+    public SwerveSpeeds getAsFieldRelative() {
+        return getAsFieldRelative(RobotStateWithSwerve.getInstance().getRobotPose().getRotation());
+    }
+
     public SwerveSpeeds getAsRobotRelative(Rotation2d robotAngle) {
         if (fieldRelative)
             return new SwerveSpeeds(ChassisSpeeds.fromFieldRelativeSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, robotAngle), false);
         return new SwerveSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, false);
+    }
+
+    public SwerveSpeeds getAsRobotRelative() {
+        return getAsRobotRelative(RobotStateWithSwerve.getInstance().getRobotPose().getRotation());
+    }
+
+    public SwerveSpeeds getAs(boolean fieldRelative, Rotation2d robotAngle) {
+        if (fieldRelative)
+            return getAsFieldRelative(robotAngle);
+        return getAsRobotRelative(robotAngle);
+    }
+
+    public SwerveSpeeds getAs(boolean fieldRelative) {
+        if (fieldRelative)
+            return getAsFieldRelative();
+        return getAsRobotRelative();
     }
 
     @Override
