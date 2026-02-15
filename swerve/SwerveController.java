@@ -79,8 +79,8 @@ public class SwerveController {
      */
     public double lookAt(Rotation2d angle) {
         if (isProfiledRotationPID)
-            return rotationProfiledPID.calculate(Swerve.getInstance().getGyro().getYaw().getRadians(), angle.getRadians());
-        return rotationPID.calculate(Swerve.getInstance().getGyro().getYaw().getRadians(), angle.getRadians());
+            return rotationProfiledPID.calculate(RobotStateWithSwerve.getInstance().getRobotPose().getRotation().getRadians(), angle.getRadians());
+        return rotationPID.calculate(RobotStateWithSwerve.getInstance().getRobotPose().getRotation().getRadians(), angle.getRadians());
     }
 
     /**
