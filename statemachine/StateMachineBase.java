@@ -118,7 +118,12 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
         if(isTransitioning() && !forceTransition)
             return;
 
-        Command edge = graph.getEdge(getCurrentState(), wantedState);
+        Command edge;
+        if (isTransitioning() && forceTransition)
+            edge = graph.getEdge(getTargetState(), wantedState);
+        else
+            edge = graph.getEdge(getCurrentState(), wantedState);
+
         if(edge != null) {
             if (currentEdge != null)
                 currentEdge.cancel();
