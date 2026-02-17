@@ -52,9 +52,6 @@ public class SwerveConstants {
         /** Swerve rotation speed limit, the swerve can't rotate faster than this number +-, in rad/s */
         public double rotationSpeedLimit;
 
-        /** Swerve max acceleration limit, m/s^2 */
-        public double accelerationLimit;
-
         /** Swerve max rotational acceleration limit, rad/s^2 */
         public double rotationAccelerationLimit;
     }

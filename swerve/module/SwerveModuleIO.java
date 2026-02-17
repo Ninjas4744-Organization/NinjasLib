@@ -20,7 +20,7 @@ public interface SwerveModuleIO {
         public double[] Timestamps = new double[0];
     }
 
-    default void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop) {
+    default void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop, boolean preventJittering) {
     }
 
     default void updateInputs(SwerveModuleIOInputsAutoLogged inputs) {

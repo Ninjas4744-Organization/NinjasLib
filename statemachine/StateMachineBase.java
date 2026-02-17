@@ -38,6 +38,9 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
     public StateMachineBase(Class<StateEnum> states) {
         graph = new SimpleDirectedGraph<>(Command.class);
         stateEnds = new HashMap<>();
+        for (StateEnum state : states.getEnumConstants()) {
+            stateEnds.put(state, new HashMap<>());
+        }
 
         stateEnumClass = states;
         for(StateEnum state : states.getEnumConstants()) {
@@ -298,10 +301,11 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      * The commands MUST NOT convey actual logic, but should only be for waiting for some event.
      * For example, any waitUntil or waitTime commands are accepted.
      * @param state The state this end condition applies to.
-     * @param nextStatesMap A map of commands to states where each command represents an end condition which when finishes will transition to the matching state.
+     * @param waitCommand A command which represents an end condition which when finishes will transition to the state.
+     * @param nextState The state to transition to when command finishes.
      */
-    protected void addStateEnd(StateEnum state, Map<Command, StateEnum> nextStatesMap) {
-        stateEnds.put(state, nextStatesMap);
+    protected void addStateEnd(StateEnum state, Command waitCommand, StateEnum nextState) {
+        stateEnds.get(state).put(waitCommand, nextState);
     }
 
     /**

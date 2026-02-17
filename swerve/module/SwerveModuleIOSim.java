@@ -18,11 +18,11 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
 
     private final SwerveModuleSimulation simulationModule;
 
-    private final SimulatedMotorController.GenericMotorController angleMotor;
+    private final SimulatedMotorController.GenericMotorController steerMotor;
     private final SimulatedMotorController.GenericMotorController driveMotor;
 
     private final PIDController drivePID;
-    private final PIDController anglePID;
+    private final PIDController steerPID;
     private Rotation2d lastAngle;
     private final double maxModuleSpeed;
     private SwerveModuleState desiredState = new SwerveModuleState();
@@ -34,36 +34,40 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
         this.simulationModule = simulationModule;
 
         driveMotor = simulationModule.useGenericMotorControllerForDrive();
-        angleMotor = simulationModule.useGenericControllerForSteer();
+        steerMotor = simulationModule.useGenericControllerForSteer();
 
         drivePID = new PIDController(swerveConstants.modules.driveMotorConstants.real.control.controlConstants.P, swerveConstants.modules.driveMotorConstants.real.control.controlConstants.I, swerveConstants.modules.driveMotorConstants.real.control.controlConstants.D);
         drivePID.setIZone(swerveConstants.modules.driveMotorConstants.real.control.controlConstants.IZone);
 
-        anglePID = new PIDController(swerveConstants.modules.steerMotorConstants.real.control.controlConstants.P, swerveConstants.modules.steerMotorConstants.real.control.controlConstants.I, swerveConstants.modules.steerMotorConstants.real.control.controlConstants.D);
-        anglePID.setIZone(swerveConstants.modules.steerMotorConstants.real.control.controlConstants.IZone);
+        steerPID = new PIDController(swerveConstants.modules.steerMotorConstants.real.control.controlConstants.P, swerveConstants.modules.steerMotorConstants.real.control.controlConstants.I, swerveConstants.modules.steerMotorConstants.real.control.controlConstants.D);
+        steerPID.setIZone(swerveConstants.modules.steerMotorConstants.real.control.controlConstants.IZone);
 
         lastAngle = simulationModule.getCurrentState().angle;
     }
 
     @Override
-    public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop) {
+    public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop, boolean preventJittering) {
         desiredState = SwerveUtils.optimizeModuleState(desiredState, simulationModule.getCurrentState().angle);
         this.desiredState = desiredState;
 
         //Drive
-        if (isOpenLoop) driveMotor.requestVoltage(Volts.of(desiredState.speedMetersPerSecond / maxModuleSpeed * 12));
+        if (isOpenLoop)
+            driveMotor.requestVoltage(Volts.of(desiredState.speedMetersPerSecond / maxModuleSpeed * 12));
         else
             driveMotor.requestVoltage(Volts.of(drivePID.calculate(simulationModule.getCurrentState().speedMetersPerSecond, desiredState.speedMetersPerSecond)));
 
         //Angle
-        // Prevent rotating module if speed is less than 3%. Prevents jittering.
-        Rotation2d angle = (Math.abs(desiredState.speedMetersPerSecond) <= (maxModuleSpeed * 0.03)) ? lastAngle : desiredState.angle;
+        Rotation2d angle = desiredState.angle;
+        if (preventJittering) {
+            // Prevent rotating module if speed is less than 1%. Prevents jittering.
+            angle = (Math.abs(desiredState.speedMetersPerSecond) <= (maxModuleSpeed * 0.01)) ? lastAngle : desiredState.angle;
+        }
         //Prevent jumping from -180 to 180
         double errorBound = (Math.PI - -Math.PI) / 2.0;
         double error = MathUtil.inputModulus(angle.getRadians() - simulationModule.getCurrentState().angle.getRadians(), -errorBound, errorBound);
         angle = Rotation2d.fromRadians(simulationModule.getCurrentState().angle.getRadians() + error);
         //Rotate
-        angleMotor.requestVoltage(Volts.of(anglePID.calculate(simulationModule.getCurrentState().angle.getRadians(), angle.getRadians())));
+        steerMotor.requestVoltage(Volts.of(steerPID.calculate(simulationModule.getCurrentState().angle.getRadians(), angle.getRadians())));
         lastAngle = angle;
     }
 

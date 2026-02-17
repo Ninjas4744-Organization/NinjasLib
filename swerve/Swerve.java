@@ -1,5 +1,6 @@
 package frc.lib.NinjasLib.swerve;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -8,9 +9,6 @@ import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.NinjasLib.localization.OdometryThread;
 import frc.lib.NinjasLib.statemachine.RobotStateWithSwerve;
 import frc.lib.NinjasLib.swerve.constants.SwerveConstants;
@@ -42,9 +40,9 @@ public class Swerve {
     private SwerveModulePosition[] previousModulePositions;
     public static final Lock odometryLock = new ReentrantLock();
 
-    private SlewRateLimiter xAccelerationLimit;
-    private SlewRateLimiter yAccelerationLimit;
     private SlewRateLimiter rotAccelerationLimit;
+    private double maxSkidAcceleration;
+    private double maxForwardAcceleration;
 
     private final SwerveConstants constants;
     private SwerveDriveSimulation simulation;
@@ -63,9 +61,9 @@ public class Swerve {
     public Swerve(SwerveConstants constants) {
         this.constants = constants;
 
-        xAccelerationLimit = new SlewRateLimiter(constants.limits.accelerationLimit);
-        yAccelerationLimit = new SlewRateLimiter(constants.limits.accelerationLimit);
         rotAccelerationLimit = new SlewRateLimiter(constants.limits.rotationAccelerationLimit);
+        maxSkidAcceleration = constants.limits.maxSkidAcceleration;
+        maxForwardAcceleration = constants.limits.maxForwardAcceleration;
 
         kinematics = constants.chassis.kinematics;
 
@@ -131,72 +129,71 @@ public class Swerve {
      * @param input The input to drive: speed, angular speed and field/robot relative
      */
     public void drive(SwerveSpeeds input) {
-//        SwerveSpeeds currentVelocity = getSpeeds();
-//        if (input.fieldRelative)
-//            currentVelocity = currentVelocity.getAsFieldRelative();
-
-//        wantedSpeeds = new SwerveSpeeds(SwerveUtils.limitForwardAcceleration(wantedSpeeds.getAs(input.fieldRelative).toTranslation(), input.toTranslation(), constants.limits.maxForwardAcceleration, constants.limits.maxSpeed), input.omegaRadiansPerSecond, input.fieldRelative);
-//        wantedSpeeds = new SwerveSpeeds(SwerveUtils.limitSkidAcceleration(wantedSpeeds.getAs(input.fieldRelative).toTranslation(), input.toTranslation(), constants.limits.maxSkidAcceleration), input.omegaRadiansPerSecond, input.fieldRelative);
         wantedSpeeds = new SwerveSpeeds(
             SwerveUtils.limitForwardAndSkidAcceleration(
                 wantedSpeeds.getAs(input.fieldRelative, gyro.getYaw()).toTranslation(),
                 input.toTranslation(),
-                constants.limits.maxForwardAcceleration,
-                constants.limits.maxSkidAcceleration,
+                maxForwardAcceleration,
+                maxSkidAcceleration,
                 constants.limits.maxSpeed),
             input.omegaRadiansPerSecond,
             input.fieldRelative);
-//        wantedSpeeds = new SwerveSpeeds(
-//            xAccelerationLimit.calculate(MathUtil.clamp(wantedSpeeds.vxMetersPerSecond, -constants.limits.speedLimit, constants.limits.speedLimit)),
-//            yAccelerationLimit.calculate(MathUtil.clamp(wantedSpeeds.vyMetersPerSecond, -constants.limits.speedLimit, constants.limits.speedLimit)),
-//            rotAccelerationLimit.calculate(MathUtil.clamp(wantedSpeeds.omegaRadiansPerSecond, -constants.limits.rotationSpeedLimit, constants.limits.rotationSpeedLimit)),
-//            false
-//        );
+
+        Translation2d clampedVel = wantedSpeeds.toTranslation();
+        if (wantedSpeeds.getSpeed() > constants.limits.speedLimit)
+            clampedVel = new Translation2d(constants.limits.speedLimit, clampedVel.getAngle());
+
+        wantedSpeeds = new SwerveSpeeds(clampedVel,
+            rotAccelerationLimit.calculate(MathUtil.clamp(wantedSpeeds.omegaRadiansPerSecond, -constants.limits.rotationSpeedLimit, constants.limits.rotationSpeedLimit)),
+            wantedSpeeds.fieldRelative);
         wantedSpeeds = wantedSpeeds.getAsRobotRelative(gyro.getYaw());
 
-        setModuleStates(kinematics.toSwerveModuleStates(wantedSpeeds), constants.modules.openLoop);
+        setModuleStates(kinematics.toSwerveModuleStates(wantedSpeeds), constants.modules.openLoop, true);
     }
 
     public void stop() {
         drive(new SwerveSpeeds());
     }
 
-    public Command lockWheelsToX() {
-        return Commands.sequence(
-            Commands.runOnce(() -> {
-                setModuleStates(new SwerveModuleState[] {
-                    new SwerveModuleState(0.3, Rotation2d.fromDegrees(45)),
-                    new SwerveModuleState(0.3, Rotation2d.fromDegrees(-45)),
-                    new SwerveModuleState(0.3, Rotation2d.fromDegrees(-45)),
-                    new SwerveModuleState(0.3, Rotation2d.fromDegrees(45)),
-                }, constants.modules.openLoop);
-            }),
-            Commands.waitUntil(() ->
-                       Math.abs(moduleInputs[0].Position.angle.minus(Rotation2d.fromDegrees(45)) .getCos()) > Math.cos(Units.degreesToRadians(5))
-                    && Math.abs(moduleInputs[1].Position.angle.minus(Rotation2d.fromDegrees(-45)).getCos()) > Math.cos(Units.degreesToRadians(5))
-                    && Math.abs(moduleInputs[2].Position.angle.minus(Rotation2d.fromDegrees(-45)).getCos()) > Math.cos(Units.degreesToRadians(5))
-                    && Math.abs(moduleInputs[3].Position.angle.minus(Rotation2d.fromDegrees(45)) .getCos()) > Math.cos(Units.degreesToRadians(5))),
-            Commands.runOnce(() -> {
-                setModuleStates(new SwerveModuleState[] {
-                    new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
-                    new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
-                    new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
-                    new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
-                }, constants.modules.openLoop);
-            })
-        );
+    public void lockWheelsToX() {
+        setModuleStates(new SwerveModuleState[] {
+            new SwerveModuleState(0.3, Rotation2d.fromDegrees(45)),
+            new SwerveModuleState(0.3, Rotation2d.fromDegrees(-45)),
+            new SwerveModuleState(0.3, Rotation2d.fromDegrees(-45)),
+            new SwerveModuleState(0.3, Rotation2d.fromDegrees(45)),
+        }, constants.modules.openLoop, false);
+
+//        return Commands.sequence(
+//            Commands.runOnce(() -> {
+//                setModuleStates(new SwerveModuleState[] {
+//                    new SwerveModuleState(0.3, Rotation2d.fromDegrees(45)),
+//                    new SwerveModuleState(0.3, Rotation2d.fromDegrees(-45)),
+//                    new SwerveModuleState(0.3, Rotation2d.fromDegrees(-45)),
+//                    new SwerveModuleState(0.3, Rotation2d.fromDegrees(45)),
+//                }, constants.modules.openLoop);
+//            }),
+//            Commands.waitUntil(() ->
+//                       Math.abs(moduleInputs[0].Position.angle.minus(Rotation2d.fromDegrees(45)) .getCos()) > Math.cos(Units.degreesToRadians(5))
+//                    && Math.abs(moduleInputs[1].Position.angle.minus(Rotation2d.fromDegrees(-45)).getCos()) > Math.cos(Units.degreesToRadians(5))
+//                    && Math.abs(moduleInputs[2].Position.angle.minus(Rotation2d.fromDegrees(-45)).getCos()) > Math.cos(Units.degreesToRadians(5))
+//                    && Math.abs(moduleInputs[3].Position.angle.minus(Rotation2d.fromDegrees(45)) .getCos()) > Math.cos(Units.degreesToRadians(5))),
+//            Commands.runOnce(() -> {
+//                setModuleStates(new SwerveModuleState[] {
+//                    new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
+//                    new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
+//                    new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
+//                    new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
+//                }, constants.modules.openLoop);
+//            })
+//        );
     }
 
-    public void setAccelerationLimit(double accelerationLimit) {
-        constants.limits.accelerationLimit = accelerationLimit;
+    public void setMaxSkidAcceleration(double maxSkidAcceleration) {
+        this.maxSkidAcceleration = maxSkidAcceleration;
+    }
 
-        double lastValue = xAccelerationLimit.lastValue();
-        xAccelerationLimit = new SlewRateLimiter(accelerationLimit);
-        xAccelerationLimit.reset(lastValue);
-
-        lastValue = yAccelerationLimit.lastValue();
-        yAccelerationLimit = new SlewRateLimiter(accelerationLimit);
-        yAccelerationLimit.reset(lastValue);
+    public void setMaxForwardAcceleration(double maxForwardAcceleration) {
+        this.maxForwardAcceleration = maxForwardAcceleration;
     }
 
     public void setRotationAccelerationLimit(double rotationAccelerationLimit) {
@@ -292,10 +289,10 @@ public class Swerve {
         return 50;
     }
 
-    private void setModuleStates(SwerveModuleState[] desiredStates, boolean isOpenLoop) {
+    private void setModuleStates(SwerveModuleState[] desiredStates, boolean isOpenLoop, boolean preventJittering) {
         SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, constants.limits.maxSpeed);
         for (int i = 0; i < modules.length; i++)
-            modules[i].setDesiredState(desiredStates[i], isOpenLoop);
+            modules[i].setDesiredState(desiredStates[i], isOpenLoop, preventJittering);
     }
 
     public SwerveModuleState[] getModuleStates() {
