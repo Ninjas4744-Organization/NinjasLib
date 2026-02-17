@@ -139,7 +139,7 @@ public class Swerve {
 //        wantedSpeeds = new SwerveSpeeds(SwerveUtils.limitSkidAcceleration(wantedSpeeds.getAs(input.fieldRelative).toTranslation(), input.toTranslation(), constants.limits.maxSkidAcceleration), input.omegaRadiansPerSecond, input.fieldRelative);
         wantedSpeeds = new SwerveSpeeds(
             SwerveUtils.limitForwardAndSkidAcceleration(
-                wantedSpeeds.getAs(input.fieldRelative).toTranslation(),
+                wantedSpeeds.getAs(input.fieldRelative, gyro.getYaw()).toTranslation(),
                 input.toTranslation(),
                 constants.limits.maxForwardAcceleration,
                 constants.limits.maxSkidAcceleration,
@@ -152,7 +152,7 @@ public class Swerve {
 //            rotAccelerationLimit.calculate(MathUtil.clamp(wantedSpeeds.omegaRadiansPerSecond, -constants.limits.rotationSpeedLimit, constants.limits.rotationSpeedLimit)),
 //            false
 //        );
-        wantedSpeeds = wantedSpeeds.getAsRobotRelative();
+        wantedSpeeds = wantedSpeeds.getAsRobotRelative(gyro.getYaw());
 
         setModuleStates(kinematics.toSwerveModuleStates(wantedSpeeds), constants.modules.openLoop);
     }

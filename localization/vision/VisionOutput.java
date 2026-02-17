@@ -61,8 +61,14 @@ public class VisionOutput implements StructSerializable {
 	/** The distance from the camera of the tag which was detected the closest */
 	public double closestTargetDist = 0;
 
+	/** The distance from the camera of the tag which was detected the closest mega tag 1 */
+	public double closestTargetDistMegaTag1 = 0;
+
 	/** Whether the camera detected any tags */
 	public boolean hasTargets = false;
+
+	/** Whether the camera detected any tags mega tag 1 */
+	public boolean hasTargetsMegaTag1 = false;
 
 	/** How many targets the camera detected */
 	public int amountOfTargets = 0;
@@ -99,8 +105,8 @@ public class VisionOutput implements StructSerializable {
 			size += Transform3d.struct.getSize(); // cameraToClosestTargetTransform
 			size += 3 * Transform3d.struct.getSize(); // cameraToTargetsTransforms, max 3
 
-			size += kSizeDouble * 3; // ambiguity, farthestTargetDist, closestTargetDist
-			size += kSizeBool; // hasTargets
+			size += kSizeDouble * 4; // ambiguity, farthestTargetDist, closestTargetDist, closestTargetDistMegaTag1
+			size += kSizeBool * 2; // hasTargets
 			size += kSizeDouble; // amountOfTargets (was int, now double)
 
 			return size;
@@ -120,7 +126,7 @@ public class VisionOutput implements StructSerializable {
 			return "Pose2d robotPose;Pose2d robotPoseMegaTag1;double timestamp;double latency;double closestTargetId;Pose3d closestTargetPose;" +
 				"double target1Id;double target2Id;double target3Id;Pose3d target1Pose;Pose3d target2Pose;Pose3d target3Pose;" +
 				"Transform3d cameraToClosestTargetTransform;Transform3d cameraToTarget1Transform;Transform3d cameraToTarget2Transform;Transform3d cameraToTarget3Transform;" +
-				"double ambiguity;double farthestTargetDist;double closestTargetDist;bool hasTargets;double amountOfTargets";
+				"double ambiguity;double farthestTargetDist;double closestTargetDist;double closestTargetDistMegaTag1;bool hasTargets;bool hasTargetsMegaTag1;double amountOfTargets";
 		}
 
 		@Override
@@ -170,8 +176,10 @@ public class VisionOutput implements StructSerializable {
 			output.ambiguity = bb.getDouble();
 			output.farthestTargetDist = bb.getDouble();
 			output.closestTargetDist = bb.getDouble();
+			output.closestTargetDistMegaTag1 = bb.getDouble();
 
 			output.hasTargets = bb.get() != 0;
+			output.hasTargetsMegaTag1 = bb.get() != 0;
 			output.amountOfTargets = (int) bb.getDouble();
 
 			return output;
@@ -213,8 +221,10 @@ public class VisionOutput implements StructSerializable {
 			bb.putDouble(value.ambiguity);
 			bb.putDouble(value.farthestTargetDist);
 			bb.putDouble(value.closestTargetDist);
+			bb.putDouble(value.closestTargetDistMegaTag1);
 
 			bb.put((byte) (value.hasTargets ? 1 : 0));
+			bb.put((byte) (value.hasTargetsMegaTag1 ? 1 : 0));
 			bb.putDouble(value.amountOfTargets);
 		}
 
