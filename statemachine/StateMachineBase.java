@@ -6,6 +6,8 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.NinjasLib.commands.BackgroundCommand;
 import org.jgrapht.Graph;
+import org.jgrapht.GraphPath;
+import org.jgrapht.alg.shortestpath.BFSShortestPath;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import org.littletonrobotics.junction.Logger;
 
@@ -16,12 +18,16 @@ import java.util.function.Supplier;
 
 public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extends SubsystemBase {
     private static StateMachineBase instance;
+
     private final Graph<StateEnum, Command> graph;
-    private final Map<StateEnum, Map<Command, StateEnum>> stateEnds;
     private final Class<StateEnum> stateEnumClass;
+    private BFSShortestPath<StateEnum, Command> bfs;
+
+    private final Map<StateEnum, Map<Command, StateEnum>> stateEnds;
     private final Map<StateEnum, Command> stateCommands;
     private final BackgroundCommand stateCommand;
     private Command currentEdge;
+    private List<StateEnum> currentPath;
 
     public static StateMachineBase getInstance() {
         if (instance == null)
@@ -49,6 +55,8 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
 
         stateCommands = new HashMap<>();
         stateCommand = new BackgroundCommand();
+
+        bfs = new BFSShortestPath<>(graph);
     }
 
     @Override
@@ -84,11 +92,20 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             Command stateTask = stateCommands.get(getCurrentState());
             if (stateTask != null)
                 stateCommand.setNewTask(stateTask);
+
+            if (currentPath != null) {
+                changeRobotState(currentPath.get(0), false, false, true);
+
+                currentPath.remove(0);
+                if (currentPath.isEmpty())
+                    currentPath = null;
+            }
         }
 
-        Logger.recordOutput("StateMachine/Is Transitioning", isTransitioning());
-        Logger.recordOutput("StateMachine/Current State", getCurrentState());
-        Logger.recordOutput("StateMachine/Target State", getTargetState() == null ? "N/A" : getTargetState().name());
+        Logger.recordOutput("State Machine/Is Transitioning", isTransitioning());
+        Logger.recordOutput("State Machine/Current State", getCurrentState());
+        Logger.recordOutput("State Machine/Target State", getTargetState() == null ? "N/A" : getTargetState().name());
+        Logger.recordOutput("State Machine/Path States", currentPath == null ? new String[0] : currentPath.stream().map(Enum::name).toArray(String[]::new));
     }
 
     /**
@@ -97,8 +114,12 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      * @param wantedState The state to change the robot state to.
      * @param forceTransition Whether to transition to a robot state even though the robot is currently already transitioning to a state.
      * @param forceState Whether to set the robot state to the wanted state no matter what. Doesn't run a transition command. Cancels current edge command and state ends.
+     * @param fromPath Whether this was called from a state path. If it wasn't then deletes state path.
      */
-    public void changeRobotState(StateEnum wantedState, boolean forceTransition, boolean forceState) {
+    private void changeRobotState(StateEnum wantedState, boolean forceTransition, boolean forceState, boolean fromPath) {
+        if (!fromPath)
+            currentPath = null;
+
         if (forceState) {
             if (currentEdge != null)
                 currentEdge.cancel();
@@ -153,23 +174,65 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      * @param wantedState The state to change the robot state to.
      */
     public void changeRobotState(StateEnum wantedState) {
-        changeRobotState(wantedState, false, false);
+        changeRobotState(wantedState, false, false, false);
     }
 
     /**
-     * @return Instant command that runs changeRobotState.
-     * @see #changeRobotState(Enum, boolean, boolean)
+     * Tries to set the state of the robot to the given state by the connecting edge between the current state and the wanted one.
+     *
+     * @param wantedState The state to change the robot state to.
      */
-    public Command changeRobotStateCommand(StateEnum wantedState, boolean forceTransition, boolean forceState) {
-        return Commands.runOnce(() -> changeRobotState(wantedState, forceTransition, forceState));
+    public void changeRobotStateForce(StateEnum wantedState) {
+        changeRobotState(wantedState, true, false, false);
+    }
+
+    /**
+     * Tries to set the state of the robot to the given state by the connecting edge between the current state and the wanted one.
+     *
+     * @param wantedState The state to change the robot state to.
+     */
+    public void forceRobotState(StateEnum wantedState) {
+        changeRobotState(wantedState, false, true, false);
+    }
+
+    public void runStatesPath(StateEnum wantedState) {
+        GraphPath<StateEnum, Command> path = bfs.getPath(getCurrentState(), wantedState);
+        if (path == null || isTransitioning())
+            return;
+
+        currentPath = path.getVertexList();
+        currentPath.remove(0);
+        if (currentPath.isEmpty()) {
+            currentPath = null;
+            return;
+        }
+
+        changeRobotState(currentPath.get(0), false, false, true);
+
+        currentPath.remove(0);
+        if (currentPath.isEmpty())
+            currentPath = null;
     }
 
     /**
      * @return Instant command that runs changeRobotState.
-     * @see #changeRobotState(Enum)
      */
     public Command changeRobotStateCommand(StateEnum wantedState) {
         return Commands.runOnce(() -> changeRobotState(wantedState));
+    }
+
+    /**
+     * @return Instant command that runs changeRobotState.
+     */
+    public Command changeRobotStateForceCommand(StateEnum wantedState) {
+        return Commands.runOnce(() -> changeRobotStateForce(wantedState));
+    }
+
+    /**
+     * @return Instant command that runs changeRobotState.
+     */
+    public Command forceRobotStateCommand(StateEnum wantedState) {
+        return Commands.runOnce(() -> forceRobotState(wantedState));
     }
 
     /**
@@ -200,7 +263,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      * @return The current edge/transition command.
      * If the robot is transitioning from one state to another, the edge command will be returned. Otherwise, will return null.
      */
-    public Command getCurrentTransitionCommand() {
+    public Command getCurrentEdgeCommand() {
         return currentEdge;
     }
 
@@ -221,12 +284,26 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
         return null;
     }
 
+    public boolean isPath() {
+        return currentPath != null;
+    }
+
+    public StateEnum getPathTarget() {
+        if (currentPath != null)
+            return currentPath.get(currentPath.size() - 1);
+        return null;
+    }
+
+    public List<StateEnum> getCurrentPath() {
+        return currentPath;
+    }
+
     /**
      * Set in this function the commands to run in state transitions.
      * And the state end conditions.
      *
      * @see #addEdge(Enum, Enum, Command)
-     * @see #addStateEnd(Enum, Map)
+     * @see #addStateEnd(Enum, Command, Enum)
      */
     protected abstract void define();
 
