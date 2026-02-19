@@ -1,5 +1,6 @@
 package frc.lib.NinjasLib.swerve;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -59,10 +60,17 @@ public class SwerveUtils {
 
     public static Translation2d limitForwardAndSkidAcceleration(Translation2d currentVelocity, Translation2d desiredVelocity, double maxForwardAcceleration, double maxSkidAcceleration, double maxVelocity) {
         // Compute the velocity direction (normalize to get unit vector)
-        Translation2d velocityDirection = currentVelocity.getNorm() > 0.05 ? currentVelocity.div(currentVelocity.getNorm()) : desiredVelocity.div(desiredVelocity.getNorm());
+        double currentNorm = currentVelocity.getNorm();
+        double desiredNorm = desiredVelocity.getNorm();
+
+        Translation2d velocityDirection = new Translation2d();
+        if (currentNorm > 0.05)
+            velocityDirection = currentVelocity.div(currentNorm);
+        else if (desiredNorm > 1e-6)
+            velocityDirection = desiredVelocity.div(desiredNorm);
 
         // Compute max allowed acceleration in the current velocity direction
-        double forwardMaxAccel = maxForwardAcceleration * (1 - (currentVelocity.getNorm() / maxVelocity));
+        double forwardMaxAccel = maxForwardAcceleration * (1 - MathUtil.clamp(currentVelocity.getNorm() / maxVelocity, 0, 1));
 
         // Compute wanted acceleration
         Translation2d wantedAccel = desiredVelocity.minus(currentVelocity).div(0.02);
