@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -147,6 +148,7 @@ public class Swerve {
             rotAccelerationLimit.calculate(MathUtil.clamp(wantedSpeeds.omegaRadiansPerSecond, -constants.limits.rotationSpeedLimit, constants.limits.rotationSpeedLimit)),
             wantedSpeeds.fieldRelative);
         wantedSpeeds = wantedSpeeds.getAsRobotRelative(gyro.getYaw());
+        wantedSpeeds = new SwerveSpeeds(ChassisSpeeds.discretize(wantedSpeeds, 0.02), wantedSpeeds.fieldRelative);
 
         setModuleStates(kinematics.toSwerveModuleStates(wantedSpeeds), constants.modules.openLoop, true);
     }
@@ -291,6 +293,7 @@ public class Swerve {
 
     private void setModuleStates(SwerveModuleState[] desiredStates, boolean isOpenLoop, boolean preventJittering) {
         SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, constants.limits.maxSpeed);
+
         for (int i = 0; i < modules.length; i++)
             modules[i].setDesiredState(desiredStates[i], isOpenLoop, preventJittering);
     }
