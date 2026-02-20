@@ -216,7 +216,7 @@ public class Swerve {
 
     public void periodic() {
         if(constants.special.robotStartPose.getX() != -999){
-            RobotStateWithSwerve.getInstance().setRobotPose(constants.special.robotStartPose);
+            RobotStateWithSwerve.get().setRobotPose(constants.special.robotStartPose);
             constants.special.robotStartPose = new Pose2d(-999, -999, Rotation2d.kZero);
         }
 
@@ -232,9 +232,9 @@ public class Swerve {
             }
 
             if (Robot.isReal() || constants.special.isReplay)
-                RobotStateWithSwerve.getInstance().updateRobotPose(getModulePositions(), gyro.getYawOffsetted());
+                RobotStateWithSwerve.get().updateRobotPose(getModulePositions(), gyro.getYawOffsetted());
             else
-                RobotStateWithSwerve.getInstance().setRobotPose(simulation.getSimulatedDriveTrainPose());
+                RobotStateWithSwerve.get().setRobotPose(simulation.getSimulatedDriveTrainPose());
         }
 
         Logger.recordOutput("Swerve/Current Velocity", getSpeeds().getAsFieldRelative());
@@ -277,10 +277,10 @@ public class Swerve {
                 Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Module 3 Position", modulePositions[3]);
                 Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Gyro Yaw", gyroYawArray[i]);
                 Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Timestamp", sampleTimestamps[i]);
-                RobotStateWithSwerve.getInstance().updateRobotPoseWithTime(modulePositions, gyroYawArray[i], sampleTimestamps[i]);
+                RobotStateWithSwerve.get().updateRobotPoseWithTime(modulePositions, gyroYawArray[i], sampleTimestamps[i]);
             }
         } else
-            RobotStateWithSwerve.getInstance().setRobotPose(simulation.getSimulatedDriveTrainPose());
+            RobotStateWithSwerve.get().setRobotPose(simulation.getSimulatedDriveTrainPose());
 
         Logger.recordOutput("Swerve/Odometry Thread/Odometry Update Frames Percent", framesWithUpdate / (double)frames * 100);
     }

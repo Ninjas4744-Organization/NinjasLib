@@ -79,7 +79,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
         if(currentEdge != null && (currentEdge.isFinished() || !currentEdge.isScheduled())) {
             System.out.println("[StateMachine] Ended " + getCurrentState().name() + " -> " + getTargetState().name());
 
-            RobotStateBase.getInstance().setRobotState(getTargetState());
+            RobotStateBase.get().setRobotState(getTargetState());
             currentEdge = null;
 
             Map<Command, StateEnum> ends = stateEnds.get(getCurrentState());
@@ -134,7 +134,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
 
             currentEdge = null;
             System.out.println("[StateMachine] Force state change " + getCurrentState().name() + " -> " + wantedState.name());
-            RobotStateBase.getInstance().setRobotState(wantedState);
+            RobotStateBase.get().setRobotState(wantedState);
 
             return;
         }
@@ -271,7 +271,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      * @return The current robot state from RobotStateBase.
      */
     public StateEnum getCurrentState() {
-        return (StateEnum) RobotStateBase.getInstance().getRobotState();
+        return (StateEnum) RobotStateBase.get().getRobotState();
     }
 
     /**

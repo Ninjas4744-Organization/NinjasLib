@@ -45,7 +45,7 @@ public class SwerveSpeeds extends ChassisSpeeds implements StructSerializable {
     }
 
     public SwerveSpeeds getAsFieldRelative() {
-        return getAsFieldRelative(RobotStateWithSwerve.getInstance().getRobotPose().getRotation());
+        return getAsFieldRelative(RobotStateWithSwerve.get().getRobotPose().getRotation());
     }
 
     public SwerveSpeeds getAsRobotRelative(Rotation2d robotAngle) {
@@ -55,7 +55,7 @@ public class SwerveSpeeds extends ChassisSpeeds implements StructSerializable {
     }
 
     public SwerveSpeeds getAsRobotRelative() {
-        return getAsRobotRelative(RobotStateWithSwerve.getInstance().getRobotPose().getRotation());
+        return getAsRobotRelative(RobotStateWithSwerve.get().getRobotPose().getRotation());
     }
 
     public SwerveSpeeds getAs(boolean fieldRelative, Rotation2d robotAngle) {

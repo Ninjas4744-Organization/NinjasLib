@@ -79,8 +79,8 @@ public class SwerveController {
      */
     public double lookAt(Rotation2d angle) {
         if (isProfiledRotationPID)
-            return rotationProfiledPID.calculate(RobotStateWithSwerve.getInstance().getRobotPose().getRotation().getRadians(), angle.getRadians());
-        return rotationPID.calculate(RobotStateWithSwerve.getInstance().getRobotPose().getRotation().getRadians(), angle.getRadians());
+            return rotationProfiledPID.calculate(RobotStateWithSwerve.get().getRobotPose().getRotation().getRadians(), angle.getRadians());
+        return rotationPID.calculate(RobotStateWithSwerve.get().getRobotPose().getRotation().getRadians(), angle.getRadians());
     }
 
     /**
@@ -96,20 +96,20 @@ public class SwerveController {
     }
 
     public double lookAt(Pose2d target, Rotation2d offset) {
-        Translation2d lookAtTranslation = RobotStateWithSwerve.getInstance().getTransform(target).getTranslation().rotateBy(offset);
+        Translation2d lookAtTranslation = RobotStateWithSwerve.get().getTransform(target).getTranslation().rotateBy(offset);
         return lookAt(lookAtTranslation);
     }
 
     public void resetLookAt() {
         if (isProfiledRotationPID)
-            rotationProfiledPID.reset(RobotStateWithSwerve.getInstance().getRobotPose().getRotation().getRadians());
+            rotationProfiledPID.reset(RobotStateWithSwerve.get().getRobotPose().getRotation().getRadians());
         else
             System.out.println("Tried to reset a non profiled swerve rotation pid");
     }
 
     public Translation2d pidTo(Translation2d target) {
-        double dist = RobotStateWithSwerve.getInstance().getDistance(new Pose2d(target, Rotation2d.kZero));
-        return RobotStateWithSwerve.getInstance().getTranslation(new Pose2d(target, Rotation2d.kZero)).div(dist).times(drivePID.calculate(-dist));
+        double dist = RobotStateWithSwerve.get().getDistance(new Pose2d(target, Rotation2d.kZero));
+        return RobotStateWithSwerve.get().getTranslation(new Pose2d(target, Rotation2d.kZero)).div(dist).times(drivePID.calculate(-dist));
     }
 
     public void setControl(SwerveSpeeds input, String channel) {

@@ -10,7 +10,7 @@ public abstract class RobotStateBase<StateEnum extends Enum<StateEnum>> {
     protected static RobotStateBase instance;
     protected StateEnum robotState;
 
-    public static RobotStateBase getInstance() {
+    public static RobotStateBase get() {
         if (instance == null)
             throw new RuntimeException("RobotStateBase not initialized. Initialize RobotStateBase by setInstance() first.");
         return instance;

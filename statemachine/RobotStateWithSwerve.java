@@ -18,8 +18,8 @@ public abstract class RobotStateWithSwerve<StateEnum extends Enum<StateEnum>> ex
     private final NinjasSwervePoseTracker poseEstimator;
     private final NinjasSwervePoseTracker odometryOnlyEstimator;
 
-    public static RobotStateWithSwerve getInstance() {
-        return (RobotStateWithSwerve) RobotStateBase.getInstance();
+    public static RobotStateWithSwerve get() {
+        return (RobotStateWithSwerve) RobotStateBase.get();
     }
 
     /**
@@ -69,7 +69,7 @@ public abstract class RobotStateWithSwerve<StateEnum extends Enum<StateEnum>> ex
      * @param other Another pose to measure distance to.
      * @return Distance between the robot and another pose. Meters.
      */
-    public double getDistance(Pose2d other){
+    public double getDistance(Pose2d other) {
         return other.getTranslation().minus(getRobotPose().getTranslation()).getNorm();
     }
 
@@ -77,7 +77,7 @@ public abstract class RobotStateWithSwerve<StateEnum extends Enum<StateEnum>> ex
      * @param other Another pose to measure transform to.
      * @return Translation from robot to another pose including dx, dy, da. Field Relative.
      */
-    public Transform2d getTransform(Pose2d other){
+    public Transform2d getTransform(Pose2d other) {
         return new Transform2d(
             other.getTranslation().minus(getRobotPose().getTranslation()),
             other.getRotation().minus(getRobotPose().getRotation())
@@ -90,6 +90,20 @@ public abstract class RobotStateWithSwerve<StateEnum extends Enum<StateEnum>> ex
      */
     public Translation2d getTranslation(Pose2d other) {
         return other.getTranslation().minus(getRobotPose().getTranslation());
+    }
+
+    /**
+     * @return Translation (0, 0), to robot. Field Relative.
+     */
+    public Translation2d getTranslation() {
+        return getRobotPose().getTranslation();
+    }
+
+    /**
+     * @return Rotation of robot relative to field
+     */
+    public Rotation2d getRotation() {
+        return getRobotPose().getRotation();
     }
 
     /**
