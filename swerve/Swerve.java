@@ -6,7 +6,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -148,7 +147,7 @@ public class Swerve {
             rotAccelerationLimit.calculate(MathUtil.clamp(wantedSpeeds.omegaRadiansPerSecond, -constants.limits.rotationSpeedLimit, constants.limits.rotationSpeedLimit)),
             wantedSpeeds.fieldRelative);
         wantedSpeeds = wantedSpeeds.getAsRobotRelative(gyro.getYaw());
-        wantedSpeeds = new SwerveSpeeds(ChassisSpeeds.discretize(wantedSpeeds, 0.02), wantedSpeeds.fieldRelative);
+//        wantedSpeeds = new SwerveSpeeds(ChassisSpeeds.discretize(wantedSpeeds, 0.055), wantedSpeeds.fieldRelative);
 
         setModuleStates(kinematics.toSwerveModuleStates(wantedSpeeds), constants.modules.openLoop, true);
     }
@@ -241,13 +240,14 @@ public class Swerve {
         Logger.recordOutput("Swerve/Wanted Velocity", wantedSpeeds.getAsFieldRelative());
     }
     
-    int frames = 0;
-    int framesWithUpdate = 0;
+    private int odometryUpdateFrames = 0;
+    private int odometryUpdateFramesWithUpdate = 0;
+    private SwerveModulePosition[] odometryUpdateModulePositions = new SwerveModulePosition[] { new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition() };
     public void updateOdometryThread() {
-        frames++;
+        odometryUpdateFrames++;
         if (!odometryLock.tryLock())
             return;
-        framesWithUpdate++;
+        odometryUpdateFramesWithUpdate++;
 
         gyro.periodic();
         Rotation2d[] gyroYawArray = gyro.getOdometryYawPositions();
@@ -261,28 +261,30 @@ public class Swerve {
         if (Robot.isReal()) {
             double[] sampleTimestamps = moduleInputs[0].Timestamps;
             int sampleCount = Math.min(Math.min(gyroYawArray.length, sampleTimestamps.length), moduleInputs[0].Positions.length);
+            sampleCount = Math.min(sampleCount, 5);
             Logger.recordOutput("Swerve/Odometry Thread/Sample Count", sampleCount);
 
             for (int i = 0; i < sampleCount; i++) {
-                SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
                 for (int j = 0; j < 4; j++) {
                     double drivePosition = moduleInputs[j].Positions[i];
                     Rotation2d steerAngle = moduleInputs[j].Angles[i];
-                    modulePositions[j] = new SwerveModulePosition(drivePosition, steerAngle);
+//                    odometryUpdateModulePositions[j] = new SwerveModulePosition(drivePosition, steerAngle);
+                    odometryUpdateModulePositions[j].distanceMeters = drivePosition;
+                    odometryUpdateModulePositions[j].angle = steerAngle;
                 }
 
-                Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Module 0 Position", modulePositions[0]);
-                Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Module 1 Position", modulePositions[1]);
-                Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Module 2 Position", modulePositions[2]);
-                Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Module 3 Position", modulePositions[3]);
-                Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Gyro Yaw", gyroYawArray[i]);
-                Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Timestamp", sampleTimestamps[i]);
-                RobotStateWithSwerve.get().updateRobotPoseWithTime(modulePositions, gyroYawArray[i], sampleTimestamps[i]);
+//                Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Module 0 Position", modulePositions[0]);
+//                Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Module 1 Position", modulePositions[1]);
+//                Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Module 2 Position", modulePositions[2]);
+//                Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Module 3 Position", modulePositions[3]);
+//                Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Gyro Yaw", gyroYawArray[i]);
+//                Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Timestamp", sampleTimestamps[i]);
+                RobotStateWithSwerve.get().updateRobotPoseWithTime(odometryUpdateModulePositions, gyroYawArray[i], sampleTimestamps[i]);
             }
         } else
             RobotStateWithSwerve.get().setRobotPose(simulation.getSimulatedDriveTrainPose());
 
-        Logger.recordOutput("Swerve/Odometry Thread/Odometry Update Frames Percent", framesWithUpdate / (double)frames * 100);
+        Logger.recordOutput("Swerve/Odometry Thread/Odometry Update Frames Percent", odometryUpdateFramesWithUpdate / (double) odometryUpdateFrames * 100);
     }
 
     public double getOdometryFrequency() {
