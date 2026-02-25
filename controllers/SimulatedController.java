@@ -105,7 +105,7 @@ public class SimulatedController extends Controller {
     @Override
     public void periodic() {
         switch (constants.control.controlConstants.type) {
-            case PROFILED_PID:
+            case PROFILED_PIDF:
                 isCurrentlyProfiling = true;
 
                 if (controlState == ControlState.POSITION)
@@ -114,7 +114,7 @@ public class SimulatedController extends Controller {
                     motorSim.setInputVoltage(constants.control.controlConstants.V * getGoal() + profiledPIDController.calculate(getVelocity()));
                 break;
 
-            case PID, TORQUE_CURRENT:
+            case PIDF, TORQUE_CURRENT:
                 if (controlState == ControlState.POSITION)
                     motorSim.setInputVoltage(PIDController.calculate(getPosition()));
                 else if (controlState == ControlState.VELOCITY)

@@ -49,11 +49,11 @@ public class TalonSRXController extends Controller {
 		super.setPosition(position);
 
         switch (constants.control.controlConstants.type) {
-			case PROFILE, PROFILED_PID:
+			case PROFILE, PROFILED_PIDF:
                 main.set(TalonSRXControlMode.MotionMagic, position / constants.control.conversionFactor);
 				break;
 
-			case PID:
+			case PIDF:
                 main.set(TalonSRXControlMode.Position, position / constants.control.conversionFactor);
 				break;
 		}
@@ -64,11 +64,11 @@ public class TalonSRXController extends Controller {
 		super.setVelocity(velocity);
 
         switch (constants.control.controlConstants.type) {
-			case PROFILED_PID:
+			case PROFILED_PIDF:
                 main.set(TalonSRXControlMode.MotionMagic, velocity / constants.control.conversionFactor);
 				break;
 
-			case PID:
+			case PIDF:
                 main.set(TalonSRXControlMode.Velocity, velocity / constants.control.conversionFactor);
 				break;
 

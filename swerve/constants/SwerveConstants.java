@@ -54,6 +54,9 @@ public class SwerveConstants {
 
         /** Swerve max rotational acceleration limit, rad/s^2 */
         public double rotationAccelerationLimit;
+
+        /** Multiplier for discretization calculation in swerve */
+        public double discretizeFactor = 2.75;
     }
 
     public static class Modules {
@@ -101,14 +104,10 @@ public class SwerveConstants {
     }
 
     public static class Special {
-        /**
-         * Whether to create a separate thread to run the swerve odometry
-         */
+        /** Whether to create a separate thread to run the swerve odometry */
         public boolean enableOdometryThread;
 
-        /**
-         * Frequency of the thread that updates the odometry. Only works if enableOdometryThread is set to true
-         */
+        /** Frequency of the thread that updates the odometry. Only works if enableOdometryThread is set to true */
         public int odometryThreadFrequency;
 
         /** Whether the robot is running in AdvantageKit replay simulation mode. */

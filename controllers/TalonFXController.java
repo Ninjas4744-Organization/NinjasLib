@@ -78,11 +78,11 @@ public class TalonFXController extends Controller {
         super.setPosition(position);
 
         switch (constants.control.controlConstants.type) {
-            case PROFILED_PID, PROFILE:
+            case PROFILED_PIDF, PROFILE:
                 main.setControl(new MotionMagicVoltage(position));
                 break;
 
-            case PID:
+            case PIDF:
                 main.setControl(new PositionVoltage(position));
                 break;
 
@@ -97,11 +97,11 @@ public class TalonFXController extends Controller {
         super.setVelocity(velocity);
 
         switch (constants.control.controlConstants.type) {
-            case PROFILED_PID, PROFILE:
+            case PROFILED_PIDF, PROFILE:
                 main.setControl(new MotionMagicVelocityVoltage(velocity));
                 break;
 
-            case PID:
+            case PIDF:
                 main.setControl(new VelocityVoltage(velocity));
                 break;
 

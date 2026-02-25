@@ -4,9 +4,9 @@ import com.ctre.phoenix6.signals.GravityTypeValue;
 
 /** Proportional Integral Derivative Feedforward, constants for combining PID and Feedforward */
 public class ControlConstants implements Cloneable {
-    public enum SmartControlType{
-		PID,
-		PROFILED_PID,
+    public enum SmartControlType {
+		PIDF,
+		PROFILED_PIDF,
 		PROFILE,
 		TORQUE_CURRENT,
 		NONE
@@ -37,11 +37,6 @@ public class ControlConstants implements Cloneable {
 	public double IZone = 0;
 
 	/**
-	 * How much voltage to overcome static friction
-	 */
-	public double S = 0;
-
-	/**
 	 * Wanted velocity to voltage feedforward
 	 */
 	public double V = 0;
@@ -50,6 +45,11 @@ public class ControlConstants implements Cloneable {
 	 * Wanted acceleration to voltage feedforward
 	 */
 	public double A = 0;
+
+	/**
+	 * How much voltage to overcome static friction
+	 */
+	public double S = 0;
 
 	/**
 	 * How much voltage to overcome gravity
@@ -79,11 +79,26 @@ public class ControlConstants implements Cloneable {
 
 	public static ControlConstants createPID(double P, double I, double D, double IZone) {
 		ControlConstants constants = new ControlConstants();
-		constants.type = SmartControlType.PID;
+		constants.type = SmartControlType.PIDF;
 		constants.P = P;
 		constants.I = I;
 		constants.D = D;
 		constants.IZone = IZone;
+		return constants;
+	}
+
+	public static ControlConstants createPIDF(double P, double I, double D, double IZone, double V, double A, double S, double G, GravityTypeValue gravityType) {
+		ControlConstants constants = new ControlConstants();
+		constants.type = SmartControlType.PIDF;
+		constants.P = P;
+		constants.I = I;
+		constants.D = D;
+		constants.IZone = IZone;
+		constants.V = V;
+		constants.A = A;
+		constants.S = S;
+		constants.G = G;
+		constants.gravityType = gravityType;
 		return constants;
 	}
 
@@ -101,9 +116,9 @@ public class ControlConstants implements Cloneable {
 		return constants;
 	}
 
-    public static ControlConstants createProfiledPID(double P, double I, double D, double IZone, double cruiseVelocity, double acceleration, double jerk, double V, double A, double S, double G, GravityTypeValue gravityType) {
+    public static ControlConstants createProfiledPIDF(double P, double I, double D, double IZone, double cruiseVelocity, double acceleration, double jerk, double V, double A, double S, double G, GravityTypeValue gravityType) {
 		ControlConstants constants = new ControlConstants();
-		constants.type = SmartControlType.PROFILED_PID;
+		constants.type = SmartControlType.PROFILED_PIDF;
 		constants.P = P;
 		constants.I = I;
 		constants.D = D;
@@ -130,8 +145,9 @@ public class ControlConstants implements Cloneable {
 
 	@Override
 	public String toString() {
-        return "P: " + P + " I: " + I + " D: " + D + " IZone: " + IZone + " V: " + V + " A: " + A + " S: " + S + " G: " + G + " GravityType: " + gravityType.toString()
-            + " CruiseVelocity: " + cruiseVelocity + " Acceleration: " + acceleration + " Jerk: " + jerk;
+		return String.format("ControlConstants(Type: %s, P: %f, I: %f, D: %f, IZone: %f, V: %f, A: %f, S: %f, G: %f, GravityType: %s, CruiseVelocity: %f, Acceleration: %f, Jerk: %f)",
+			type, P, I, D, IZone, V, A, S, G, gravityType.toString(), cruiseVelocity, acceleration, jerk
+		);
 	}
 
 	@Override

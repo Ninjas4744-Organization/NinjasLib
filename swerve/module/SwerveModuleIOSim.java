@@ -26,6 +26,8 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
     private Rotation2d lastAngle;
     private final double maxModuleSpeed;
     private SwerveModuleState desiredState = new SwerveModuleState();
+    private boolean isOpenLoop;
+    private boolean preventJittering;
 
     public SwerveModuleIOSim(SwerveConstants swerveConstants, SwerveModuleConstants constants, SwerveModuleSimulation simulationModule) {
         moduleNumber = constants.moduleNumber;
@@ -49,6 +51,8 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
     public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop, boolean preventJittering) {
         desiredState = SwerveUtils.optimizeModuleState(desiredState, simulationModule.getCurrentState().angle);
         this.desiredState = desiredState;
+        this.isOpenLoop = isOpenLoop;
+        this.preventJittering = preventJittering;
 
         //Drive
         if (isOpenLoop)
@@ -78,5 +82,28 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
         inputs.DesiredState = desiredState;
         inputs.Position = new SwerveModulePosition(simulationModule.getDriveWheelFinalPosition().in(Radians) * simulationModule.config.WHEEL_RADIUS.in(Meters), inputs.State.angle);
         inputs.AbsolutePosition = Rotation2d.kZero;
+    }
+
+    @Override
+    public void periodic() {
+        //Drive
+        if (isOpenLoop)
+            driveMotor.requestVoltage(Volts.of(desiredState.speedMetersPerSecond / maxModuleSpeed * 12));
+        else
+            driveMotor.requestVoltage(Volts.of(drivePID.calculate(simulationModule.getCurrentState().speedMetersPerSecond, desiredState.speedMetersPerSecond)));
+
+        //Angle
+        Rotation2d angle = desiredState.angle;
+        if (preventJittering) {
+            // Prevent rotating module if speed is less than 1%. Prevents jittering.
+            angle = (Math.abs(desiredState.speedMetersPerSecond) <= (maxModuleSpeed * 0.01)) ? lastAngle : desiredState.angle;
+        }
+        //Prevent jumping from -180 to 180
+        double errorBound = (Math.PI - -Math.PI) / 2.0;
+        double error = MathUtil.inputModulus(angle.getRadians() - simulationModule.getCurrentState().angle.getRadians(), -errorBound, errorBound);
+        angle = Rotation2d.fromRadians(simulationModule.getCurrentState().angle.getRadians() + error);
+        //Rotate
+        steerMotor.requestVoltage(Volts.of(steerPID.calculate(simulationModule.getCurrentState().angle.getRadians(), angle.getRadians())));
+        lastAngle = angle;
     }
 }

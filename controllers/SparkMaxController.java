@@ -68,7 +68,7 @@ public class SparkMaxController extends Controller {
 	public void setPosition(double position) {
 		super.setPosition(position);
 
-        if (constants.control.controlConstants.type == SmartControlType.PID)
+        if (constants.control.controlConstants.type == SmartControlType.PIDF)
             main.getClosedLoopController().setSetpoint(getGoal(), SparkBase.ControlType.kPosition);
 
         profiledPIDController.setGoal(position);
@@ -78,7 +78,7 @@ public class SparkMaxController extends Controller {
 	public void setVelocity(double velocity) {
 		super.setVelocity(velocity);
 
-        if (constants.control.controlConstants.type == SmartControlType.PID)
+        if (constants.control.controlConstants.type == SmartControlType.PIDF)
             main.getClosedLoopController().setSetpoint(getGoal(), SparkBase.ControlType.kVelocity);
 
         profiledPIDController.setGoal(velocity);
@@ -125,7 +125,7 @@ public class SparkMaxController extends Controller {
 	@Override
 	public void periodic() {
         switch (constants.control.controlConstants.type) {
-			case PROFILED_PID:
+			case PROFILED_PIDF:
 				isCurrentlyPiding = true;
 
                 if (controlState == ControlState.POSITION)

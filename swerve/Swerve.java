@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -146,8 +147,9 @@ public class Swerve {
         wantedSpeeds = new SwerveSpeeds(clampedVel,
             rotAccelerationLimit.calculate(MathUtil.clamp(wantedSpeeds.omegaRadiansPerSecond, -constants.limits.rotationSpeedLimit, constants.limits.rotationSpeedLimit)),
             wantedSpeeds.fieldRelative);
+
         wantedSpeeds = wantedSpeeds.getAsRobotRelative(gyro.getYaw());
-//        wantedSpeeds = new SwerveSpeeds(ChassisSpeeds.discretize(wantedSpeeds, 0.055), wantedSpeeds.fieldRelative);
+        wantedSpeeds = new SwerveSpeeds(ChassisSpeeds.discretize(wantedSpeeds, 0.055), wantedSpeeds.fieldRelative);
 
         setModuleStates(kinematics.toSwerveModuleStates(wantedSpeeds), constants.modules.openLoop, true);
     }
@@ -158,10 +160,10 @@ public class Swerve {
 
     public void lockWheelsToX() {
         setModuleStates(new SwerveModuleState[] {
-            new SwerveModuleState(0.3, Rotation2d.fromDegrees(45)),
-            new SwerveModuleState(0.3, Rotation2d.fromDegrees(-45)),
-            new SwerveModuleState(0.3, Rotation2d.fromDegrees(-45)),
-            new SwerveModuleState(0.3, Rotation2d.fromDegrees(45)),
+            new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
+            new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
+            new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
+            new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
         }, constants.modules.openLoop, false);
 
 //        return Commands.sequence(
@@ -214,7 +216,7 @@ public class Swerve {
     }
 
     public void periodic() {
-        if(constants.special.robotStartPose.getX() != -999){
+        if(constants.special.robotStartPose.getX() != -999) {
             RobotStateWithSwerve.get().setRobotPose(constants.special.robotStartPose);
             constants.special.robotStartPose = new Pose2d(-999, -999, Rotation2d.kZero);
         }
@@ -242,7 +244,7 @@ public class Swerve {
     
     private int odometryUpdateFrames = 0;
     private int odometryUpdateFramesWithUpdate = 0;
-    private SwerveModulePosition[] odometryUpdateModulePositions = new SwerveModulePosition[] { new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition() };
+    private final SwerveModulePosition[] odometryUpdateModulePositions = new SwerveModulePosition[] { new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition() };
     public void updateOdometryThread() {
         odometryUpdateFrames++;
         if (!odometryLock.tryLock())
