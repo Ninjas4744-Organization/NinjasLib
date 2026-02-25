@@ -89,11 +89,17 @@ public class Swerve {
                 gyro = new Gyro(new GyroIOPigeon2(constants.gyro.gyroID, constants.gyro.gyroInverted, constants.special.odometryThreadFrequency, constants.special.CANBus));
 
         } else if (!constants.special.isReplay) {
-            DriveTrainSimulationConfig config = new DriveTrainSimulationConfig(Kilograms.of(constants.special.robotConfig.massKG),
+            DriveTrainSimulationConfig config = new DriveTrainSimulationConfig(
+                Kilograms.of(constants.special.robotConfig.massKG),
                 Meters.of(constants.chassis.bumperLength), Meters.of(constants.chassis.bumperWidth),
                 Meters.of(constants.chassis.trackWidth), Meters.of(constants.chassis.wheelBase),
                 COTS.ofPigeon2(),
-                COTS.ofMark4n(constants.simulation.driveMotorType, constants.simulation.steerMotorType, constants.special.robotConfig.moduleConfig.wheelCOF, 3));//() -> new SwerveModuleSimulation(moduleConfig), () -> new SwerveModuleSimulation(moduleConfig), () -> new SwerveModuleSimulation(moduleConfig), () -> new SwerveModuleSimulation(moduleConfig));
+                switch (constants.simulation.swerveType) {
+                    case Mark4 -> COTS.ofMark4(constants.simulation.driveMotorType, constants.simulation.steerMotorType, constants.special.robotConfig.moduleConfig.wheelCOF, constants.simulation.gearRatioLevel);
+                    case Mark4i -> COTS.ofMark4i(constants.simulation.driveMotorType, constants.simulation.steerMotorType, constants.special.robotConfig.moduleConfig.wheelCOF, constants.simulation.gearRatioLevel);
+                    default -> COTS.ofMark4n(constants.simulation.driveMotorType, constants.simulation.steerMotorType, constants.special.robotConfig.moduleConfig.wheelCOF, constants.simulation.gearRatioLevel);
+                }
+            );
 
             simulation = new SwerveDriveSimulation(config, constants.special.robotStartPose);
 
