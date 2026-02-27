@@ -132,6 +132,8 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
                 }
             }
 
+            stateCommand.stop();
+
             currentEdge = null;
             System.out.println("[StateMachine] Force state change " + getCurrentState().name() + " -> " + wantedState.name());
             RobotStateBase.get().setRobotState(wantedState);
