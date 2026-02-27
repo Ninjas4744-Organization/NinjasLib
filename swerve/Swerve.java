@@ -130,13 +130,19 @@ public class Swerve {
         resetModulesToAbsolute();
     }
 
+    private int amountOfZeroInputFrames = 0;
     /**
      * Drives the robot
      *
      * @param input The input to drive: speed, angular speed and field/robot relative
      */
     public void drive(SwerveSpeeds input) {
-        if (input.toTranslation().equals(Translation2d.kZero) && Rotation2d.fromRadians(input.omegaRadiansPerSecond).equals(Rotation2d.kZero)) {
+        if (input.toTranslation().getNorm() < 0.04 && Math.abs(input.omegaRadiansPerSecond) < 0.1) {
+            amountOfZeroInputFrames++;
+        } else {
+            amountOfZeroInputFrames = 0;
+        }
+        if (amountOfZeroInputFrames >= 50) {
             lockWheelsToX();
             wantedSpeeds = new SwerveSpeeds();
             return;
