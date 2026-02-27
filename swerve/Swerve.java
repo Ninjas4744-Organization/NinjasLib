@@ -132,20 +132,20 @@ public class Swerve {
 
     private int amountOfZeroInputFrames = 0;
     /**
-     * Drives the robot
-     *
-     * @param input The input to drive: speed, angular speed and field/robot relative
+     * Drives the swerve. Applies limit calculations.
+     * @param input The input to drive: velocity, angular velocity and field/robot relative.
      */
     public void drive(SwerveSpeeds input) {
-        if (input.toTranslation().getNorm() < 0.04 && Math.abs(input.omegaRadiansPerSecond) < 0.1) {
-            amountOfZeroInputFrames++;
-        } else {
-            amountOfZeroInputFrames = 0;
-        }
-        if (amountOfZeroInputFrames >= 50) {
-            lockWheelsToX();
-            wantedSpeeds = new SwerveSpeeds();
-            return;
+        if (constants.special.enableAutoLock) {
+            if (input.toTranslation().getNorm() < 0.01 * constants.limits.maxSpeed && Math.abs(input.omegaRadiansPerSecond) < 0.01 * constants.limits.maxAngularVelocity)
+                amountOfZeroInputFrames++;
+            else amountOfZeroInputFrames = 0;
+
+            if (amountOfZeroInputFrames >= constants.special.autoLockFrames) {
+                lockWheelsToX();
+                wantedSpeeds = new SwerveSpeeds();
+                return;
+            }
         }
 
         wantedSpeeds = new SwerveSpeeds(
@@ -167,15 +167,21 @@ public class Swerve {
             wantedSpeeds.fieldRelative);
 
         wantedSpeeds = wantedSpeeds.getAsRobotRelative(gyro.getYaw());
-        wantedSpeeds = new SwerveSpeeds(ChassisSpeeds.discretize(wantedSpeeds, 0.055), wantedSpeeds.fieldRelative);
+        wantedSpeeds = new SwerveSpeeds(ChassisSpeeds.discretize(wantedSpeeds, 0.02 * constants.limits.discretizeFactor), wantedSpeeds.fieldRelative);
 
         setModuleStates(kinematics.toSwerveModuleStates(wantedSpeeds), constants.modules.openLoop, true);
     }
 
+    /**
+     * Stops swerve. Empty drive request.
+     */
     public void stop() {
         drive(new SwerveSpeeds());
     }
 
+    /**
+     * Puts all wheels/modules in X orientation to stop robot hard.
+     */
     public void lockWheelsToX() {
         setModuleStates(new SwerveModuleState[] {
             new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
@@ -183,30 +189,6 @@ public class Swerve {
             new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
             new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
         }, constants.modules.openLoop, false);
-
-//        return Commands.sequence(
-//            Commands.runOnce(() -> {
-//                setModuleStates(new SwerveModuleState[] {
-//                    new SwerveModuleState(0.3, Rotation2d.fromDegrees(45)),
-//                    new SwerveModuleState(0.3, Rotation2d.fromDegrees(-45)),
-//                    new SwerveModuleState(0.3, Rotation2d.fromDegrees(-45)),
-//                    new SwerveModuleState(0.3, Rotation2d.fromDegrees(45)),
-//                }, constants.modules.openLoop);
-//            }),
-//            Commands.waitUntil(() ->
-//                       Math.abs(moduleInputs[0].Position.angle.minus(Rotation2d.fromDegrees(45)) .getCos()) > Math.cos(Units.degreesToRadians(5))
-//                    && Math.abs(moduleInputs[1].Position.angle.minus(Rotation2d.fromDegrees(-45)).getCos()) > Math.cos(Units.degreesToRadians(5))
-//                    && Math.abs(moduleInputs[2].Position.angle.minus(Rotation2d.fromDegrees(-45)).getCos()) > Math.cos(Units.degreesToRadians(5))
-//                    && Math.abs(moduleInputs[3].Position.angle.minus(Rotation2d.fromDegrees(45)) .getCos()) > Math.cos(Units.degreesToRadians(5))),
-//            Commands.runOnce(() -> {
-//                setModuleStates(new SwerveModuleState[] {
-//                    new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
-//                    new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
-//                    new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
-//                    new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
-//                }, constants.modules.openLoop);
-//            })
-//        );
     }
 
     public void setMaxSkidAcceleration(double maxSkidAcceleration) {
@@ -263,7 +245,7 @@ public class Swerve {
     private int odometryUpdateFrames = 0;
     private int odometryUpdateFramesWithUpdate = 0;
     private final SwerveModulePosition[] odometryUpdateModulePositions = new SwerveModulePosition[] { new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition() };
-    public void updateOdometryThread() {
+    private void updateOdometryThread() {
         odometryUpdateFrames++;
         if (!odometryLock.tryLock())
             return;
@@ -286,19 +268,10 @@ public class Swerve {
 
             for (int i = 0; i < sampleCount; i++) {
                 for (int j = 0; j < 4; j++) {
-                    double drivePosition = moduleInputs[j].Positions[i];
-                    Rotation2d steerAngle = moduleInputs[j].Angles[i];
-//                    odometryUpdateModulePositions[j] = new SwerveModulePosition(drivePosition, steerAngle);
-                    odometryUpdateModulePositions[j].distanceMeters = drivePosition;
-                    odometryUpdateModulePositions[j].angle = steerAngle;
+                    odometryUpdateModulePositions[j].distanceMeters = moduleInputs[j].Positions[i];
+                    odometryUpdateModulePositions[j].angle = moduleInputs[j].Angles[i];
                 }
 
-//                Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Module 0 Position", modulePositions[0]);
-//                Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Module 1 Position", modulePositions[1]);
-//                Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Module 2 Position", modulePositions[2]);
-//                Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Module 3 Position", modulePositions[3]);
-//                Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Gyro Yaw", gyroYawArray[i]);
-//                Logger.recordOutput("Swerve/Odometry Thread/Sample " + i + "/Timestamp", sampleTimestamps[i]);
                 RobotStateWithSwerve.get().updateRobotPoseWithTime(odometryUpdateModulePositions, gyroYawArray[i], sampleTimestamps[i]);
             }
         } else
@@ -307,6 +280,9 @@ public class Swerve {
         Logger.recordOutput("Swerve/Odometry Thread/Odometry Update Frames Percent", odometryUpdateFramesWithUpdate / (double) odometryUpdateFrames * 100);
     }
 
+    /**
+     * @return How many times odometry updates in a second. 50 by default but can be different if using odometry thread.
+     */
     public double getOdometryFrequency() {
         if (constants.special.enableOdometryThread)
             return constants.special.odometryThreadFrequency;
@@ -320,6 +296,9 @@ public class Swerve {
             modules[i].setDesiredState(desiredStates[i], isOpenLoop, preventJittering);
     }
 
+    /**
+     * @return State(Speed (m/s), Angle) of each swerve module
+     */
     public SwerveModuleState[] getModuleStates() {
         SwerveModuleState[] states = new SwerveModuleState[4];
         for (int i = 0; i < modules.length; i++)
@@ -327,14 +306,23 @@ public class Swerve {
         return states;
     }
 
+    /**
+     * @return Current speed of swerve according to odometry. m/s
+     */
     public SwerveSpeeds getSpeeds() {
         return new SwerveSpeeds(kinematics.toChassisSpeeds(getModuleStates()), false);
     }
 
+    /**
+     * @return Wanted speeds of swerve. The requested swerve input after limits calculations. m/s
+     */
     public SwerveSpeeds getWantedSpeeds() {
         return wantedSpeeds;
     }
 
+    /**
+     * @return Position(Distance (m), Angle) of each swerve module
+     */
     public SwerveModulePosition[] getModulePositions() {
         SwerveModulePosition[] positions = new SwerveModulePosition[4];
         for (int i = 0; i < modules.length; i++)
@@ -353,6 +341,9 @@ public class Swerve {
         System.out.println("---------------Resetting modules to absolute---------------");
     }
 
+    /**
+     * @return Odometry translation from last call of this function to this call
+     */
     public Translation2d getOdometryTwist() {
         if (previousModulePositions == null) {
             previousModulePositions = getModulePositions();
@@ -363,6 +354,9 @@ public class Swerve {
         return new Translation2d(twist.dx, twist.dy);
     }
 
+    /**
+     * @return Gyro object
+     */
     public Gyro getGyro() {
         return gyro;
     }

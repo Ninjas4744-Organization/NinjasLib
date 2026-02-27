@@ -139,5 +139,11 @@ public class SwerveConstants {
 
         /** The name of the canbus the swerve is running on. 'rio' by default if CANivore is not present */
         public CANBus CANBus = com.ctre.phoenix6.CANBus.roboRIO();
+
+        /** Whether to automatically lock swerve wheels to X after certain amount of zero input frames */
+        public boolean enableAutoLock = true;
+
+        /** How many zero input frames needed to auto lock wheels to X (Only works if enableAutoLock = true) */
+        public int autoLockFrames = 50;
     }
 }
