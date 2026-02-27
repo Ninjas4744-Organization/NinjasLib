@@ -136,6 +136,12 @@ public class Swerve {
      * @param input The input to drive: speed, angular speed and field/robot relative
      */
     public void drive(SwerveSpeeds input) {
+        if (input.toTranslation().equals(Translation2d.kZero) && Rotation2d.fromRadians(input.omegaRadiansPerSecond).equals(Rotation2d.kZero)) {
+            lockWheelsToX();
+            wantedSpeeds = new SwerveSpeeds();
+            return;
+        }
+
         wantedSpeeds = new SwerveSpeeds(
             SwerveUtils.limitForwardAndSkidAcceleration(
                 wantedSpeeds.getAs(input.fieldRelative, gyro.getYaw()).toTranslation(),
