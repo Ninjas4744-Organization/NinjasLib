@@ -14,6 +14,7 @@ import org.littletonrobotics.junction.Logger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extends SubsystemBase {
@@ -377,7 +378,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
     /**
      * Add an end condition for a state.
      * When the command finishes running, the statemachine will fire the transition command between the state to the wanted state.
-     * The commands MUST NOT convey actual logic, but should only be for waiting for some event.
+     * The command MUST NOT convey actual logic, but should only be for waiting for some event.
      * For example, any waitUntil or waitTime commands are accepted.
      * @param state The state this end condition applies to.
      * @param waitCommand A command which represents an end condition which when finishes will transition to the state.
@@ -385,6 +386,17 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      */
     protected void addStateEnd(StateEnum state, Command waitCommand, StateEnum nextState) {
         stateEnds.get(state).put(waitCommand, nextState);
+    }
+
+    /**
+     * Add an end condition for a state.
+     * When the condition is true, the statemachine will fire the transition command between the state to the wanted state.
+     * @param state The state this end condition applies to.
+     * @param condition An end condition which when equals true will transition to the state.
+     * @param nextState The state to transition to when command finishes.
+     */
+    protected void addStateEnd(StateEnum state, BooleanSupplier condition, StateEnum nextState) {
+        stateEnds.get(state).put(Commands.waitUntil(condition), nextState);
     }
 
     /**
