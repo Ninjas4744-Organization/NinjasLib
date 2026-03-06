@@ -201,6 +201,10 @@ public abstract class Controller {
         preLimit = getLimit();
     }
 
+    public void resetVirtualLimit() {
+        preLimit = false;
+    }
+
     public static Controller createController(ControllerType type, ControllerConstants constants) {
         if (Robot.isReal()) {
             return switch (type) {
