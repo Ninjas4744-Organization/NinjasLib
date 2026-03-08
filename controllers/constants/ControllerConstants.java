@@ -44,18 +44,24 @@ public class ControllerConstants implements Cloneable {
 		clone.real.control.positionGoalTolerance = this.real.control.positionGoalTolerance;
 		clone.real.control.velocityGoalTolerance = this.real.control.velocityGoalTolerance;
 		clone.real.control.controlConstants = this.real.control.controlConstants.clone();
+		clone.real.control.enableFOC = this.real.control.enableFOC;
 
 		clone.real.softLimits.min = this.real.softLimits.min;
 		clone.real.softLimits.max = this.real.softLimits.max;
 
-		clone.real.hardLimit.homePosition = this.real.hardLimit.homePosition;
-		clone.real.hardLimit.enable = this.real.hardLimit.enable;
-		clone.real.hardLimit.isVirtual = this.real.hardLimit.isVirtual;
-		clone.real.hardLimit.virtualStallThreshold = this.real.hardLimit.virtualStallThreshold;
-		clone.real.hardLimit.id = this.real.hardLimit.id;
-		clone.real.hardLimit.inverted = this.real.hardLimit.inverted;
-		clone.real.hardLimit.direction = this.real.hardLimit.direction;
-		clone.real.hardLimit.autoStopReset = this.real.hardLimit.autoStopReset;
+		clone.real.hardLimits.limits = new RealControllerConstants.HardLimits.HardLimit[this.real.hardLimits.limits.length];
+		for (int i = 0; i < this.real.hardLimits.limits.length; i++) {
+			clone.real.hardLimits.limits[i].id = this.real.hardLimits.limits[i].id;
+			clone.real.hardLimits.limits[i].isVirtual = this.real.hardLimits.limits[i].isVirtual;
+			clone.real.hardLimits.limits[i].virtualStallThreshold = this.real.hardLimits.limits[i].virtualStallThreshold;
+			clone.real.hardLimits.limits[i].virtualMinPos = this.real.hardLimits.limits[i].virtualMinPos;
+			clone.real.hardLimits.limits[i].virtualMaxPos = this.real.hardLimits.limits[i].virtualMaxPos;
+			clone.real.hardLimits.limits[i].virtualFrames = this.real.hardLimits.limits[i].virtualFrames;
+			clone.real.hardLimits.limits[i].inverted = this.real.hardLimits.limits[i].inverted;
+			clone.real.hardLimits.limits[i].direction = this.real.hardLimits.limits[i].direction;
+			clone.real.hardLimits.limits[i].autoStopReset = this.real.hardLimits.limits[i].autoStopReset;
+			clone.real.hardLimits.limits[i].homePosition = this.real.hardLimits.limits[i].homePosition;
+		}
 
 		clone.simMotor = this.simMotor;
 		clone.simSystem = this.simSystem;

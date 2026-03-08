@@ -45,8 +45,8 @@ public final class IO {
      */
     public interface Encoder {
         default void setEncoder(double position) {}
-        default void resetEncoder() {}
-        default void resetVirtualLimit() {}
+        default void resetVirtualLimit(int index) {}
+        default void resetVirtualLimits() {}
     }
 
     /**
@@ -108,12 +108,11 @@ public final class IO {
             controller.setEncoder(position);
         }
 
-        public void resetEncoder() {
-            controller.resetEncoder();
+        public void resetVirtualLimit(int index) {
+            controller.resetVirtualLimit(index);
         }
-
-        public void resetVirtualLimit() {
-            controller.resetVirtualLimit();
+        public void resetVirtualLimits() {
+            controller.resetVirtualLimits();
         }
     }
 }

@@ -28,8 +28,9 @@ public abstract class Controller {
     protected RealControllerConstants constants;
     protected double goal = 0;
 
-    private DigitalInput limitSwitch;
-    private boolean preLimit = false;
+    private DigitalInput[] limitSwitches;
+    private boolean[] preLimits;
+    private int[] virtualFrames;
 
     private CANcoder CANCoder;
 
@@ -41,8 +42,13 @@ public abstract class Controller {
     public Controller(RealControllerConstants constants) {
         this.constants = constants;
 
-        if (constants.hardLimit.enable && !constants.hardLimit.isVirtual){
-            limitSwitch = new DigitalInput(constants.hardLimit.id);
+        limitSwitches = new DigitalInput[constants.hardLimits.limits.length];
+        preLimits = new boolean[constants.hardLimits.limits.length];
+        virtualFrames = new int[constants.hardLimits.limits.length];
+
+        for (int i = 0; i < constants.hardLimits.limits.length; i++){
+            if (!constants.hardLimits.limits[i].isVirtual)
+                limitSwitches[i] = new DigitalInput(constants.hardLimits.limits[i].id);
         }
 
         if (constants.canCoder.enable && constants.canCoder.mode == RealControllerConstants.CANCoder.CANCoderMode.Normal) {
@@ -142,23 +148,6 @@ public abstract class Controller {
     public abstract void setEncoder(double position);
 
     /**
-     * Resets the encoder, sets it to the home position
-     *
-     * @see #isHomed
-     */
-    public void resetEncoder() {
-        setEncoder(constants.hardLimit.homePosition);
-    }
-
-    /**
-     * @return Whether the subsystem is homed: the encoder is at its home position
-     * @see #resetEncoder
-     */
-    public boolean isHomed() {
-        return Math.abs(constants.hardLimit.homePosition - getPosition()) < constants.control.positionGoalTolerance;
-    }
-
-    /**
      * @return Goal/Setpoint/Reference of the controller, the target of Profiled PID / PID / Motion Magic, etc...
      */
     public double getGoal() {
@@ -178,31 +167,60 @@ public abstract class Controller {
     }
 
     /**
-     * @return Whether the limit switch of the system is clicked now
+     * @return Whether a limit switch of the system is clicked now (including virtual)
      */
-    public boolean getLimit() {
-        if (!constants.hardLimit.enable)
+    public boolean getLimit(int index) {
+        if (index >= constants.hardLimits.limits.length)
             return false;
 
-        if (Robot.isReal())
-            return constants.hardLimit.isVirtual
-                ? (Math.abs(getCurrent()) > constants.hardLimit.virtualStallThreshold && Math.signum(getOutput()) == constants.hardLimit.direction) || (preLimit && Math.signum(getOutput()) != -constants.hardLimit.direction)
-                : constants.hardLimit.inverted != limitSwitch.get();
+        if (Robot.isReal()) {
+            if (constants.hardLimits.limits[index].isVirtual) {
+                if ((Math.abs(getCurrent()) > constants.hardLimits.limits[index].virtualStallThreshold && Math.signum(getOutput()) == constants.hardLimits.limits[index].direction) && getPosition() >= constants.hardLimits.limits[index].virtualMinPos && getPosition() <= constants.hardLimits.limits[index].virtualMaxPos)
+                    virtualFrames[index]++;
+                else
+                    virtualFrames[index] = 0;
+            }
+
+            return constants.hardLimits.limits[index].isVirtual
+                ? virtualFrames[index] >= constants.hardLimits.limits[index].virtualFrames || (preLimits[index] && Math.signum(getOutput()) != -constants.hardLimits.limits[index].direction)
+                : constants.hardLimits.limits[index].inverted != limitSwitches[index].get();
+        }
         else
-            return Math.abs(constants.hardLimit.homePosition - getPosition()) < constants.control.positionGoalTolerance;
+            return Math.abs(constants.hardLimits.limits[index].homePosition - getPosition()) < constants.control.positionGoalTolerance;
+    }
+
+    /**
+     * @return Whether any limit switch of the system is clicked now (including virtual)
+     */
+    public boolean getLimit() {
+        for (int i = 0; i < constants.hardLimits.limits.length; i++) {
+            if (getLimit(i))
+                return true;
+        }
+
+        return false;
     }
 
     /** Runs controller periodic tasks, run it on the subsystem periodic */
     public void periodic() {
-        if (constants.hardLimit.autoStopReset && getLimit() && !preLimit)
-            resetEncoder();
-        if (constants.hardLimit.autoStopReset && getLimit() && Math.signum(getOutput()) == constants.hardLimit.direction)
-            stop();
-        preLimit = getLimit();
+        for (int i = 0; i < constants.hardLimits.limits.length; i++) {
+            if (constants.hardLimits.limits[i].autoStopReset && getLimit(i) && !preLimits[i])
+                setEncoder(constants.hardLimits.limits[i].homePosition);
+            if (constants.hardLimits.limits[i].autoStopReset && getLimit(i) && Math.signum(getOutput()) == constants.hardLimits.limits[i].direction)
+                stop();
+
+            preLimits[i] = getLimit(i);
+        }
     }
 
-    public void resetVirtualLimit() {
-        preLimit = false;
+    public void resetVirtualLimit(int index) {
+        preLimits[index] = false;
+    }
+
+    public void resetVirtualLimits() {
+        for (int i = 0; i < constants.hardLimits.limits.length; i++) {
+            preLimits[i] = false;
+        }
     }
 
     public static Controller createController(ControllerType type, ControllerConstants constants) {
@@ -228,6 +246,7 @@ public abstract class Controller {
         public double Goal;
         public boolean AtGoal;
         public boolean LimitSwitch;
+        public boolean[] LimitSwitches;
         public double AbsolutePosition;
         public String ControlState;
         public String ControlType;
@@ -242,6 +261,12 @@ public abstract class Controller {
         inputs.Goal = getGoal();
         inputs.AtGoal = atGoal();
         inputs.LimitSwitch = getLimit();
+
+        inputs.LimitSwitches = new boolean[constants.hardLimits.limits.length];
+        for (int i = 0; i < constants.hardLimits.limits.length; i++) {
+            inputs.LimitSwitches[i] = getLimit(i);
+        }
+
         inputs.AbsolutePosition = getAbsolutePosition();
         inputs.ControlState = controlState.toString();
         inputs.ControlType = constants.control.controlConstants.type == SmartControlType.NONE ? "N/A" : constants.control.controlConstants.type.toString();

@@ -70,7 +70,7 @@ public class TalonFXController extends Controller {
     public void setPercent(double percent) {
         super.setPercent(percent);
 
-        main.set(percent);
+        main.setControl(new DutyCycleOut(percent).withEnableFOC(constants.control.enableFOC));
     }
 
     @Override
@@ -79,11 +79,11 @@ public class TalonFXController extends Controller {
 
         switch (constants.control.controlConstants.type) {
             case PROFILED_PIDF, PROFILE:
-                main.setControl(new MotionMagicVoltage(position));
+                main.setControl(new MotionMagicVoltage(position).withEnableFOC(constants.control.enableFOC));
                 break;
 
             case PIDF:
-                main.setControl(new PositionVoltage(position));
+                main.setControl(new PositionVoltage(position).withEnableFOC(constants.control.enableFOC));
                 break;
 
             case TORQUE_CURRENT:
@@ -98,11 +98,11 @@ public class TalonFXController extends Controller {
 
         switch (constants.control.controlConstants.type) {
             case PROFILED_PIDF, PROFILE:
-                main.setControl(new MotionMagicVelocityVoltage(velocity));
+                main.setControl(new MotionMagicVelocityVoltage(velocity).withEnableFOC(constants.control.enableFOC));
                 break;
 
             case PIDF:
-                main.setControl(new VelocityVoltage(velocity));
+                main.setControl(new VelocityVoltage(velocity).withEnableFOC(constants.control.enableFOC));
                 break;
 
             case TORQUE_CURRENT:

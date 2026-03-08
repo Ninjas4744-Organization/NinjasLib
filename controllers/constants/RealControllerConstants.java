@@ -7,7 +7,7 @@ public class RealControllerConstants {
     public Base base = new Base();
     public Control control = new Control();
     public SoftLimits softLimits = new SoftLimits();
-    public HardLimit hardLimit = new HardLimit();
+    public HardLimits hardLimits = new HardLimits();
     public CANCoder canCoder = new CANCoder();
 
     public static class Base {
@@ -64,6 +64,9 @@ public class RealControllerConstants {
 
         /** The error which is considered atGoal(). if the error from the velocity goal is smaller than this value it will be considered atGoal(). */
         public double velocityGoalTolerance = 0.05;
+
+        /** Whether to enable FOC. This only does something for TalonFX controllers. With FOC the torque is increased but the max speed is decreased from 100 to 95 rps */
+        public boolean enableFOC = true;
     }
 
     public static class SoftLimits {
@@ -74,33 +77,43 @@ public class RealControllerConstants {
         public double max = Double.POSITIVE_INFINITY;
     }
 
-    public static class HardLimit {
-        /** Whether there is a limit switch related to the subsystem. */
-        public boolean enable = false;
+    public static class HardLimits {
+        public HardLimit[] limits = new HardLimit[0];
 
-        /** Whether to use a virtual limit switch (according to the current the motor takes) instead of a real one. */
-        public boolean isVirtual = false;
+        public static class HardLimit {
+            /** ID of limit switch used in the subsystem. */
+            public int id = 0;
 
-        /** How much current is needed to activate the virtual limit to behave like a real limit switch */
-        public double virtualStallThreshold = 70;
+            /** Whether to use a virtual limit switch (according to the current the motor takes) instead of a real one. */
+            public boolean isVirtual = false;
 
-        /** ID of limit switch used in the subsystem. */
-        public int id = 0;
+            /** How much current is needed to activate the virtual limit to behave like a real limit switch */
+            public double virtualStallThreshold = 58;
 
-        /** Whether the limit switch is inverted. */
-        public boolean inverted = false;
+            /** The minimum position of the encoder to apply the virtual limit. If the encoder is under this value the limit will be ignored, so don't change this number for limits that reset the encoder */
+            public double virtualMinPos = Double.NEGATIVE_INFINITY;
 
-        /** the direction of movement in which the limit will be clicked, for example if an elevator goes down when given minus as output and the limit switch is at the bottom then this value should be -1. */
-        public int direction = -1;
+            /** The maximum position of the encoder to apply the virtual limit. If the encoder is above this value the limit will be ignored, so don't change this number for limits that reset the encoder */
+            public double virtualMaxPos = Double.POSITIVE_INFINITY;
 
-        /** Whether to automatically stop the motor and reset the encoder when limit is clicked. */
-        public boolean autoStopReset = true;
+            /** The amount of frames with current above the virtualStallThreshold needed to count the virtual limit as clicked */
+            public double virtualFrames = 1;
 
-        /**
-         * The home position of the subsystem where the limit switch is and is usually 0. when the limit
-         * switch is hit the encoder will reset to this value.
-         */
-        public double homePosition = 0;
+            /** Whether the limit switch is inverted. */
+            public boolean inverted = false;
+
+            /** the direction of movement in which the limit will be clicked, for example if an elevator goes down when given minus as output and the limit switch is at the bottom then this value should be -1. */
+            public int direction = -1;
+
+            /** Whether to automatically stop the motor and reset the encoder when limit is clicked. */
+            public boolean autoStopReset = true;
+
+            /**
+             * The home position of the subsystem where the limit switch is and is usually 0. when the limit
+             * switch is hit the encoder will reset to this value.
+             */
+            public double homePosition = 0;
+        }
     }
 
     public static class CANCoder {
