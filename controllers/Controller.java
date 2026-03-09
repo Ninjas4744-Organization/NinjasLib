@@ -173,20 +173,10 @@ public abstract class Controller {
         if (index >= constants.hardLimits.limits.length)
             return false;
 
-        if (Robot.isReal()) {
-            if (constants.hardLimits.limits[index].isVirtual) {
-                if ((Math.abs(getCurrent()) > constants.hardLimits.limits[index].virtualStallThreshold && Math.signum(getOutput()) == constants.hardLimits.limits[index].direction) && getPosition() >= constants.hardLimits.limits[index].virtualMinPos && getPosition() <= constants.hardLimits.limits[index].virtualMaxPos)
-                    virtualFrames[index]++;
-                else
-                    virtualFrames[index] = 0;
-            }
-
-            return constants.hardLimits.limits[index].isVirtual
+        if (Robot.isReal()) return constants.hardLimits.limits[index].isVirtual
                 ? virtualFrames[index] >= constants.hardLimits.limits[index].virtualFrames || (preLimits[index] && Math.signum(getOutput()) != -constants.hardLimits.limits[index].direction)
                 : constants.hardLimits.limits[index].inverted != limitSwitches[index].get();
-        }
-        else
-            return Math.abs(constants.hardLimits.limits[index].homePosition - getPosition()) < constants.control.positionGoalTolerance;
+        else return Math.abs(constants.hardLimits.limits[index].homePosition - getPosition()) < constants.control.positionGoalTolerance;
     }
 
     /**
@@ -204,6 +194,15 @@ public abstract class Controller {
     /** Runs controller periodic tasks, run it on the subsystem periodic */
     public void periodic() {
         for (int i = 0; i < constants.hardLimits.limits.length; i++) {
+            if (Robot.isReal()) {
+                if (constants.hardLimits.limits[i].isVirtual) {
+                    if ((Math.abs(getCurrent()) > constants.hardLimits.limits[i].virtualStallThreshold && Math.signum(getOutput()) == constants.hardLimits.limits[i].direction) && getPosition() >= constants.hardLimits.limits[i].virtualMinPos && getPosition() <= constants.hardLimits.limits[i].virtualMaxPos)
+                        virtualFrames[i]++;
+                    else
+                        virtualFrames[i] = 0;
+                }
+            }
+
             if (constants.hardLimits.limits[i].autoStopReset && getLimit(i) && !preLimits[i])
                 setEncoder(constants.hardLimits.limits[i].homePosition);
             if (constants.hardLimits.limits[i].autoStopReset && getLimit(i) && Math.signum(getOutput()) == constants.hardLimits.limits[i].direction)

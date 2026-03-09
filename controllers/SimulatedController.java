@@ -99,7 +99,7 @@ public class SimulatedController extends Controller {
 
     @Override
     public void setEncoder(double position) {
-        motorSim.setState(position, motorSim.getAngularVelocityRadPerSec());
+        motorSim.setState(position / constants.control.conversionFactor * 2 * Math.PI, motorSim.getAngularVelocityRadPerSec());
     }
 
     @Override
