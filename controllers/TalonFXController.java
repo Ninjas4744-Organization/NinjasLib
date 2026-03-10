@@ -41,9 +41,9 @@ public class TalonFXController extends Controller {
                 .withMotionMagicCruiseVelocity(constants.control.controlConstants.cruiseVelocity)
                 .withMotionMagicJerk(constants.control.controlConstants.jerk))
             .withCurrentLimits(new CurrentLimitsConfigs()
-              .withStatorCurrentLimit(constants.base.currentLimit)
+              .withStatorCurrentLimit(constants.base.statorCurrentLimit)
               .withStatorCurrentLimitEnable(true)
-              .withSupplyCurrentLimit(constants.base.currentLimit)
+              .withSupplyCurrentLimit(constants.base.supplyCurrentLimit)
               .withSupplyCurrentLimitEnable(true))
             .withSlot0(new Slot0Configs()
               .withKP(constants.control.controlConstants.P)
@@ -138,7 +138,11 @@ public class TalonFXController extends Controller {
     }
 
     @Override
-    public double getCurrent() {
+    public double getSupplyCurrent() {
+        return main.getSupplyCurrent().getValueAsDouble();
+    }
+
+    public double getStatorCurrent() {
         return main.getStatorCurrent().getValueAsDouble();
     }
 

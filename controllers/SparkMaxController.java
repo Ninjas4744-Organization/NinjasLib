@@ -24,7 +24,7 @@ public class SparkMaxController extends Controller {
 
 		SparkMaxConfig config = new SparkMaxConfig();
 		config.inverted(constants.base.main.inverted);
-		config.smartCurrentLimit((int)constants.base.currentLimit);
+		config.smartCurrentLimit((int)constants.base.statorCurrentLimit);
 
 		config.softLimit.forwardSoftLimit(constants.softLimits.max != Double.POSITIVE_INFINITY ? constants.softLimits.max : 0)
 			.reverseSoftLimit(constants.softLimits.min != Double.NEGATIVE_INFINITY ? constants.softLimits.min : 0)
@@ -113,7 +113,12 @@ public class SparkMaxController extends Controller {
 	}
 
 	@Override
-	public double getCurrent() {
+	public double getSupplyCurrent() {
+        return main.getOutputCurrent() * Math.abs(main.getAppliedOutput()); // estimated: stator * duty cycle
+	}
+
+	@Override
+	public double getStatorCurrent() {
         return main.getOutputCurrent();
 	}
 

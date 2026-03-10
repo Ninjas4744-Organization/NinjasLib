@@ -93,8 +93,13 @@ public class SimulatedController extends Controller {
     }
 
     @Override
-    public double getCurrent() {
-        return motorSim.getCurrentDrawAmps(); // TODO FIX
+    public double getSupplyCurrent() {
+        return motorSim.getCurrentDrawAmps();
+    }
+
+    @Override
+    public double getStatorCurrent() {
+        return motorSim.getCurrentDrawAmps();
     }
 
     @Override

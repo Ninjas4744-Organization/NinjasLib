@@ -36,7 +36,8 @@ public class ControllerConstants implements Cloneable {
 			clone.real.base.followers[i] = followerClone;
 		}
 
-		clone.real.base.currentLimit = this.real.base.currentLimit;
+		clone.real.base.statorCurrentLimit = this.real.base.statorCurrentLimit;
+		clone.real.base.supplyCurrentLimit = this.real.base.supplyCurrentLimit;
 		clone.real.base.CANBus = this.real.base.CANBus;
 
 		clone.real.control.gearRatio = this.real.control.gearRatio;
@@ -51,6 +52,7 @@ public class ControllerConstants implements Cloneable {
 
 		clone.real.hardLimits.limits = new RealControllerConstants.HardLimits.HardLimit[this.real.hardLimits.limits.length];
 		for (int i = 0; i < this.real.hardLimits.limits.length; i++) {
+			clone.real.hardLimits.limits[i] = new RealControllerConstants.HardLimits.HardLimit();
 			clone.real.hardLimits.limits[i].id = this.real.hardLimits.limits[i].id;
 			clone.real.hardLimits.limits[i].isVirtual = this.real.hardLimits.limits[i].isVirtual;
 			clone.real.hardLimits.limits[i].virtualStallThreshold = this.real.hardLimits.limits[i].virtualStallThreshold;
@@ -62,6 +64,14 @@ public class ControllerConstants implements Cloneable {
 			clone.real.hardLimits.limits[i].autoStopReset = this.real.hardLimits.limits[i].autoStopReset;
 			clone.real.hardLimits.limits[i].homePosition = this.real.hardLimits.limits[i].homePosition;
 		}
+
+		clone.real.canCoder.enable = this.real.canCoder.enable;
+		clone.real.canCoder.id = this.real.canCoder.id;
+		clone.real.canCoder.config = new com.ctre.phoenix6.configs.CANcoderConfiguration();
+		clone.real.canCoder.config.MagnetSensor.MagnetOffset = this.real.canCoder.config.MagnetSensor.MagnetOffset;
+		clone.real.canCoder.config.MagnetSensor.SensorDirection = this.real.canCoder.config.MagnetSensor.SensorDirection;
+		clone.real.canCoder.config.MagnetSensor.AbsoluteSensorDiscontinuityPoint = this.real.canCoder.config.MagnetSensor.AbsoluteSensorDiscontinuityPoint;
+		clone.real.canCoder.mode = this.real.canCoder.mode;
 
 		clone.simMotor = this.simMotor;
 		clone.simSystem = this.simSystem;

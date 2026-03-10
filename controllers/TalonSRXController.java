@@ -15,7 +15,7 @@ public class TalonSRXController extends Controller {
         main = new TalonSRX(constants.base.main.id);
         main.configFactoryDefault();
         main.setInverted(constants.base.main.inverted);
-        main.configPeakCurrentLimit((int) constants.base.currentLimit);
+        main.configPeakCurrentLimit((int) constants.base.statorCurrentLimit);
 
         main.config_kP(0, constants.control.controlConstants.P);
         main.config_kI(0, constants.control.controlConstants.I);
@@ -106,8 +106,13 @@ public class TalonSRXController extends Controller {
 	}
 
 	@Override
-	public double getCurrent() {
-        return main.getBusVoltage();
+	public double getSupplyCurrent() {
+        return main.getSupplyCurrent();
+	}
+
+	@Override
+	public double getStatorCurrent() {
+        return main.getSupplyCurrent();
 	}
 
 	@Override

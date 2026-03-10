@@ -68,8 +68,13 @@ public class VictorSPXController extends Controller {
 	}
 
 	@Override
-	public double getCurrent() {
-		return main.getBusVoltage();
+	public double getSupplyCurrent() {
+        throw new UnsupportedOperationException("No current handling on VictorSPX");
+	}
+
+	@Override
+	public double getStatorCurrent() {
+        throw new UnsupportedOperationException("No current handling on VictorSPX");
 	}
 
 	@Override

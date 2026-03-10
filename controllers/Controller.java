@@ -138,7 +138,10 @@ public abstract class Controller {
     /**
      * @return the current the motor is taking
      */
-    public abstract double getCurrent();
+    public abstract double getSupplyCurrent();
+
+
+    public abstract double getStatorCurrent();
 
     /**
      * Sets the position in the encoder,so it thinks it is at that position
@@ -196,7 +199,7 @@ public abstract class Controller {
         for (int i = 0; i < constants.hardLimits.limits.length; i++) {
             if (Robot.isReal()) {
                 if (constants.hardLimits.limits[i].isVirtual) {
-                    if ((Math.abs(getCurrent()) > constants.hardLimits.limits[i].virtualStallThreshold && Math.signum(getOutput()) == constants.hardLimits.limits[i].direction) && getPosition() >= constants.hardLimits.limits[i].virtualMinPos && getPosition() <= constants.hardLimits.limits[i].virtualMaxPos)
+                    if ((Math.abs(getStatorCurrent()) > constants.hardLimits.limits[i].virtualStallThreshold && Math.signum(getOutput()) == constants.hardLimits.limits[i].direction) && getPosition() >= constants.hardLimits.limits[i].virtualMinPos && getPosition() <= constants.hardLimits.limits[i].virtualMaxPos)
                         virtualFrames[i]++;
                     else
                         virtualFrames[i] = 0;
@@ -241,7 +244,8 @@ public abstract class Controller {
         public double Velocity;
         public double Acceleration;
         public double Output;
-        public double Current;
+        public double SupplyCurrent;
+        public double StatorCurrent;
         public double Goal;
         public boolean AtGoal;
         public boolean LimitSwitch;
@@ -256,7 +260,8 @@ public abstract class Controller {
         inputs.Velocity = getVelocity();
         inputs.Acceleration = getAcceleration();
         inputs.Output = getOutput();
-        inputs.Current = getCurrent();
+        inputs.SupplyCurrent = getSupplyCurrent();
+        inputs.StatorCurrent = getStatorCurrent();
         inputs.Goal = getGoal();
         inputs.AtGoal = atGoal();
         inputs.LimitSwitch = getLimit();

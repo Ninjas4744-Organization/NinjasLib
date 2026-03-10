@@ -20,8 +20,11 @@ public class RealControllerConstants {
          */
         public boolean isBrakeMode = true;
 
-        /** Current limit*/
-        public double currentLimit = 60;
+        /** Limit drawn current from battery to motor */
+        public double supplyCurrentLimit = 40;
+
+        /** Limit current flowing in motor */
+        public double statorCurrentLimit = 80;
 
         /** Controller constants for the controllers that follow the main controller in the subsystem. */
         public SimpleControllerConstants[] followers = new SimpleControllerConstants[0];
