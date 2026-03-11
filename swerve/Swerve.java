@@ -11,7 +11,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.lib.NinjasLib.localization.OdometryThread;
-import frc.lib.NinjasLib.statemachine.RobotStateWithSwerve;
+import frc.lib.NinjasLib.statemachine.RobotStateBase;
 import frc.lib.NinjasLib.swerve.constants.SwerveConstants;
 import frc.lib.NinjasLib.swerve.gyro.*;
 import frc.lib.NinjasLib.swerve.module.SwerveModuleIO;
@@ -217,7 +217,7 @@ public class Swerve {
 
     public void periodic() {
         if(constants.special.robotStartPose.getX() != -999) {
-            RobotStateWithSwerve.get().setRobotPose(constants.special.robotStartPose);
+            RobotStateBase.get().setRobotPose(constants.special.robotStartPose);
             constants.special.robotStartPose = new Pose2d(-999, -999, Rotation2d.kZero);
         }
 
@@ -233,9 +233,9 @@ public class Swerve {
             }
 
             if (Robot.isReal() || constants.special.isReplay)
-                RobotStateWithSwerve.get().updateRobotPose(getModulePositions(), gyro.getYawOffsetted());
+                RobotStateBase.get().updateRobotPose(getModulePositions(), gyro.getYawOffsetted());
             else
-                RobotStateWithSwerve.get().setRobotPose(simulation.getSimulatedDriveTrainPose());
+                RobotStateBase.get().setRobotPose(simulation.getSimulatedDriveTrainPose());
         }
 
         Logger.recordOutput("Swerve/Current Velocity", getSpeeds().getAsFieldRelative());
@@ -272,10 +272,10 @@ public class Swerve {
                     odometryUpdateModulePositions[j].angle = moduleInputs[j].Angles[i];
                 }
 
-                RobotStateWithSwerve.get().updateRobotPoseWithTime(odometryUpdateModulePositions, gyroYawArray[i], sampleTimestamps[i]);
+                RobotStateBase.get().updateRobotPoseWithTime(odometryUpdateModulePositions, gyroYawArray[i], sampleTimestamps[i]);
             }
         } else
-            RobotStateWithSwerve.get().setRobotPose(simulation.getSimulatedDriveTrainPose());
+            RobotStateBase.get().setRobotPose(simulation.getSimulatedDriveTrainPose());
 
         Logger.recordOutput("Swerve/Odometry Thread/Odometry Update Frames Percent", odometryUpdateFramesWithUpdate / (double) odometryUpdateFrames * 100);
     }

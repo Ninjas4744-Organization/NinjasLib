@@ -5,7 +5,6 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DriverStation;
-import frc.lib.NinjasLib.statemachine.RobotStateBase;
 import frc.lib.NinjasLib.swerve.Swerve;
 
 import java.util.ArrayList;
@@ -34,16 +33,16 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
         List<VisionOutput> outputs = new ArrayList<>();
 
         Rotation2d robotYaw = Swerve.getInstance().getGyro().getYaw();
-        if (RobotStateBase.getAlliance() == DriverStation.Alliance.Red) {
+        if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
             robotYaw = robotYaw.rotateBy(Rotation2d.k180deg);
         }
         LimelightHelpers.SetRobotOrientation(cameraName, robotYaw.getDegrees(), 0, 0, 0, 0, 0);
 
-        LimelightHelpers.PoseEstimate estimate = (RobotStateBase.getAlliance() == DriverStation.Alliance.Blue)
+        LimelightHelpers.PoseEstimate estimate = (DriverStation.getAlliance().get() == DriverStation.Alliance.Blue)
             ? LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(cameraName)
             : LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2(cameraName);
 
-        LimelightHelpers.PoseEstimate estimateMegaTag1 = (RobotStateBase.getAlliance() == DriverStation.Alliance.Blue)
+        LimelightHelpers.PoseEstimate estimateMegaTag1 = (DriverStation.getAlliance().get() == DriverStation.Alliance.Blue)
                 ? LimelightHelpers.getBotPoseEstimate_wpiBlue(cameraName)
                 : LimelightHelpers.getBotPoseEstimate_wpiRed(cameraName);
 

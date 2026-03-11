@@ -15,49 +15,49 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extends SubsystemBase {
-    private static StateMachineBase instance;
-
     private final Graph<StateEnum, Command> graph;
-    private final Class<StateEnum> stateEnumClass;
-    private BFSShortestPath<StateEnum, Command> bfs;
-
+    private Command currentEdge;
+    private Consumer<StateEnum> stateConsumer;
+    private Supplier<StateEnum> stateSupplier;
     private final Map<StateEnum, Map<Command, StateEnum>> stateEnds;
     private final Map<StateEnum, Command> stateCommands;
     private final BackgroundCommand stateCommand;
-    private Command currentEdge;
+
+    private final Class<StateEnum> stateEnumClass;
     private List<StateEnum> currentPath;
-
-    public static StateMachineBase getInstance() {
-        if (instance == null)
-            throw new RuntimeException("StateMachineBase not initialized. Initialize StateMachineBase by setInstance() first.");
-        return instance;
-    }
-
-    public static void setInstance(StateMachineBase instance) {
-        StateMachineBase.instance = instance;
-        instance.define();
-        instance.printGraph();
-    }
+    private final BFSShortestPath<StateEnum, Command> bfs;
 
     public StateMachineBase(Class<StateEnum> states) {
         graph = new SimpleDirectedGraph<>(Command.class);
-        stateEnds = new HashMap<>();
-        for (StateEnum state : states.getEnumConstants()) {
-            stateEnds.put(state, new HashMap<>());
-        }
 
+        stateEnds = new HashMap<>();
         stateEnumClass = states;
-        for(StateEnum state : states.getEnumConstants()) {
+        for (StateEnum state : states.getEnumConstants()) {
             graph.addVertex(state);
+            stateEnds.put(state, new HashMap<>());
         }
 
         stateCommands = new HashMap<>();
         stateCommand = new BackgroundCommand();
 
         bfs = new BFSShortestPath<>(graph);
+
+        define();
+        printGraph();
+    }
+
+    /**
+     * Set state consumer and supplier in order for the statemachine to work. Must call this after constructor.
+     * @param stateSupplier Supply current state
+     * @param stateConsumer Consume new current state
+     */
+    protected void setStateMethods(Supplier<StateEnum> stateSupplier, Consumer<StateEnum> stateConsumer) {
+        this.stateConsumer = stateConsumer;
+        this.stateSupplier = stateSupplier;
     }
 
     @Override
@@ -68,7 +68,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             if(ends != null) {
                 for(Command end : ends.keySet()) {
                     if((end.isFinished() || !end.isScheduled()) && canTransitionTo(ends.get(end))) {
-                        System.out.println("[StateMachine] Ended state " + getCurrentState().name() + ": " + ends.get(end).name());
+                        System.out.println("[" + getName() + "] State end condition " + getCurrentState().name() + " -> " + ends.get(end).name());
                         changeRobotState(ends.get(end));
                         break;
                     }
@@ -78,9 +78,9 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
 
         // Check if transition command ended
         if(currentEdge != null && (currentEdge.isFinished() || !currentEdge.isScheduled())) {
-            System.out.println("[StateMachine] Ended " + getCurrentState().name() + " -> " + getTargetState().name());
+            System.out.println("[" + getName() + "] Ended transition " + getCurrentState().name() + " -> " + getTargetState().name());
 
-            RobotStateBase.get().setRobotState(getTargetState());
+            stateConsumer.accept(getTargetState());
             currentEdge = null;
 
             Map<Command, StateEnum> ends = stateEnds.get(getCurrentState());
@@ -103,10 +103,10 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             }
         }
 
-        Logger.recordOutput("State Machine/Is Transitioning", isTransitioning());
-        Logger.recordOutput("State Machine/Current State", getCurrentState());
-        Logger.recordOutput("State Machine/Target State", getTargetState() == null ? "N/A" : getTargetState().name());
-        Logger.recordOutput("State Machine/Path States", currentPath == null ? new String[0] : currentPath.stream().map(Enum::name).toArray(String[]::new));
+        Logger.recordOutput(getName() + "/State Machine/Is Transitioning", isTransitioning());
+        Logger.recordOutput(getName() + "/State Machine/Current State", getCurrentState());
+        Logger.recordOutput(getName() + "/State Machine/Target State", getTargetState() == null ? "N/A" : getTargetState().name());
+        Logger.recordOutput(getName() + "/State Machine/Path States", currentPath == null ? new String[0] : currentPath.stream().map(Enum::name).toArray(String[]::new));
     }
 
     /**
@@ -136,8 +136,8 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             stateCommand.stop();
 
             currentEdge = null;
-            System.out.println("[StateMachine] Force state change " + getCurrentState().name() + " -> " + wantedState.name());
-            RobotStateBase.get().setRobotState(wantedState);
+            System.out.println("[" + getName() + "] Force state " + getCurrentState().name() + " -> " + wantedState.name());
+            stateConsumer.accept(getTargetState());
 
             return;
         }
@@ -167,7 +167,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             currentEdge = edge;
             CommandScheduler.getInstance().schedule(currentEdge);
 
-            System.out.println("[StateMachine] Started " + getCurrentState().name() + " -> " + getTargetState().name());
+            System.out.println("[" + getName() + "] Started " + getCurrentState().name() + " -> " + getTargetState().name());
         }
     }
 
@@ -198,6 +198,13 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
         changeRobotState(wantedState, false, true, false);
     }
 
+    /**
+     * Calculates BFS path from current state to wantedState and starts automatically transitioning between states to reach wantedState.
+     * <br />Starts a transition immediately at call and starts the next transitions each time a transition ends.
+     * <br />Stops when reached wantedState.
+     * <br />If there is no path between currentState and wantedState, does nothing,
+     * @param wantedState The target state of the path
+     */
     public void runStatesPath(StateEnum wantedState) {
         GraphPath<StateEnum, Command> path = bfs.getPath(getCurrentState(), wantedState);
         if (path == null || isTransitioning())
@@ -274,7 +281,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      * @return The current robot state from RobotStateBase.
      */
     public StateEnum getCurrentState() {
-        return (StateEnum) RobotStateBase.get().getRobotState();
+        return stateSupplier.get();
     }
 
     /**
@@ -287,7 +294,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
         return null;
     }
 
-    public boolean isPath() {
+    public boolean isRunningPath() {
         return currentPath != null;
     }
 
@@ -318,7 +325,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      */
     protected void addEdge(StateEnum start, StateEnum end, Command command) {
         if (start.equals(end)) {
-            System.out.println("[StateMachine] Start and end state of an edge cannot be the same");
+            System.out.println("[" + getName() + "] Start and end state of an edge cannot be the same");
             return;
         }
 
@@ -415,11 +422,11 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      * Prints the statemachine graph including states and edges to the console.
      */
     public void printGraph() {
-        System.out.println("---------------StateMachine Graph---------------");
-        for (Object vertex : instance.graph.vertexSet()) {
+        System.out.println("---------------" + getName() + " Graph---------------");
+        for (StateEnum vertex : graph.vertexSet()) {
             System.out.println("State: " + vertex);
 
-            var outgoingEdges = graph.outgoingEdgesOf((StateEnum) vertex);
+            var outgoingEdges = graph.outgoingEdgesOf(vertex);
             if (outgoingEdges.isEmpty()) {
                 System.out.println("  (no outgoing edges)");
             } else {
@@ -430,6 +437,6 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             }
             System.out.println();
         }
-        System.out.println("---------------StateMachine Graph---------------");
+        System.out.println("---------------" + getName() + " Graph---------------");
     }
 }
