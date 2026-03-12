@@ -15,19 +15,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extends SubsystemBase {
+    private StateEnum currentState;
+
     private final Graph<StateEnum, Command> graph;
+    private final Class<StateEnum> stateEnumClass;
     private Command currentEdge;
-    private Consumer<StateEnum> stateConsumer;
-    private Supplier<StateEnum> stateSupplier;
+
     private final Map<StateEnum, Map<Command, StateEnum>> stateEnds;
     private final Map<StateEnum, Command> stateCommands;
     private final BackgroundCommand stateCommand;
 
-    private final Class<StateEnum> stateEnumClass;
     private List<StateEnum> currentPath;
     private final BFSShortestPath<StateEnum, Command> bfs;
 
@@ -50,16 +50,6 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
         printGraph();
     }
 
-    /**
-     * Set state consumer and supplier in order for the statemachine to work. Must call this after constructor.
-     * @param stateSupplier Supply current state
-     * @param stateConsumer Consume new current state
-     */
-    protected void setStateMethods(Supplier<StateEnum> stateSupplier, Consumer<StateEnum> stateConsumer) {
-        this.stateConsumer = stateConsumer;
-        this.stateSupplier = stateSupplier;
-    }
-
     @Override
     public void periodic() {
         // Check state ends for current state
@@ -80,7 +70,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
         if(currentEdge != null && (currentEdge.isFinished() || !currentEdge.isScheduled())) {
             System.out.println("[" + getName() + "] Ended transition " + getCurrentState().name() + " -> " + getTargetState().name());
 
-            stateConsumer.accept(getTargetState());
+            currentState = getTargetState();
             currentEdge = null;
 
             Map<Command, StateEnum> ends = stateEnds.get(getCurrentState());
@@ -137,7 +127,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
 
             currentEdge = null;
             System.out.println("[" + getName() + "] Force state " + getCurrentState().name() + " -> " + wantedState.name());
-            stateConsumer.accept(getTargetState());
+            currentState = getTargetState();
 
             return;
         }
@@ -281,7 +271,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      * @return The current robot state from RobotStateBase.
      */
     public StateEnum getCurrentState() {
-        return stateSupplier.get();
+        return currentState;
     }
 
     /**
@@ -314,6 +304,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      *
      * @see #addEdge(Enum, Enum, Command)
      * @see #addStateEnd(Enum, Command, Enum)
+     * @see #addStateCommand(Enum, Command)
      */
     protected abstract void define();
 
@@ -328,7 +319,6 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             System.out.println("[" + getName() + "] Start and end state of an edge cannot be the same");
             return;
         }
-
         graph.addEdge(start, end, command);
     }
 
@@ -336,23 +326,38 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      * Add a connection from the start state to the end state in the statemachine's graph.
      * @param start The state to transition from.
      * @param end The state the robot will be after.
-     * @see #addEdge(Enum, Enum, Command)
      */
     protected void addEdge(StateEnum start, StateEnum end) {
         addEdge(start, end, Commands.none());
     }
 
     /**
-     * Add edges from all start states to the end state.
+     * Add edges from all start states to all end states.
      * @param start The list of start states.
-     * @param end The end state.
+     * @param end The list of end states.
      * @param command The edge command.
-     * @see #addEdge(Enum, Enum, Command)
      */
-    protected void addEdge(List<StateEnum> start, StateEnum end, Supplier<Command> command) {
-        for(StateEnum state : start){
-            if(state != end) {
-                addEdge(state, end, command.get());
+    protected void addEdge(List<StateEnum> start, List<StateEnum> end, Supplier<Command> command) {
+        for(StateEnum startState : start) {
+            for(StateEnum endState : end) {
+                if(startState != endState) {
+                    addEdge(startState, endState, command.get());
+                }
+            }
+        }
+    }
+
+    /**
+     * Add edges from all start states to all end states.
+     * @param start The list of start states.
+     * @param end The list of end states.
+     */
+    protected void addEdge(List<StateEnum> start, List<StateEnum> end) {
+        for(StateEnum startState : start) {
+            for(StateEnum endState : end) {
+                if(startState != endState) {
+                    addEdge(startState, endState, Commands.none());
+                }
             }
         }
     }
@@ -361,10 +366,37 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      * Add edges from all start states to the end state.
      * @param start The list of start states.
      * @param end The end state.
-     * @see #addEdge(Enum, Enum, Command)
-     * @see #addEdge(Enum, Enum)
+     * @param command The edge command.
+     */
+    protected void addEdge(List<StateEnum> start, StateEnum end, Supplier<Command> command) {
+        addEdge(start, List.of(end), command);
+    }
+
+    /**
+     * Add edges from all start states to the end state.
+     * @param start The list of start states.
+     * @param end The end state.
      */
     protected void addEdge(List<StateEnum> start, StateEnum end) {
+        addEdge(start, end, Commands::none);
+    }
+
+    /**
+     * Add edges from start state to all end states.
+     * @param start The start state.
+     * @param end The list of end states.
+     * @param command The edge command.
+     */
+    protected void addEdge(StateEnum start, List<StateEnum> end, Supplier<Command> command) {
+        addEdge(List.of(start), end, command);
+    }
+
+    /**
+     * Add edges from start state to all end states.
+     * @param start The start state.
+     * @param end The list of end states.
+     */
+    protected void addEdge(StateEnum start, List<StateEnum> end) {
         addEdge(start, end, Commands::none);
     }
 
