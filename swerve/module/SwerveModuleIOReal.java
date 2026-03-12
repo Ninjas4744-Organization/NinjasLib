@@ -7,7 +7,6 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.units.Units;
 import frc.lib.NinjasLib.controllers.Controller;
 import frc.lib.NinjasLib.controllers.TalonFXController;
 import frc.lib.NinjasLib.controllers.constants.ControllerConstants;
@@ -33,6 +32,10 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
     private Queue<Double> positionQueue;
     private Queue<Double> angleQueue;
     private Queue<Double> timestampQueue;
+
+    private int absolutePositionUpdateCounter = 0;
+    private static final int ABSOLUTE_POSITION_UPDATE_PERIOD = 10;
+    private Rotation2d cachedAbsolutePosition = new Rotation2d();
 
     public SwerveModuleIOReal(SwerveModuleConstants constants, SwerveConstants swerveConstants) {
         moduleNumber = constants.moduleNumber;
@@ -106,7 +109,7 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
     }
 
     private Rotation2d getCANCoder() {
-        return Rotation2d.fromRadians(canCoder.getAbsolutePosition().getValue().in(Units.Radians));
+        return Rotation2d.fromRotations(canCoder.getAbsolutePosition().getValueAsDouble());
     }
 
     @Override
@@ -115,7 +118,11 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
         inputs.State = new SwerveModuleState(driveMotor.getVelocity(), Rotation2d.fromRadians(steerMotor.getPosition()));
         inputs.DesiredState = desiredState;
         inputs.Position = new SwerveModulePosition(driveMotor.getPosition(), Rotation2d.fromRadians(steerMotor.getPosition()));
-        inputs.AbsolutePosition = getCANCoder();
+        if (absolutePositionUpdateCounter++ >= ABSOLUTE_POSITION_UPDATE_PERIOD) {
+            absolutePositionUpdateCounter = 0;
+            cachedAbsolutePosition = getCANCoder();
+        }
+        inputs.AbsolutePosition = cachedAbsolutePosition;
 
         if (swerveConstants.special.enableOdometryThread && isTalonFX) {
             inputs.Positions = positionQueue.stream().mapToDouble((Double value) -> value).toArray();

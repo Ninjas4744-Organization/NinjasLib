@@ -35,6 +35,7 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
         camera = new PhotonCamera(name);
 
         estimator = new PhotonPoseEstimator(constants.fieldLayoutGetter.getFieldLayout(List.of()), cameraPose);
+        estimator.setFieldTags(constants.fieldLayoutGetter.getFieldLayout(ignoredTags));
     }
 
     /**
@@ -67,7 +68,6 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
             return;
         }
 
-        estimator.setFieldTags(constants.fieldLayoutGetter.getFieldLayout(ignoredTags));
         for (int i = 0; i < results.size(); i++) {
             Optional<EstimatedRobotPose> currentPose = estimator.estimateCoprocMultiTagPose(results.get(i));
 
@@ -127,6 +127,7 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
     public void ignoreTag(int id) {
         ignoredTags.add(id);
         fillTagsMap();
+        estimator.setFieldTags(constants.fieldLayoutGetter.getFieldLayout(ignoredTags));
     }
 
     private void fillTagsMap() {

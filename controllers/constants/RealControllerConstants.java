@@ -93,14 +93,14 @@ public class RealControllerConstants {
             /** How much current is needed to activate the virtual limit to behave like a real limit switch */
             public double virtualStallThreshold = 58;
 
-            /** The minimum position of the encoder to apply the virtual limit. If the encoder is under this value the limit will be ignored, so don't change this number for limits that reset the encoder */
-            public double virtualMinPos = Double.NEGATIVE_INFINITY;
+            /** The minimum position of the encoder to apply the limit. If the encoder is under this value the limit will be ignored, so don't change this number for limits that reset the encoder */
+            public double minPos = Double.NEGATIVE_INFINITY;
 
-            /** The maximum position of the encoder to apply the virtual limit. If the encoder is above this value the limit will be ignored, so don't change this number for limits that reset the encoder */
-            public double virtualMaxPos = Double.POSITIVE_INFINITY;
+            /** The maximum position of the encoder to apply the limit. If the encoder is above this value the limit will be ignored, so don't change this number for limits that reset the encoder */
+            public double maxPos = Double.POSITIVE_INFINITY;
 
-            /** The amount of frames with current above the virtualStallThreshold needed to count the virtual limit as clicked */
-            public double virtualFrames = 1;
+            /** The amount of frames the limit needs to be turned on to count as clicked */
+            public double frames = 1;
 
             /** Whether the limit switch is inverted. */
             public boolean inverted = false;

@@ -30,7 +30,7 @@ public abstract class Controller {
 
     private DigitalInput[] limitSwitches;
     private boolean[] preLimits;
-    private int[] virtualFrames;
+    private int[] limitFrames;
 
     private CANcoder CANCoder;
 
@@ -44,7 +44,7 @@ public abstract class Controller {
 
         limitSwitches = new DigitalInput[constants.hardLimits.limits.length];
         preLimits = new boolean[constants.hardLimits.limits.length];
-        virtualFrames = new int[constants.hardLimits.limits.length];
+        limitFrames = new int[constants.hardLimits.limits.length];
 
         for (int i = 0; i < constants.hardLimits.limits.length; i++){
             if (!constants.hardLimits.limits[i].isVirtual)
@@ -177,8 +177,8 @@ public abstract class Controller {
             return false;
 
         if (Robot.isReal()) return constants.hardLimits.limits[index].isVirtual
-                ? virtualFrames[index] >= constants.hardLimits.limits[index].virtualFrames || (preLimits[index] && Math.signum(getOutput()) != -constants.hardLimits.limits[index].direction)
-                : constants.hardLimits.limits[index].inverted != limitSwitches[index].get();
+                ? limitFrames[index] >= constants.hardLimits.limits[index].frames || (preLimits[index] && Math.signum(getOutput()) != -constants.hardLimits.limits[index].direction)
+                : limitFrames[index] >= constants.hardLimits.limits[index].frames;
         else return Math.abs(constants.hardLimits.limits[index].homePosition - getPosition()) < constants.control.positionGoalTolerance;
     }
 
@@ -199,10 +199,15 @@ public abstract class Controller {
         for (int i = 0; i < constants.hardLimits.limits.length; i++) {
             if (Robot.isReal()) {
                 if (constants.hardLimits.limits[i].isVirtual) {
-                    if ((Math.abs(getStatorCurrent()) > constants.hardLimits.limits[i].virtualStallThreshold && Math.signum(getOutput()) == constants.hardLimits.limits[i].direction) && getPosition() >= constants.hardLimits.limits[i].virtualMinPos && getPosition() <= constants.hardLimits.limits[i].virtualMaxPos)
-                        virtualFrames[i]++;
+                    if ((Math.abs(getStatorCurrent()) > constants.hardLimits.limits[i].virtualStallThreshold && Math.signum(getOutput()) == constants.hardLimits.limits[i].direction) && getPosition() >= constants.hardLimits.limits[i].minPos && getPosition() <= constants.hardLimits.limits[i].maxPos)
+                        limitFrames[i]++;
                     else
-                        virtualFrames[i] = 0;
+                        limitFrames[i] = 0;
+                } else {
+                    if (constants.hardLimits.limits[i].inverted != limitSwitches[i].get())
+                        limitFrames[i]++;
+                    else
+                        limitFrames[i] = 0;
                 }
             }
 
