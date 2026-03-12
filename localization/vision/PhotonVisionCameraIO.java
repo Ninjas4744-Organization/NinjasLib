@@ -34,8 +34,8 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
 
         camera = new PhotonCamera(name);
 
-        estimator = new PhotonPoseEstimator(constants.fieldLayoutGetter.getFieldLayout(List.of()), cameraPose);
-        estimator.setFieldTags(constants.fieldLayoutGetter.getFieldLayout(ignoredTags));
+        estimator = new PhotonPoseEstimator(constants.fieldLayoutGetter.getFieldLayout(List.of()).get(), cameraPose);
+        estimator.setFieldTags(constants.fieldLayoutGetter.getFieldLayout(ignoredTags).get());
     }
 
     /**
@@ -127,12 +127,12 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
     public void ignoreTag(int id) {
         ignoredTags.add(id);
         fillTagsMap();
-        estimator.setFieldTags(constants.fieldLayoutGetter.getFieldLayout(ignoredTags));
+        estimator.setFieldTags(constants.fieldLayoutGetter.getFieldLayout(ignoredTags).get());
     }
 
     private void fillTagsMap() {
         tags = new HashMap<>();
-        for (AprilTag tag : constants.fieldLayoutGetter.getFieldLayout(ignoredTags).getTags())
+        for (AprilTag tag : constants.fieldLayoutGetter.getFieldLayout(ignoredTags).get().getTags())
             tags.put(tag.ID, tag);
     }
 }

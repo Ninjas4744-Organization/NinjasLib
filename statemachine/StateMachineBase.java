@@ -18,7 +18,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extends SubsystemBase {
-    private StateEnum currentState;
+    protected StateEnum currentState;
 
     private final Graph<StateEnum, Command> graph;
     private final Class<StateEnum> stateEnumClass;
@@ -59,7 +59,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
                 for(Command end : ends.keySet()) {
                     if((end.isFinished() || !end.isScheduled()) && canTransitionTo(ends.get(end))) {
                         System.out.println("[" + getName() + "] State end condition " + getCurrentState().name() + " -> " + ends.get(end).name());
-                        changeRobotState(ends.get(end));
+                        changeState(ends.get(end));
                         break;
                     }
                 }
@@ -83,9 +83,11 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             Command stateTask = stateCommands.get(getCurrentState());
             if (stateTask != null)
                 stateCommand.setNewTask(stateTask);
+            else
+                stateCommand.stop();
 
             if (currentPath != null) {
-                changeRobotState(currentPath.get(0), false, false, true);
+                changeState(currentPath.get(0), false, false, true);
 
                 currentPath.remove(0);
                 if (currentPath.isEmpty())
@@ -107,13 +109,17 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      * @param forceState Whether to set the robot state to the wanted state no matter what. Doesn't run a transition command. Cancels current edge command and state ends.
      * @param fromPath Whether this was called from a state path. If it wasn't then deletes state path.
      */
-    private void changeRobotState(StateEnum wantedState, boolean forceTransition, boolean forceState, boolean fromPath) {
+    private void changeState(StateEnum wantedState, boolean forceTransition, boolean forceState, boolean fromPath) {
         if (!fromPath)
             currentPath = null;
 
         if (forceState) {
             if (currentEdge != null)
                 currentEdge.cancel();
+
+            currentEdge = null;
+            System.out.println("[" + getName() + "] Force state " + getCurrentState().name() + " -> " + wantedState.name());
+            currentState = wantedState;
 
             Map<Command, StateEnum> ends = stateEnds.get(getCurrentState());
             if(ends != null) {
@@ -123,11 +129,11 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
                 }
             }
 
-            stateCommand.stop();
-
-            currentEdge = null;
-            System.out.println("[" + getName() + "] Force state " + getCurrentState().name() + " -> " + wantedState.name());
-            currentState = getTargetState();
+            Command stateTask = stateCommands.get(getCurrentState());
+            if (stateTask != null)
+                stateCommand.setNewTask(stateTask);
+            else
+                stateCommand.stop();
 
             return;
         }
@@ -166,8 +172,8 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      *
      * @param wantedState The state to change the robot state to.
      */
-    public void changeRobotState(StateEnum wantedState) {
-        changeRobotState(wantedState, false, false, false);
+    public void changeState(StateEnum wantedState) {
+        changeState(wantedState, false, false, false);
     }
 
     /**
@@ -175,8 +181,8 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      *
      * @param wantedState The state to change the robot state to.
      */
-    public void changeRobotStateForce(StateEnum wantedState) {
-        changeRobotState(wantedState, true, false, false);
+    public void changeStateForce(StateEnum wantedState) {
+        changeState(wantedState, true, false, false);
     }
 
     /**
@@ -184,8 +190,8 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      *
      * @param wantedState The state to change the robot state to.
      */
-    public void forceRobotState(StateEnum wantedState) {
-        changeRobotState(wantedState, false, true, false);
+    public void forceState(StateEnum wantedState) {
+        changeState(wantedState, false, true, false);
     }
 
     /**
@@ -207,7 +213,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             return;
         }
 
-        changeRobotState(currentPath.get(0), false, false, true);
+        changeState(currentPath.get(0), false, false, true);
 
         currentPath.remove(0);
         if (currentPath.isEmpty())
@@ -215,24 +221,24 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
     }
 
     /**
-     * @return Instant command that runs changeRobotState.
+     * @return Instant command that runs changeState.
      */
-    public Command changeRobotStateCommand(StateEnum wantedState) {
-        return Commands.runOnce(() -> changeRobotState(wantedState));
+    public Command changeStateCommand(StateEnum wantedState) {
+        return Commands.runOnce(() -> changeState(wantedState));
     }
 
     /**
-     * @return Instant command that runs changeRobotState.
+     * @return Instant command that runs changeState.
      */
-    public Command changeRobotStateForceCommand(StateEnum wantedState) {
-        return Commands.runOnce(() -> changeRobotStateForce(wantedState));
+    public Command changeStateForceCommand(StateEnum wantedState) {
+        return Commands.runOnce(() -> changeStateForce(wantedState));
     }
 
     /**
-     * @return Instant command that runs changeRobotState.
+     * @return Instant command that runs changeState.
      */
-    public Command forceRobotStateCommand(StateEnum wantedState) {
-        return Commands.runOnce(() -> forceRobotState(wantedState));
+    public Command forceStateCommand(StateEnum wantedState) {
+        return Commands.runOnce(() -> forceState(wantedState));
     }
 
     /**

@@ -179,7 +179,7 @@ public abstract class Controller {
         if (Robot.isReal()) return constants.hardLimits.limits[index].isVirtual
                 ? limitFrames[index] >= constants.hardLimits.limits[index].frames || (preLimits[index] && Math.signum(getOutput()) != -constants.hardLimits.limits[index].direction)
                 : limitFrames[index] >= constants.hardLimits.limits[index].frames;
-        else return Math.abs(constants.hardLimits.limits[index].homePosition - getPosition()) < constants.control.positionGoalTolerance;
+        else return constants.hardLimits.limits[index].direction > 0 ? getPosition() >= constants.hardLimits.limits[index].homePosition : getPosition() <= constants.hardLimits.limits[index].homePosition;
     }
 
     /**

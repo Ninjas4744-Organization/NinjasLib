@@ -1,5 +1,6 @@
 package frc.lib.NinjasLib.statemachine;
 
+import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -9,12 +10,16 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import frc.lib.NinjasLib.localization.NinjasSwervePoseTracker;
 import frc.lib.NinjasLib.swerve.Swerve;
 import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
 
-public abstract class RobotStateBase<StateEnum extends Enum<StateEnum>> {
+import java.util.Optional;
+
+public abstract class RobotStateBase {
     private final NinjasSwervePoseTracker poseEstimator;
     private final NinjasSwervePoseTracker odometryOnlyEstimator;
     private static RobotStateBase instance;
@@ -190,5 +195,23 @@ public abstract class RobotStateBase<StateEnum extends Enum<StateEnum>> {
     public void updateRobotPose(Pose2d estimation, double timestamp, Matrix<N3, N1> visionStrength) {
         poseEstimator.addVisionMeasurement(estimation, timestamp, visionStrength);
         Logger.recordOutput("Robot Pose", getRobotPose());
+    }
+
+    /**
+     * @return Whether the robot is in the blue alliance or the red alliance
+     */
+    public static Optional<DriverStation.Alliance> getAlliance() {
+        return Robot.isSimulation()
+            ? (DriverStationSim.getAllianceStationId().ordinal() > 3
+            ? Optional.of(DriverStation.Alliance.Blue)
+            : Optional.of(DriverStation.Alliance.Red))
+            : DriverStation.getAlliance();
+    }
+
+    /**
+     * @return Which driver station the robot is in
+     */
+    public static AllianceStationID getAllianceStation() {
+        return Robot.isSimulation() ? DriverStationSim.getAllianceStationId() : DriverStation.getRawAllianceStation();
     }
 }

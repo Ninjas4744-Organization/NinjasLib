@@ -167,7 +167,8 @@ public class Swerve {
             wantedSpeeds.fieldRelative);
 
         wantedSpeeds = wantedSpeeds.getAsRobotRelative(gyro.getYaw());
-        wantedSpeeds = new SwerveSpeeds(ChassisSpeeds.discretize(wantedSpeeds, 0.02 * constants.limits.discretizeFactor), wantedSpeeds.fieldRelative);
+        if (Robot.isReal() || constants.special.isReplay)
+            wantedSpeeds = new SwerveSpeeds(ChassisSpeeds.discretize(wantedSpeeds, 0.02 * constants.limits.discretizeFactor), wantedSpeeds.fieldRelative);
 
         setModuleStates(kinematics.toSwerveModuleStates(wantedSpeeds), constants.modules.openLoop, true);
     }

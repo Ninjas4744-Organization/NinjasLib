@@ -33,7 +33,7 @@ public class Vision {
 		this.constants = constants;
 		if (Robot.isSimulation() && !constants.isReplay) {
 			sim = new VisionSystemSim("main");
-			sim.addAprilTags(constants.fieldLayoutGetter.getFieldLayout(List.of()));
+			sim.addAprilTags(constants.fieldLayoutGetter.getFieldLayout(List.of()).get());
 		}
 
 		cameras = new HashMap<>();
