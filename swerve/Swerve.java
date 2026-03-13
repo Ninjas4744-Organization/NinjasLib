@@ -248,18 +248,30 @@ public class Swerve {
     private final SwerveModulePosition[] odometryUpdateModulePositions = new SwerveModulePosition[] { new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition() };
     private void updateOdometryThread() {
         odometryUpdateFrames++;
+
+        // Periodic motor updates don't need the lock
+        gyro.periodic();
+        for (int i = 0; i < modules.length; i++) {
+            modules[i].periodic();
+        }
+
+        // Lock only to drain odometry queues
         if (!odometryLock.tryLock())
             return;
         odometryUpdateFramesWithUpdate++;
+        try {
+            for (int i = 0; i < modules.length; i++) {
+                modules[i].updateInputs(moduleInputs[i]);
+            }
+        } finally {
+            odometryLock.unlock();
+        }
 
-        gyro.periodic();
+        // Logging doesn't need the lock
         Rotation2d[] gyroYawArray = gyro.getOdometryYawPositions();
         for (int i = 0; i < modules.length; i++) {
-            modules[i].periodic();
-            modules[i].updateInputs(moduleInputs[i]);
             Logger.processInputs("Swerve/Module " + moduleInputs[i].ModuleNumber, moduleInputs[i]);
         }
-        odometryLock.unlock();
 
         if (Robot.isReal()) {
             double[] sampleTimestamps = moduleInputs[0].Timestamps;
