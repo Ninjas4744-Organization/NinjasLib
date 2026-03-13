@@ -11,6 +11,7 @@ import org.jgrapht.alg.shortestpath.BFSShortestPath;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import org.littletonrobotics.junction.Logger;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,11 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
     private List<StateEnum> currentPath;
     private final BFSShortestPath<StateEnum, Command> bfs;
 
+    /**
+     * Creates a new StateMachineBase, initializes the graph with all enum states as vertices, and calls {@link #define()}.
+     *
+     * @param states The enum class representing all possible states of this state machine.
+     */
     public StateMachineBase(Class<StateEnum> states) {
         graph = new SimpleDirectedGraph<>(Command.class);
 
@@ -50,6 +56,10 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
         printGraph();
     }
 
+    /**
+     * Called periodically. Checks state end conditions and handles transition command completion,
+     * then logs state machine data via AdvantageKit.
+     */
     @Override
     public void periodic() {
         // Check state ends for current state
@@ -68,6 +78,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
 
         // Check if transition command ended
         if(currentEdge != null && (currentEdge.isFinished() || !currentEdge.isScheduled())) {
+
             System.out.println("[" + getName() + "] Ended transition " + getCurrentState().name() + " -> " + getTargetState().name());
 
             currentState = getTargetState();
@@ -177,7 +188,8 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
     }
 
     /**
-     * Tries to set the state of the robot to the given state by the connecting edge between the current state and the wanted one.
+     * Tries to set the state of the robot to the given state even if already transitioning,
+     * by the connecting edge between the current (or target) state and the wanted one.
      *
      * @param wantedState The state to change the robot state to.
      */
@@ -186,9 +198,10 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
     }
 
     /**
-     * Tries to set the state of the robot to the given state by the connecting edge between the current state and the wanted one.
+     * Immediately sets the robot state to the given state without running a transition command.
+     * Cancels any currently running edge command and state end conditions.
      *
-     * @param wantedState The state to change the robot state to.
+     * @param wantedState The state to force the robot into.
      */
     public void forceState(StateEnum wantedState) {
         changeState(wantedState, false, true, false);
@@ -221,21 +234,24 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
     }
 
     /**
-     * @return Instant command that runs changeState.
+     * @param wantedState The state to change to.
+     * @return Instant command that runs {@link #changeState(Enum)}.
      */
     public Command changeStateCommand(StateEnum wantedState) {
         return Commands.runOnce(() -> changeState(wantedState));
     }
 
     /**
-     * @return Instant command that runs changeState.
+     * @param wantedState The state to change to.
+     * @return Instant command that runs {@link #changeStateForce(Enum)}.
      */
     public Command changeStateForceCommand(StateEnum wantedState) {
         return Commands.runOnce(() -> changeStateForce(wantedState));
     }
 
     /**
-     * @return Instant command that runs changeState.
+     * @param wantedState The state to force into.
+     * @return Instant command that runs {@link #forceState(Enum)}.
      */
     public Command forceStateCommand(StateEnum wantedState) {
         return Commands.runOnce(() -> forceState(wantedState));
@@ -290,16 +306,33 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
         return null;
     }
 
+    /**
+     * @param states One or more states to check against.
+     * @return Whether the current state is one of the given states.
+     */
+    public boolean isInStates(StateEnum... states) {
+        return Arrays.asList(states).contains(getCurrentState());
+    }
+
+    /**
+     * @return Whether the state machine is currently following a BFS path to a target state.
+     */
     public boolean isRunningPath() {
         return currentPath != null;
     }
 
+    /**
+     * @return The final target state of the current BFS path, or null if no path is running.
+     */
     public StateEnum getPathTarget() {
         if (currentPath != null)
             return currentPath.get(currentPath.size() - 1);
         return null;
     }
 
+    /**
+     * @return The remaining states in the current BFS path (excluding the current state), or null if no path is running.
+     */
     public List<StateEnum> getCurrentPath() {
         return currentPath;
     }
