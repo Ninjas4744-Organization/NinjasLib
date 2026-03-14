@@ -1,6 +1,8 @@
 package frc.lib.NinjasLib.swerve;
 
-import edu.wpi.first.math.MathUtil;
+import com.pathplanner.lib.util.DriveFeedforwards;
+import com.pathplanner.lib.util.swerve.SwerveSetpoint;
+import com.pathplanner.lib.util.swerve.SwerveSetpointGenerator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -44,6 +46,8 @@ public class Swerve {
     private SlewRateLimiter rotAccelerationLimit;
     private double maxSkidAcceleration;
     private double maxForwardAcceleration;
+    private SwerveSetpoint previousSetpoint;
+    private SwerveSetpointGenerator setpointGenerator;
 
     private final SwerveConstants constants;
     private SwerveDriveSimulation simulation;
@@ -127,6 +131,9 @@ public class Swerve {
         if(constants.special.enableOdometryThread)
             OdometryThread.getInstance().start(constants.special.odometryThreadFrequency);
 
+        setpointGenerator = new SwerveSetpointGenerator(constants.special.robotConfig, constants.limits.maxAngularVelocity);
+        previousSetpoint = new SwerveSetpoint(new ChassisSpeeds(), getModuleStates(), DriveFeedforwards.zeros(4));
+
         resetModulesToAbsolute();
     }
 
@@ -148,29 +155,29 @@ public class Swerve {
             }
         }
 
-        wantedSpeeds = new SwerveSpeeds(
-            SwerveUtils.limitForwardAndSkidAcceleration(
-                wantedSpeeds.getAs(input.fieldRelative, gyro.getYaw()).toTranslation(),
-                input.toTranslation(),
-                maxForwardAcceleration,
-                maxSkidAcceleration,
-                constants.limits.maxSpeed),
-            input.omegaRadiansPerSecond,
-            input.fieldRelative);
+//        wantedSpeeds = new SwerveSpeeds(
+//            SwerveUtils.limitForwardAndSkidAcceleration(
+//                wantedSpeeds.getAs(input.fieldRelative, gyro.getYaw()).toTranslation(),
+//                input.toTranslation(),
+//                maxForwardAcceleration,
+//                maxSkidAcceleration,
+//                constants.limits.maxSpeed),
+//            input.omegaRadiansPerSecond,
+//            input.fieldRelative);
+
+        wantedSpeeds = input.getAsRobotRelative(gyro.getYaw());
 
         Translation2d clampedVel = wantedSpeeds.toTranslation();
         if (wantedSpeeds.getSpeed() > constants.limits.speedLimit)
             clampedVel = new Translation2d(constants.limits.speedLimit, clampedVel.getAngle());
 
-        wantedSpeeds = new SwerveSpeeds(clampedVel,
-            rotAccelerationLimit.calculate(MathUtil.clamp(wantedSpeeds.omegaRadiansPerSecond, -constants.limits.rotationSpeedLimit, constants.limits.rotationSpeedLimit)),
-            wantedSpeeds.fieldRelative);
+        wantedSpeeds = new SwerveSpeeds(clampedVel, wantedSpeeds.omegaRadiansPerSecond, wantedSpeeds.fieldRelative);
 
-        wantedSpeeds = wantedSpeeds.getAsRobotRelative(gyro.getYaw());
-        if (Robot.isReal() || constants.special.isReplay)
-            wantedSpeeds = new SwerveSpeeds(ChassisSpeeds.discretize(wantedSpeeds, 0.02 * constants.limits.discretizeFactor), wantedSpeeds.fieldRelative);
+//        if (Robot.isReal() || constants.special.isReplay)
+//            wantedSpeeds = new SwerveSpeeds(ChassisSpeeds.discretize(wantedSpeeds, 0.02 * constants.limits.discretizeFactor), wantedSpeeds.fieldRelative);
 
-        setModuleStates(kinematics.toSwerveModuleStates(wantedSpeeds), constants.modules.openLoop, true);
+        previousSetpoint = setpointGenerator.generateSetpoint(previousSetpoint, wantedSpeeds, 0.02);
+        setModuleStates(previousSetpoint.moduleStates(), constants.modules.openLoop, true);
     }
 
     /**
