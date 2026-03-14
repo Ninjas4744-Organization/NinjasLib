@@ -21,17 +21,10 @@ public class GyroIOPigeon2 implements GyroIO{
     private boolean inverted;
     private Rotation2d yawOffset = Rotation2d.kZero;
 
-    private final boolean useOdometryThread;
-
-    // Cached arrays to avoid GC pressure from stream operations
-    private double[] yawTimestampArray = new double[0];
-    private Rotation2d[] yawPositionArray = new Rotation2d[0];
-
     public GyroIOPigeon2(int id, boolean inverted, int frequency, CANBus canbus) {
         pigeon = new Pigeon2(id, canbus);
         yaw = pigeon.getYaw();
-        useOdometryThread = frequency > 50;
-        if (useOdometryThread) {
+        if (frequency > 50) {
             yaw.setUpdateFrequency(frequency);
             pigeon.optimizeBusUtilization();
             yawTimestampQueue = OdometryThread.getInstance().makeTimestampQueue();
@@ -42,10 +35,7 @@ public class GyroIOPigeon2 implements GyroIO{
 
     @Override
     public void updateInputs(GyroIOInputsAutoLogged inputs) {
-        // Only refresh from CAN when odometry thread isn't already refreshing the signal
-        if (!useOdometryThread) {
-            BaseStatusSignal.refreshAll(yaw);
-        }
+        BaseStatusSignal.refreshAll(yaw);
         inputs.Yaw = Rotation2d.fromRadians((inverted ? -1 : 1) * yaw.getValue().in(Units.Radians));
         inputs.YawOffsetted = Rotation2d.fromRadians((inverted ? -1 : 1) * yaw.getValue().in(Units.Radians)).plus(yawOffset);
         inputs.Pitch = Rotation2d.fromRadians(pigeon.getPitch().getValue().in(Units.Radians));
@@ -55,20 +45,12 @@ public class GyroIOPigeon2 implements GyroIO{
 //        inputs.AccelerationZ = pigeon.getAccelerationZ().getValue().in(Units.MetersPerSecondPerSecond);
 
         if (yawTimestampQueue != null) {
-            int size = yawTimestampQueue.size();
-
-            if (yawTimestampArray.length != size) yawTimestampArray = new double[size];
-            if (yawPositionArray.length != size) yawPositionArray = new Rotation2d[size];
-
-            int idx = 0;
-            for (Double val : yawTimestampQueue) yawTimestampArray[idx++] = val;
-
-            idx = 0;
-            for (Double val : yawPositionQueue) yawPositionArray[idx++] = Rotation2d.fromDegrees((inverted ? -1 : 1) * val).plus(yawOffset);
-
-            inputs.odometryYawTimestamps = yawTimestampArray;
-            inputs.odometryYawPositions = yawPositionArray;
-
+            inputs.odometryYawTimestamps =
+                    yawTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+            inputs.odometryYawPositions =
+                    yawPositionQueue.stream()
+                            .map(x -> Rotation2d.fromDegrees((inverted ? -1 : 1) * x).plus(yawOffset))
+                            .toArray(Rotation2d[]::new);
             yawTimestampQueue.clear();
             yawPositionQueue.clear();
         }

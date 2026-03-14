@@ -37,11 +37,6 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
     private static final int ABSOLUTE_POSITION_UPDATE_PERIOD = 10;
     private Rotation2d cachedAbsolutePosition = new Rotation2d();
 
-    // Cached arrays to avoid GC pressure from stream operations — reused when size matches
-    private double[] positionArray = new double[0];
-    private Rotation2d[] angleArray = new Rotation2d[0];
-    private double[] timestampArray = new double[0];
-
     public SwerveModuleIOReal(SwerveModuleConstants constants, SwerveConstants swerveConstants) {
         moduleNumber = constants.moduleNumber;
         this.swerveConstants = swerveConstants;
@@ -130,24 +125,9 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
         inputs.AbsolutePosition = cachedAbsolutePosition;
 
         if (swerveConstants.special.enableOdometryThread && isTalonFX) {
-            int size = positionQueue.size();
-
-            if (positionArray.length != size) positionArray = new double[size];
-            if (angleArray.length != size) angleArray = new Rotation2d[size];
-            if (timestampArray.length != size) timestampArray = new double[size];
-
-            int idx = 0;
-            for (Double val : positionQueue) positionArray[idx++] = val;
-
-            idx = 0;
-            for (Double val : angleQueue) angleArray[idx++] = Rotation2d.fromRadians(val);
-
-            idx = 0;
-            for (Double val : timestampQueue) timestampArray[idx++] = val;
-
-            inputs.Positions = positionArray;
-            inputs.Angles = angleArray;
-            inputs.Timestamps = timestampArray;
+            inputs.Positions = positionQueue.stream().mapToDouble((Double value) -> value).toArray();
+            inputs.Angles = angleQueue.stream().map(Rotation2d::fromRadians).toArray(Rotation2d[]::new);
+            inputs.Timestamps = timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
 
             positionQueue.clear();
             angleQueue.clear();
