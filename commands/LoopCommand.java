@@ -3,16 +3,14 @@ package frc.lib.NinjasLib.commands;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj2.command.Command;
 
-import java.util.function.IntSupplier;
-
 public class LoopCommand extends Command {
     private Command command;
     private int repeat;
     private boolean commandEnded;
     private boolean ended;
-    private IntSupplier n;
+    private int n;
 
-    public LoopCommand(Command command, IntSupplier n) {
+    public LoopCommand(Command command, int n) {
         this.command = command;
         this.n = n;
     }
@@ -22,6 +20,7 @@ public class LoopCommand extends Command {
         command.initialize();
         repeat = 0;
         commandEnded = false;
+        ended = false;
     }
 
     @Override
@@ -33,7 +32,7 @@ public class LoopCommand extends Command {
             commandEnded = false;
             repeat++;
 
-            if (repeat == n.getAsInt())
+            if (repeat >= n)
                 return;
 
             command.initialize();
@@ -59,7 +58,7 @@ public class LoopCommand extends Command {
 
     @Override
     public final boolean isFinished() {
-        return repeat == n.getAsInt() || ended;
+        return repeat == n || ended;
     }
 
     @Override
