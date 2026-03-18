@@ -67,7 +67,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             Map<Command, StateEnum> ends = stateEnds.get(getCurrentState());
             if(ends != null) {
                 for(Command end : ends.keySet()) {
-                    if((end.isFinished() || !end.isScheduled()) && canTransitionTo(ends.get(end))) {
+                    if(end.isFinished() && canTransitionTo(ends.get(end))) {
                         System.out.println("[" + getName() + "] State end condition " + getCurrentState().name() + " -> " + ends.get(end).name());
                         changeState(ends.get(end));
                         break;
@@ -129,16 +129,24 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
                 currentEdge.cancel();
 
             currentEdge = null;
-            System.out.println("[" + getName() + "] Force state " + getCurrentState().name() + " -> " + wantedState.name());
-            currentState = wantedState;
 
-            Map<Command, StateEnum> ends = stateEnds.get(getCurrentState());
-            if(ends != null) {
-                for(Command end : ends.keySet()) {
+            Map<Command, StateEnum> currentEnds = stateEnds.get(getCurrentState());
+            if (currentEnds != null) {
+                for(Command end : currentEnds.keySet()) {
                     if (end.isScheduled() && !end.isFinished())
                         end.cancel();
                 }
             }
+
+            Map<Command, StateEnum> targetEnds = stateEnds.get(wantedState);
+            if (targetEnds != null) {
+                for(Command end : targetEnds.keySet()) {
+                    CommandScheduler.getInstance().schedule(end);
+                }
+            }
+
+            System.out.println("[" + getName() + "] Force state " + getCurrentState().name() + " -> " + wantedState.name());
+            currentState = wantedState;
 
             Command stateTask = stateCommands.get(getCurrentState());
             if (stateTask != null)
