@@ -1,10 +1,12 @@
 package frc.lib.NinjasLib.statemachine;
 
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.NinjasLib.commands.BackgroundCommand;
+import frc.lib.NinjasLib.commands.StateEndCommand;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.BFSShortestPath;
@@ -350,7 +352,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      * And the state end conditions.
      *
      * @see #addEdge(Enum, Enum, Command)
-     * @see #addStateEnd(Enum, Command, Enum)
+     * @see #addStateEnd(Enum, StateEndCommand, Enum)
      * @see #addStateCommand(Enum, Command)
      */
     protected abstract void define();
@@ -470,7 +472,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      * @param waitCommand A command which represents an end condition which when finishes will transition to the state.
      * @param nextState The state to transition to when command finishes.
      */
-    protected void addStateEnd(StateEnum state, Command waitCommand, StateEnum nextState) {
+    protected void addStateEnd(StateEnum state, StateEndCommand waitCommand, StateEnum nextState) {
         stateEnds.get(state).put(waitCommand, nextState);
     }
 
@@ -483,6 +485,18 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      */
     protected void addStateEnd(StateEnum state, BooleanSupplier condition, StateEnum nextState) {
         stateEnds.get(state).put(Commands.waitUntil(condition), nextState);
+    }
+
+
+    /**
+     * Add an end condition for a state.
+     * When enough time passed since transitioning to this start, the statemachine will fire the transition command between the state to the wanted state.
+     * @param state The state this end condition applies to.
+     * @param time Amount of time to wait before transition.
+     * @param nextState The state to transition to when command finishes.
+     */
+    protected void addStateEnd(StateEnum state, Time time, StateEnum nextState) {
+        stateEnds.get(state).put(Commands.waitTime(time), nextState);
     }
 
     /**
