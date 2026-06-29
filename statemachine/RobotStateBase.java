@@ -125,8 +125,8 @@ public abstract class RobotStateBase {
      */
     public void setRobotPose(Pose2d pose) {
         if (Robot.isReal()){
-            poseEstimator.resetPosition(Swerve.getInstance().getGyro().getYaw(), Swerve.getInstance().getModulePositions(), pose);
-            odometryOnlyEstimator.resetPosition(Swerve.getInstance().getGyro().getYaw(), Swerve.getInstance().getModulePositions(), pose);
+            poseEstimator.resetPose(pose);
+            odometryOnlyEstimator.resetPose(pose);
         } else {
             poseEstimator.resetPosition(Swerve.getInstance().getGyro().getYaw(), new SwerveModulePosition[]{
                 new SwerveModulePosition(0, Rotation2d.fromDegrees(0)),
