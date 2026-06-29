@@ -63,6 +63,10 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
             output.hasTargets = true;
 
             targets = estimate.rawFiducials;
+            if (this.tags == null)
+                fillTagsMap();
+            if (this.tags == null)
+                return;
             analyze(output);
 
             output.robotPose = estimate.pose;
