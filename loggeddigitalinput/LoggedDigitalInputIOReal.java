@@ -2,7 +2,7 @@ package frc.lib.NinjasLib.loggeddigitalinput;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 
-public class LoggedDigitalInputIOReal implements LoggedDigitalInputIO{
+public class LoggedDigitalInputIOReal implements LoggedDigitalInputIO {
     private DigitalInput input;
     private boolean inverted;
 
@@ -13,7 +13,7 @@ public class LoggedDigitalInputIOReal implements LoggedDigitalInputIO{
     }
 
     @Override
-    public void updateInputs(LoggedDigitalInputsAutoLogged inputs) {
-        inputs.IsOn = input.get() ^ inverted;
+    public boolean update() {
+        return input.get() ^ inverted;
     }
 }

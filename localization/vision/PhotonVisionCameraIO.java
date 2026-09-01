@@ -3,6 +3,7 @@ package frc.lib.NinjasLib.localization.vision;
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import frc.lib.NinjasLib.NinjasLogger;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -38,14 +39,9 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
         estimator.setFieldTags(constants.fieldLayoutGetter.getFieldLayout(ignoredTags).get());
     }
 
-    /**
-     * Updates the results of this camera, should run on periodic
-     */
-    @Override
-    public void updateInputs(VisionCameraIOInputsAutoLogged inputs) {
-        inputs.outputs = new VisionOutput[0];
+    public VisionOutput[] update() {
         if(disconnected)
-            return;
+            return new VisionOutput[0];
 
         List<VisionOutput> outputs;
 
@@ -53,7 +49,7 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
         try {
             results = camera.getAllUnreadResults();
             if(results.isEmpty())
-                return;
+                return new VisionOutput[0];
 
             outputs = new ArrayList<>();
             for (int i = 0; i < results.size(); i++) {
@@ -61,11 +57,10 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
                 outputs.get(i).cameraName = cameraName;
             }
         } catch (Exception e) {
-            System.out.println("Camera " + cameraName + " disconnected");
-            System.out.println(e.getMessage());
+            NinjasLogger.logEvent("Camera " + cameraName + " disconnected: " + e.getMessage());
 
             disconnected = true;
-            return;
+            return new VisionOutput[0];
         }
 
         for (int i = 0; i < results.size(); i++) {
@@ -85,7 +80,7 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
             outputs.get(i).robotPose = currentPose.get().estimatedPose.toPose2d();
         }
 
-        inputs.outputs = outputs.toArray(new VisionOutput[0]);
+        return outputs.toArray(new VisionOutput[0]);
     }
 
     private void analyze(VisionOutput output) {
@@ -126,6 +121,13 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
     @Override
     public void ignoreTag(int id) {
         ignoredTags.add(id);
+        fillTagsMap();
+        estimator.setFieldTags(constants.fieldLayoutGetter.getFieldLayout(ignoredTags).get());
+    }
+
+    @Override
+    public void unIgnoreTag(int id) {
+        ignoredTags.remove((Integer) id);
         fillTagsMap();
         estimator.setFieldTags(constants.fieldLayoutGetter.getFieldLayout(ignoredTags).get());
     }

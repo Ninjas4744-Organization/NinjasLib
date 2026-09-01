@@ -10,7 +10,6 @@ import java.util.function.Supplier;
 public class VisionConstants {
     public Map<String, Pair<Transform3d, CameraType>> cameras;
     public FieldLayoutGetter fieldLayoutGetter;
-    public boolean isReplay;
     public Supplier<Pose2d> robotPoseSupplier;
 
     public enum CameraType{

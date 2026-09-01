@@ -2,7 +2,7 @@ package frc.lib.NinjasLib.loggeddigitalinput;
 
 import java.util.function.BooleanSupplier;
 
-public class LoggedDigitalInputIOSim implements LoggedDigitalInputIO{
+public class LoggedDigitalInputIOSim implements LoggedDigitalInputIO {
     BooleanSupplier isOnSupplier;
 
     public LoggedDigitalInputIOSim(BooleanSupplier isOnSupplier) {
@@ -10,7 +10,12 @@ public class LoggedDigitalInputIOSim implements LoggedDigitalInputIO{
     }
 
     @Override
-    public void updateInputs(LoggedDigitalInputsAutoLogged inputs) {
-        inputs.IsOn = isOnSupplier.getAsBoolean();
+    public void setup(int port, boolean inverted) {
+
+    }
+
+    @Override
+    public boolean update() {
+        return isOnSupplier.getAsBoolean();
     }
 }

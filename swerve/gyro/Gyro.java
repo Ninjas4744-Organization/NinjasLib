@@ -1,42 +1,43 @@
 package frc.lib.NinjasLib.swerve.gyro;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import org.littletonrobotics.junction.Logger;
+import edu.wpi.first.math.geometry.Translation3d;
+import frc.lib.NinjasLib.NinjasLogger;
 
 public class Gyro {
     private GyroIO io;
-    private GyroIOInputsAutoLogged inputs = new GyroIOInputsAutoLogged();
+    private GyroIO.GyroIOInputs inputs = new GyroIO.GyroIOInputs();
 
     public Gyro(GyroIO io) {
         this.io = io;
     }
 
     public Rotation2d getYaw() {
-        return inputs.Yaw;
+        return inputs.yaw;
     }
 
     public Rotation2d getYawOffsetted() {
-        return inputs.YawOffsetted;
+        return inputs.yawOffsetted;
     }
 
     public Rotation2d getPitch() {
-        return inputs.Pitch;
+        return inputs.pitch;
     }
 
     public Rotation2d getRoll() {
-        return inputs.Roll;
+        return inputs.roll;
     }
 
     public double getAccelerationX() {
-        return inputs.AccelerationX;
+        return inputs.accelerationX;
     }
 
     public double getAccelerationY() {
-        return inputs.AccelerationY;
+        return inputs.accelerationY;
     }
 
     public double getAccelerationZ() {
-        return inputs.AccelerationZ;
+        return inputs.accelerationZ;
     }
 
     public double[] getOdometryYawTimestamps() {
@@ -52,7 +53,11 @@ public class Gyro {
     }
 
     public void periodic() {
-        io.updateInputs(inputs);
-        Logger.processInputs("Swerve/Gyro", inputs);
+        inputs = io.update();
+        NinjasLogger.log("Swerve/Gyro/Yaw", inputs.yaw);
+        NinjasLogger.log("Swerve/Gyro/Yaw Offsetted", inputs.yawOffsetted);
+        NinjasLogger.log("Swerve/Gyro/Pitch", inputs.pitch);
+        NinjasLogger.log("Swerve/Gyro/Roll", inputs.roll);
+        NinjasLogger.log("Swerve/Gyro/Acceleration", new Translation3d(inputs.accelerationX, inputs.accelerationY, inputs.accelerationZ));
     }
 }

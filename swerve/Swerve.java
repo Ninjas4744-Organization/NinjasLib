@@ -10,12 +10,13 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import frc.lib.NinjasLib.NinjasLogger;
 import frc.lib.NinjasLib.localization.OdometryThread;
 import frc.lib.NinjasLib.statemachine.RobotStateBase;
 import frc.lib.NinjasLib.swerve.constants.SwerveConstants;
 import frc.lib.NinjasLib.swerve.gyro.*;
 import frc.lib.NinjasLib.swerve.module.SwerveModuleIO;
-import frc.lib.NinjasLib.swerve.module.SwerveModuleIOInputsAutoLogged;
+import frc.lib.NinjasLib.swerve.module.SwerveModuleIO.SwerveModuleIOInputs;
 import frc.lib.NinjasLib.swerve.module.SwerveModuleIOReal;
 import frc.lib.NinjasLib.swerve.module.SwerveModuleIOSim;
 import frc.robot.Robot;
@@ -23,7 +24,6 @@ import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.COTS;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
-import org.littletonrobotics.junction.Logger;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -37,7 +37,7 @@ public class Swerve {
     private final Gyro gyro;
 
     private SwerveSpeeds wantedSpeeds = new SwerveSpeeds();
-    private SwerveModuleIOInputsAutoLogged[] moduleInputs;
+    private SwerveModuleIOInputs[] moduleInputs;
     private SwerveModulePosition[] previousModulePositions;
     public static final Lock odometryLock = new ReentrantLock();
 
@@ -68,11 +68,11 @@ public class Swerve {
 
         kinematics = constants.chassis.kinematics;
 
-        moduleInputs = new SwerveModuleIOInputsAutoLogged[]{
-            new SwerveModuleIOInputsAutoLogged(),
-            new SwerveModuleIOInputsAutoLogged(),
-            new SwerveModuleIOInputsAutoLogged(),
-            new SwerveModuleIOInputsAutoLogged()
+        moduleInputs = new SwerveModuleIOInputs[] {
+            new SwerveModuleIOInputs(),
+            new SwerveModuleIOInputs(),
+            new SwerveModuleIOInputs(),
+            new SwerveModuleIOInputs()
         };
 
         if (Robot.isReal()) {
@@ -88,7 +88,7 @@ public class Swerve {
             else
                 gyro = new Gyro(new GyroIOPigeon2(constants.gyro.gyroID, constants.gyro.gyroInverted, constants.special.odometryThreadFrequency, constants.special.CANBus));
 
-        } else if (!constants.special.isReplay) {
+        } else {
             DriveTrainSimulationConfig config = new DriveTrainSimulationConfig(
                 Kilograms.of(constants.special.robotConfig.massKG),
                 Meters.of(constants.chassis.bumperLength), Meters.of(constants.chassis.bumperWidth),
@@ -113,15 +113,6 @@ public class Swerve {
             };
 
             gyro = new Gyro(new GyroIOSim(simulation.getGyroSimulation(), constants.gyro.gyroInverted));
-        } else {
-            modules = new SwerveModuleIO[]{
-                new SwerveModuleIO() {},
-                new SwerveModuleIO() {},
-                new SwerveModuleIO() {},
-                new SwerveModuleIO() {}
-            };
-
-            gyro = new Gyro(new GyroIO() {});
         }
 
         if(constants.special.enableOdometryThread)
@@ -167,7 +158,7 @@ public class Swerve {
             wantedSpeeds.fieldRelative);
 
         wantedSpeeds = wantedSpeeds.getAsRobotRelative(gyro.getYaw());
-        if (Robot.isReal() || constants.special.isReplay)
+        if (Robot.isReal())
             wantedSpeeds = new SwerveSpeeds(ChassisSpeeds.discretize(wantedSpeeds, 0.02 * constants.limits.discretizeFactor), wantedSpeeds.fieldRelative);
 
         setModuleStates(kinematics.toSwerveModuleStates(wantedSpeeds), constants.modules.openLoop, true);
@@ -229,18 +220,21 @@ public class Swerve {
 
             for (int i = 0; i < modules.length; i++) {
                 modules[i].periodic();
-                modules[i].updateInputs(moduleInputs[i]);
-                Logger.processInputs("Swerve/Module " + moduleInputs[i].ModuleNumber, moduleInputs[i]);
+                moduleInputs[i] = modules[i].update();
+                NinjasLogger.log("Swerve/Module " + moduleInputs[i].moduleNumber + "/State", moduleInputs[i].state);
+                NinjasLogger.log("Swerve/Module " + moduleInputs[i].moduleNumber + "/Desired State", moduleInputs[i].desiredState);
+                NinjasLogger.log("Swerve/Module " + moduleInputs[i].moduleNumber + "/Position", moduleInputs[i].position);
+                NinjasLogger.log("Swerve/Module " + moduleInputs[i].moduleNumber + "/Absolute Position", moduleInputs[i].absolutePosition);
             }
 
-            if (Robot.isReal() || constants.special.isReplay)
+            if (Robot.isReal())
                 RobotStateBase.get().updateRobotPose(getModulePositions(), gyro.getYawOffsetted());
             else
                 RobotStateBase.get().setRobotPose(simulation.getSimulatedDriveTrainPose());
         }
 
-        Logger.recordOutput("Swerve/Current Velocity", getSpeeds().getAsFieldRelative());
-        Logger.recordOutput("Swerve/Wanted Velocity", wantedSpeeds.getAsFieldRelative());
+        NinjasLogger.log("Swerve/Current Velocity", getSpeeds().getAsFieldRelative());
+        NinjasLogger.log("Swerve/Wanted Velocity", wantedSpeeds.getAsFieldRelative());
     }
     
     private int odometryUpdateFrames = 0;
@@ -256,29 +250,37 @@ public class Swerve {
         Rotation2d[] gyroYawArray = gyro.getOdometryYawPositions();
         for (int i = 0; i < modules.length; i++) {
             modules[i].periodic();
-            modules[i].updateInputs(moduleInputs[i]);
-            Logger.processInputs("Swerve/Module " + moduleInputs[i].ModuleNumber, moduleInputs[i]);
+            moduleInputs[i] = modules[i].update();
+
+            NinjasLogger.log("Swerve/Module " + moduleInputs[i].moduleNumber + "/State", moduleInputs[i].state);
+            NinjasLogger.log("Swerve/Module " + moduleInputs[i].moduleNumber + "/Desired State", moduleInputs[i].desiredState);
+            NinjasLogger.log("Swerve/Module " + moduleInputs[i].moduleNumber + "/Position", moduleInputs[i].position);
+            NinjasLogger.log("Swerve/Module " + moduleInputs[i].moduleNumber + "/Absolute Position", moduleInputs[i].absolutePosition);
         }
         odometryLock.unlock();
 
         if (Robot.isReal()) {
-            double[] sampleTimestamps = moduleInputs[0].Timestamps;
-            int sampleCount = Math.min(Math.min(gyroYawArray.length, sampleTimestamps.length), moduleInputs[0].Positions.length);
+            double[] sampleTimestamps = moduleInputs[0].timestamps;
+            int sampleCount = Math.min(Math.min(gyroYawArray.length, sampleTimestamps.length), moduleInputs[0].positions.length);
             sampleCount = Math.min(sampleCount, 5);
-            Logger.recordOutput("Swerve/Odometry Thread/Sample Count", sampleCount);
+            NinjasLogger.log("Swerve/Odometry Thread/Sample Count", sampleCount);
 
             for (int i = 0; i < sampleCount; i++) {
                 for (int j = 0; j < 4; j++) {
-                    odometryUpdateModulePositions[j].distanceMeters = moduleInputs[j].Positions[i];
-                    odometryUpdateModulePositions[j].angle = moduleInputs[j].Angles[i];
+                    odometryUpdateModulePositions[j].distanceMeters = moduleInputs[j].positions[i];
+                    odometryUpdateModulePositions[j].angle = moduleInputs[j].angles[i];
                 }
 
                 RobotStateBase.get().updateRobotPoseWithTime(odometryUpdateModulePositions, gyroYawArray[i], sampleTimestamps[i]);
+
+                NinjasLogger.log("Swerve/Odometry Thread/Samples/" + i + "/Module Positions", odometryUpdateModulePositions);
+                NinjasLogger.log("Swerve/Odometry Thread/Samples/" + i + "/Gyro Yaw", gyroYawArray[i]);
+                NinjasLogger.log("Swerve/Odometry Thread/Samples/" + i + "/Timestamp", sampleTimestamps[i]);
             }
         } else
             RobotStateBase.get().setRobotPose(simulation.getSimulatedDriveTrainPose());
 
-        Logger.recordOutput("Swerve/Odometry Thread/Odometry Update Frames Percent", odometryUpdateFramesWithUpdate / (double) odometryUpdateFrames * 100);
+        NinjasLogger.log("Swerve/Odometry Thread/Odometry Update Frames Percent", odometryUpdateFramesWithUpdate / (double) odometryUpdateFrames * 100);
     }
 
     /**
@@ -303,7 +305,7 @@ public class Swerve {
     public SwerveModuleState[] getModuleStates() {
         SwerveModuleState[] states = new SwerveModuleState[4];
         for (int i = 0; i < modules.length; i++)
-            states[i] = moduleInputs[i].State;
+            states[i] = moduleInputs[i].state;
         return states;
     }
 
@@ -327,7 +329,7 @@ public class Swerve {
     public SwerveModulePosition[] getModulePositions() {
         SwerveModulePosition[] positions = new SwerveModulePosition[4];
         for (int i = 0; i < modules.length; i++)
-            positions[i] = moduleInputs[i].Position;
+            positions[i] = moduleInputs[i].position;
         return positions;
     }
 
@@ -336,10 +338,9 @@ public class Swerve {
         if (Robot.isSimulation())
             return;
 
-        System.out.println("---------------Resetting modules to absolute---------------");
+        NinjasLogger.logEvent("Resetting modules to absolute");
         for (SwerveModuleIO module : modules)
             ((SwerveModuleIOReal) module).resetToAbsolute();
-        System.out.println("---------------Resetting modules to absolute---------------");
     }
 
     /**

@@ -5,13 +5,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.NinjasLib.NinjasLogger;
 import frc.lib.NinjasLib.commands.BackgroundCommand;
 import frc.lib.NinjasLib.commands.StateEndCommand;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.BFSShortestPath;
 import org.jgrapht.graph.SimpleDirectedGraph;
-import org.littletonrobotics.junction.Logger;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -70,7 +70,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             if(ends != null) {
                 for(Command end : ends.keySet()) {
                     if(end.isFinished() && canTransitionTo(ends.get(end))) {
-                        System.out.println("[" + getName() + "] State end condition " + getCurrentState().name() + " -> " + ends.get(end).name());
+                        NinjasLogger.logEvent("[" + getName() + "] State end condition " + getCurrentState().name() + " -> " + ends.get(end).name());
                         changeState(ends.get(end));
                         break;
                     }
@@ -81,7 +81,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
         // Check if transition command ended
         if(currentEdge != null && (currentEdge.isFinished() || !currentEdge.isScheduled())) {
 
-            System.out.println("[" + getName() + "] Ended transition " + getCurrentState().name() + " -> " + getTargetState().name());
+            NinjasLogger.logEvent("[" + getName() + "] Ended transition " + getCurrentState().name() + " -> " + getTargetState().name());
 
             currentState = getTargetState();
             currentEdge = null;
@@ -108,10 +108,10 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             }
         }
 
-        Logger.recordOutput(getName() + "/State Machine/Is Transitioning", isTransitioning());
-        Logger.recordOutput(getName() + "/State Machine/Current State", getCurrentState());
-        Logger.recordOutput(getName() + "/State Machine/Target State", getTargetState() == null ? "N/A" : getTargetState().name());
-        Logger.recordOutput(getName() + "/State Machine/Path States", currentPath == null ? new String[0] : currentPath.stream().map(Enum::name).toArray(String[]::new));
+        NinjasLogger.log(getName() + "/State Machine/Is Transitioning", isTransitioning());
+        NinjasLogger.log(getName() + "/State Machine/Current State", getCurrentState().name());
+        NinjasLogger.log(getName() + "/State Machine/Target State", getTargetState() == null ? "N/A" : getTargetState().name());
+        NinjasLogger.log(getName() + "/State Machine/Path States", currentPath == null ? new String[0] : currentPath.stream().map(Enum::name).toArray(String[]::new));
     }
 
     /**
@@ -147,7 +147,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
                 }
             }
 
-            System.out.println("[" + getName() + "] Force state " + getCurrentState().name() + " -> " + wantedState.name());
+            NinjasLogger.logEvent("[" + getName() + "] Force state " + getCurrentState().name() + " -> " + wantedState.name());
             currentState = wantedState;
 
             Command stateTask = stateCommands.get(getCurrentState());
@@ -184,7 +184,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             currentEdge = edge;
             CommandScheduler.getInstance().schedule(currentEdge);
 
-            System.out.println("[" + getName() + "] Started " + getCurrentState().name() + " -> " + getTargetState().name());
+            NinjasLogger.logEvent("[" + getName() + "] Started " + getCurrentState().name() + " -> " + getTargetState().name());
         }
     }
 
@@ -365,7 +365,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      */
     protected void addEdge(StateEnum start, StateEnum end, Command command) {
         if (start.equals(end)) {
-            System.out.println("[" + getName() + "] Start and end state of an edge cannot be the same");
+            NinjasLogger.logEvent("[" + getName() + "] Start and end state of an edge cannot be the same");
             return;
         }
         graph.addEdge(start, end, command);

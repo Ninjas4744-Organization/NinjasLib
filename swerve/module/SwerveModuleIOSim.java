@@ -75,13 +75,16 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
         lastAngle = angle;
     }
 
-    @Override
-    public void updateInputs(SwerveModuleIOInputsAutoLogged inputs) {
-        inputs.ModuleNumber = moduleNumber;
-        inputs.State = simulationModule.getCurrentState();
-        inputs.DesiredState = desiredState;
-        inputs.Position = new SwerveModulePosition(simulationModule.getDriveWheelFinalPosition().in(Radians) * simulationModule.config.WHEEL_RADIUS.in(Meters), inputs.State.angle);
-        inputs.AbsolutePosition = Rotation2d.kZero;
+    public SwerveModuleIOInputs update() {
+        SwerveModuleIOInputs inputs = new SwerveModuleIOInputs();
+
+        inputs.moduleNumber = moduleNumber;
+        inputs.state = simulationModule.getCurrentState();
+        inputs.desiredState = desiredState;
+        inputs.position = new SwerveModulePosition(simulationModule.getDriveWheelFinalPosition().in(Radians) * simulationModule.config.WHEEL_RADIUS.in(Meters), inputs.state.angle);
+        inputs.absolutePosition = Rotation2d.kZero;
+
+        return inputs;
     }
 
     @Override

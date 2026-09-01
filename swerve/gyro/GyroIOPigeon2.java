@@ -7,6 +7,7 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
+import frc.lib.NinjasLib.NinjasLogger;
 import frc.lib.NinjasLib.localization.OdometryThread;
 
 import java.util.Queue;
@@ -34,12 +35,14 @@ public class GyroIOPigeon2 implements GyroIO{
     }
 
     @Override
-    public void updateInputs(GyroIOInputsAutoLogged inputs) {
+    public GyroIOInputs update() {
+        GyroIOInputs inputs = new  GyroIOInputs();
+
         BaseStatusSignal.refreshAll(yaw);
-        inputs.Yaw = Rotation2d.fromRadians((inverted ? -1 : 1) * yaw.getValue().in(Units.Radians));
-        inputs.YawOffsetted = Rotation2d.fromRadians((inverted ? -1 : 1) * yaw.getValue().in(Units.Radians)).plus(yawOffset);
-        inputs.Pitch = Rotation2d.fromRadians(pigeon.getPitch().getValue().in(Units.Radians));
-        inputs.Roll = Rotation2d.fromRadians(pigeon.getRoll().getValue().in(Units.Radians));
+        inputs.yaw = Rotation2d.fromRadians((inverted ? -1 : 1) * yaw.getValue().in(Units.Radians));
+        inputs.yawOffsetted = Rotation2d.fromRadians((inverted ? -1 : 1) * yaw.getValue().in(Units.Radians)).plus(yawOffset);
+        inputs.pitch = Rotation2d.fromRadians(pigeon.getPitch().getValue().in(Units.Radians));
+        inputs.roll = Rotation2d.fromRadians(pigeon.getRoll().getValue().in(Units.Radians));
 //        inputs.AccelerationX = pigeon.getAccelerationX().getValue().in(Units.MetersPerSecondPerSecond);
 //        inputs.AccelerationY = pigeon.getAccelerationY().getValue().in(Units.MetersPerSecondPerSecond);
 //        inputs.AccelerationZ = pigeon.getAccelerationZ().getValue().in(Units.MetersPerSecondPerSecond);
@@ -54,11 +57,16 @@ public class GyroIOPigeon2 implements GyroIO{
             yawTimestampQueue.clear();
             yawPositionQueue.clear();
         }
+
+        return inputs;
     }
 
     @Override
     public void resetGyroYaw(Rotation2d yaw) {
-        System.out.print("Gyro: " + pigeon.getRotation2d().getDegrees() + " -> " + yaw.getDegrees());
+        NinjasLogger.logEvent("[Gyro Reset] " + (inverted ? -1 : 1) * this.yaw.getValue().in(Units.Degrees) + " -> " + yaw.getDegrees());
+
+        if (inverted)
+            yaw = yaw.unaryMinus();
         yawOffset = yawOffset.plus(Rotation2d.fromRadians(this.yaw.getValue().in(Radians)).minus(yaw));
         pigeon.setYaw(yaw.getDegrees(), 0);
     }

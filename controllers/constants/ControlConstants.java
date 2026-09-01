@@ -4,7 +4,7 @@ import com.ctre.phoenix6.signals.GravityTypeValue;
 
 /** Proportional Integral Derivative Feedforward, constants for combining PID and Feedforward */
 public class ControlConstants implements Cloneable {
-    public enum SmartControlType {
+    public enum ControlType {
 		PIDF,
 		PROFILED_PIDF,
 		PROFILE,
@@ -75,11 +75,11 @@ public class ControlConstants implements Cloneable {
 	/** the rate of acceleration change in the profile */
     public double jerk = 0;
 
-	public SmartControlType type = SmartControlType.NONE;
+	public ControlType type = ControlType.NONE;
 
 	public static ControlConstants createPID(double P, double I, double D, double IZone) {
 		ControlConstants constants = new ControlConstants();
-		constants.type = SmartControlType.PIDF;
+		constants.type = ControlType.PIDF;
 		constants.P = P;
 		constants.I = I;
 		constants.D = D;
@@ -89,7 +89,7 @@ public class ControlConstants implements Cloneable {
 
 	public static ControlConstants createPIDF(double P, double I, double D, double IZone, double V, double A, double S, double G, GravityTypeValue gravityType) {
 		ControlConstants constants = new ControlConstants();
-		constants.type = SmartControlType.PIDF;
+		constants.type = ControlType.PIDF;
 		constants.P = P;
 		constants.I = I;
 		constants.D = D;
@@ -104,7 +104,7 @@ public class ControlConstants implements Cloneable {
 
     public static ControlConstants createProfile(double cruiseVelocity, double acceleration, double jerk, double V, double A, double S, double G, GravityTypeValue gravityType) {
 		ControlConstants constants = new ControlConstants();
-		constants.type = SmartControlType.PROFILE;
+		constants.type = ControlType.PROFILE;
         constants.cruiseVelocity = cruiseVelocity;
         constants.acceleration = acceleration;
         constants.jerk = jerk;
@@ -118,7 +118,7 @@ public class ControlConstants implements Cloneable {
 
     public static ControlConstants createProfiledPIDF(double P, double I, double D, double IZone, double cruiseVelocity, double acceleration, double jerk, double V, double A, double S, double G, GravityTypeValue gravityType) {
 		ControlConstants constants = new ControlConstants();
-		constants.type = SmartControlType.PROFILED_PIDF;
+		constants.type = ControlType.PROFILED_PIDF;
 		constants.P = P;
 		constants.I = I;
 		constants.D = D;
@@ -136,7 +136,7 @@ public class ControlConstants implements Cloneable {
 
 	public static ControlConstants createTorqueCurrent(double P, double A, double S) {
 		ControlConstants constants = new ControlConstants();
-		constants.type = SmartControlType.TORQUE_CURRENT;
+		constants.type = ControlType.TORQUE_CURRENT;
 		constants.P = P;
 		constants.A = A;
 		constants.S = S;

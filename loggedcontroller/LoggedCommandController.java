@@ -1,10 +1,10 @@
 package frc.lib.NinjasLib.loggedcontroller;
 
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import org.littletonrobotics.junction.Logger;
+import frc.lib.NinjasLib.NinjasLogger;
 
 public class LoggedCommandController {
-    private LoggedCommandControllerIOInputsAutoLogged inputs = new LoggedCommandControllerIOInputsAutoLogged();
+    private LoggedCommandControllerIO.LoggedCommandControllerIOInputs inputs = new LoggedCommandControllerIO.LoggedCommandControllerIOInputs();
     private LoggedCommandControllerIO io;
     private String name;
 
@@ -14,8 +14,49 @@ public class LoggedCommandController {
     }
 
     public void periodic() {
-        io.updateInputs(inputs);
-        Logger.processInputs(name + " Controller", inputs);
+        inputs = io.update();
+
+        // Face Buttons (PS & Xbox)
+        NinjasLogger.log(name + "/cross", inputs.cross);
+        NinjasLogger.log(name + "/circle", inputs.circle);
+        NinjasLogger.log(name + "/square", inputs.square);
+        NinjasLogger.log(name + "/triangle", inputs.triangle);
+        NinjasLogger.log(name + "/A", inputs.A);
+        NinjasLogger.log(name + "/B", inputs.B);
+        NinjasLogger.log(name + "/X", inputs.X);
+        NinjasLogger.log(name + "/Y", inputs.Y);
+
+        // D-Pad (POV)
+        NinjasLogger.log(name + "/povUp", inputs.povUp);
+        NinjasLogger.log(name + "/povDown", inputs.povDown);
+        NinjasLogger.log(name + "/povLeft", inputs.povLeft);
+        NinjasLogger.log(name + "/povRight", inputs.povRight);
+
+        // Stick Buttons & Bumpers
+        NinjasLogger.log(name + "/L3", inputs.L3);
+        NinjasLogger.log(name + "/R3", inputs.R3);
+        NinjasLogger.log(name + "/L1", inputs.L1);
+        NinjasLogger.log(name + "/R1", inputs.R1);
+
+        // Triggers (Digital)
+        NinjasLogger.log(name + "/L2", inputs.L2);
+        NinjasLogger.log(name + "/R2", inputs.R2);
+
+        // System Buttons
+        NinjasLogger.log(name + "/create", inputs.create);
+        NinjasLogger.log(name + "/options", inputs.options);
+        NinjasLogger.log(name + "/ps", inputs.ps);
+        NinjasLogger.log(name + "/touchpad", inputs.touchpad);
+        NinjasLogger.log(name + "/back", inputs.back);
+        NinjasLogger.log(name + "/start", inputs.start);
+
+        // Axes
+        NinjasLogger.log(name + "/leftX", inputs.leftX);
+        NinjasLogger.log(name + "/leftY", inputs.leftY);
+        NinjasLogger.log(name + "/rightX", inputs.rightX);
+        NinjasLogger.log(name + "/rightY", inputs.rightY);
+        NinjasLogger.log(name + "/L2Axis", inputs.L2Axis);
+        NinjasLogger.log(name + "/R2Axis", inputs.R2Axis);
     }
 
     // Face buttons

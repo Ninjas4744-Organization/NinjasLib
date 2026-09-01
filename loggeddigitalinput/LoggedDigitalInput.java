@@ -1,10 +1,10 @@
 package frc.lib.NinjasLib.loggeddigitalinput;
 
-import org.littletonrobotics.junction.Logger;
+import frc.lib.NinjasLib.NinjasLogger;
 
 public class LoggedDigitalInput {
     private LoggedDigitalInputIO io;
-    private LoggedDigitalInputsAutoLogged inputs = new LoggedDigitalInputsAutoLogged();
+    private boolean isOn;
     private boolean enabled;
     private boolean disabledValue;
     private String name;
@@ -21,13 +21,13 @@ public class LoggedDigitalInput {
     }
 
     public boolean get() {
-        return enabled ? inputs.IsOn : disabledValue;
+        return enabled ? isOn : disabledValue;
     }
 
     public void periodic() {
         if(enabled){
-            io.updateInputs(inputs);
-            Logger.processInputs(name, inputs);
+            isOn = io.update();
+            NinjasLogger.log(name, isOn);
         }
     }
 }

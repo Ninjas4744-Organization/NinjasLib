@@ -28,13 +28,11 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
         fillTagsMap();
     }
 
-    @Override
-    public void updateInputs(VisionCameraIOInputsAutoLogged inputs) {
-        inputs.outputs = new VisionOutput[0];
+    public VisionOutput[] update() {
         List<VisionOutput> outputs = new ArrayList<>();
 
         if (RobotStateBase.getAlliance().isEmpty())
-            return;
+            return new VisionOutput[0];
 
         Rotation2d robotYaw = Swerve.getInstance().getGyro().getYaw();
         if (RobotStateBase.getAlliance().get() == DriverStation.Alliance.Red) {
@@ -51,7 +49,7 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
                 : LimelightHelpers.getBotPoseEstimate_wpiRed(cameraName);
 
         if (estimate == null)
-            return;
+            return new VisionOutput[0];
 
         VisionOutput output = new VisionOutput();
         output.latency = estimate.latency / 1000;
@@ -66,7 +64,7 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
             if (this.tags == null)
                 fillTagsMap();
             if (this.tags == null)
-                return;
+                return new VisionOutput[0];
             analyze(output);
 
             output.robotPose = estimate.pose;
@@ -77,7 +75,7 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
         output.hasTargetsMegaTag1 = estimateMegaTag1.tagCount > 0;
 
         outputs.add(output);
-        inputs.outputs = outputs.toArray(new VisionOutput[0]);
+        return outputs.toArray(new VisionOutput[0]);
     }
 
     private void analyze(VisionOutput output) {
@@ -130,12 +128,23 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
     @Override
     public void ignoreTag(int id) {
         ignoredTags.add(id);
+        fillTagsMap();
         // Dynamically update filter list in Limelight
         LimelightHelpers.SetFiducialIDFiltersOverride(
             cameraName,
             tags.keySet().stream().mapToInt(Integer::intValue).toArray()
         );
+    }
+
+    @Override
+    public void unIgnoreTag(int id) {
+        ignoredTags.remove((Integer) id);
         fillTagsMap();
+        // Dynamically update filter list in Limelight
+        LimelightHelpers.SetFiducialIDFiltersOverride(
+            cameraName,
+            tags.keySet().stream().mapToInt(Integer::intValue).toArray()
+        );
     }
 
     private void fillTagsMap() {

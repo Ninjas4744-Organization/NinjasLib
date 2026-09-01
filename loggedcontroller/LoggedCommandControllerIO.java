@@ -1,15 +1,23 @@
 package frc.lib.NinjasLib.loggedcontroller;
 
-import org.littletonrobotics.junction.AutoLog;
+import edu.wpi.first.util.struct.Struct;
+import edu.wpi.first.util.struct.StructSerializable;
+
+import java.nio.ByteBuffer;
 
 public interface LoggedCommandControllerIO {
-    @AutoLog
     class LoggedCommandControllerIOInputs {
         // Face buttons
         public boolean cross;
         public boolean circle;
         public boolean square;
         public boolean triangle;
+
+        // Face buttons XBOX
+        public boolean A;
+        public boolean B;
+        public boolean X;
+        public boolean Y;
 
         // D-Pad (POV)
         public boolean povUp;
@@ -35,6 +43,10 @@ public interface LoggedCommandControllerIO {
         public boolean ps;        // PlayStation logo button
         public boolean touchpad;  // touchpad press
 
+        // Options / System XBOX
+        public boolean back;    // left of touchpad
+        public boolean start;   // right of touchpad
+
         // Axes (joysticks and triggers)
         public double leftX;
         public double leftY;
@@ -44,6 +56,5 @@ public interface LoggedCommandControllerIO {
         public double R2Axis;
     }
 
-    default void updateInputs(LoggedCommandControllerIOInputsAutoLogged inputs) {
-    }
+    LoggedCommandControllerIOInputs update();
 }

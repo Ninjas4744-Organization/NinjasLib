@@ -6,9 +6,9 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import frc.lib.NinjasLib.NinjasLogger;
 import frc.lib.NinjasLib.statemachine.RobotStateBase;
 import frc.lib.NinjasLib.swerve.constants.SwerveControllerConstants;
-import org.littletonrobotics.junction.Logger;
 
 public class SwerveController {
     private ProfiledPIDController rotationProfiledPID;
@@ -104,7 +104,7 @@ public class SwerveController {
         if (isProfiledRotationPID)
             rotationProfiledPID.reset(RobotStateBase.get().getRobotPose().getRotation().getRadians());
         else
-            System.out.println("Tried to reset a non profiled swerve rotation pid");
+            NinjasLogger.logEvent("Tried to reset a non profiled swerve rotation pid");
     }
 
     public Translation2d pidTo(Translation2d target) {
@@ -163,8 +163,8 @@ public class SwerveController {
     public void periodic() {
         Swerve.getInstance().periodic();
 
-        Logger.recordOutput("Swerve/Input", lastInput);
-        Logger.recordOutput("Swerve/Channel", channel);
-        Logger.recordOutput("Swerve/Previous Channel", previousChannel);
+        NinjasLogger.log("Swerve/Input", lastInput);
+        NinjasLogger.log("Swerve/Channel", channel);
+        NinjasLogger.log("Swerve/Previous Channel", previousChannel);
     }
 }

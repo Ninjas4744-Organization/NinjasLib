@@ -1,6 +1,8 @@
 package frc.lib.NinjasLib.swerve.gyro;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.Units;
+import frc.lib.NinjasLib.NinjasLogger;
 import frc.lib.NinjasLib.localization.OdometryThread;
 import org.ironmaple.simulation.drivesims.GyroSimulation;
 
@@ -20,8 +22,10 @@ public class GyroIOSim implements GyroIO {
     }
 
     @Override
-    public void updateInputs(GyroIOInputsAutoLogged inputs) {
-        inputs.Yaw = !inverted ? gyro.getGyroReading() : gyro.getGyroReading().unaryMinus();
+    public GyroIOInputs update() {
+        GyroIOInputs inputs = new GyroIOInputs();
+
+        inputs.yaw = !inverted ? gyro.getGyroReading() : gyro.getGyroReading().unaryMinus();
 
         inputs.odometryYawTimestamps =
                 yawTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
@@ -31,11 +35,16 @@ public class GyroIOSim implements GyroIO {
                         .toArray(Rotation2d[]::new);
         yawTimestampQueue.clear();
         yawPositionQueue.clear();
+
+        return inputs;
     }
 
     @Override
     public void resetGyroYaw(Rotation2d yaw) {
-        System.out.print("Gyro: " + gyro.getGyroReading().getDegrees() + " -> ");
+        NinjasLogger.logEvent("[Gyro Reset] " + (!inverted ? gyro.getGyroReading() : gyro.getGyroReading().unaryMinus()).getDegrees() + " -> " + yaw.getDegrees());
+
+        if (inverted)
+            yaw = yaw.unaryMinus();
         gyro.setRotation(yaw);
         System.out.println(gyro.getGyroReading().getDegrees());
     }

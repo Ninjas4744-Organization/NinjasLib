@@ -2,6 +2,7 @@ package frc.lib.NinjasLib.swerve.gyro;
 
 import com.studica.frc.AHRS;
 import edu.wpi.first.math.geometry.Rotation2d;
+import frc.lib.NinjasLib.NinjasLogger;
 import frc.lib.NinjasLib.localization.OdometryThread;
 
 import java.util.Queue;
@@ -21,14 +22,16 @@ public class GyroIONavX implements GyroIO{
     }
 
     @Override
-    public void updateInputs(GyroIOInputsAutoLogged inputs) {
-        inputs.Yaw = Rotation2d.fromDegrees((inverted ? -1 : 1) * navX.getYaw());
-        inputs.YawOffsetted = Rotation2d.fromDegrees((inverted ? -1 : 1) * navX.getYaw()).plus(yawOffset);
-        inputs.Pitch = Rotation2d.fromDegrees(navX.getPitch());
-        inputs.Roll = Rotation2d.fromDegrees(navX.getRoll());
-        inputs.AccelerationX = navX.getWorldLinearAccelX() * 9.81;
-        inputs.AccelerationY = navX.getWorldLinearAccelY() * 9.81;
-        inputs.AccelerationZ = navX.getWorldLinearAccelZ() * 9.81;
+    public GyroIOInputs update() {
+        GyroIOInputs inputs = new GyroIOInputs();
+
+        inputs.yaw = Rotation2d.fromDegrees((inverted ? -1 : 1) * navX.getYaw());
+        inputs.yawOffsetted = Rotation2d.fromDegrees((inverted ? -1 : 1) * navX.getYaw()).plus(yawOffset);
+        inputs.pitch = Rotation2d.fromDegrees(navX.getPitch());
+        inputs.roll = Rotation2d.fromDegrees(navX.getRoll());
+        inputs.accelerationX = navX.getWorldLinearAccelX() * 9.81;
+        inputs.accelerationY = navX.getWorldLinearAccelY() * 9.81;
+        inputs.accelerationZ = navX.getWorldLinearAccelZ() * 9.81;
 
         inputs.odometryYawTimestamps =
                 yawTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
@@ -38,14 +41,18 @@ public class GyroIONavX implements GyroIO{
                         .toArray(Rotation2d[]::new);
         yawTimestampQueue.clear();
         yawPositionQueue.clear();
+
+        return inputs;
     }
 
     @Override
     public void resetGyroYaw(Rotation2d yaw) {
-        System.out.print("Gyro: " + navX.getAngle() + " -> ");
+        NinjasLogger.logEvent("[Gyro Reset] " + (inverted ? -1 : 1) * navX.getYaw() + " -> " + yaw.getDegrees());
+
+        if (inverted)
+            yaw = yaw.unaryMinus();
         yawOffset = yawOffset.plus(Rotation2d.fromDegrees(navX.getYaw()).minus(yaw));
         navX.reset();
         navX.setAngleAdjustment(yaw.getDegrees());
-        System.out.println(navX.getAngle());
     }
 }

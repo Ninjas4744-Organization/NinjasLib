@@ -2,18 +2,16 @@ package frc.lib.NinjasLib.localization.vision;
 
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Transform3d;
+import frc.lib.NinjasLib.NinjasLogger;
 import frc.robot.Robot;
-import org.littletonrobotics.junction.Logger;
 import org.photonvision.simulation.VisionSystemSim;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class Vision {
 	private static Vision instance;
 	private HashMap<String, VisionCameraIO> cameras;
-	private HashMap<String, VisionCameraIOInputsAutoLogged> inputs;
+	private HashMap<String, VisionOutput[]> outputs;
 	private VisionSystemSim sim;
 	private VisionConstants constants;
 
@@ -31,13 +29,13 @@ public class Vision {
 		String[] camerasNames = constants.cameras.keySet().toArray(new String[0]);
 
 		this.constants = constants;
-		if (Robot.isSimulation() && !constants.isReplay) {
+		if (Robot.isSimulation()) {
 			sim = new VisionSystemSim("main");
 			sim.addAprilTags(constants.fieldLayoutGetter.getFieldLayout(List.of()).get());
 		}
 
 		cameras = new HashMap<>();
-		inputs = new HashMap<>();
+		outputs = new HashMap<>();
 		for (int i = 0; i < constants.cameras.size(); i++) {
 			Pair<Transform3d, VisionConstants.CameraType> cameraInfo = constants.cameras.get(camerasNames[i]);
 
@@ -46,25 +44,23 @@ public class Vision {
 					cameras.put(camerasNames[i], new PhotonVisionCameraIO(camerasNames[i], cameraInfo.getFirst(), constants));
 				else
 					cameras.put(camerasNames[i], new LimelightVisionCameraIO(camerasNames[i], cameraInfo.getFirst(), constants));
-			} else if (!constants.isReplay) {
+			} else {
 				PhotonVisionSimCameraIO cam = new PhotonVisionSimCameraIO(camerasNames[i], cameraInfo.getFirst(), constants);
 				cameras.put(camerasNames[i], cam);
 				sim.addCamera(cam.getSim(), cameraInfo.getFirst());
-			} else
-				cameras.put(camerasNames[i], new VisionCameraIO() {
-				});
+			}
 
-			inputs.put(camerasNames[i], new VisionCameraIOInputsAutoLogged());
+			outputs.put(camerasNames[i], new VisionOutput[0]);
 		}
 	}
 
 	public void periodic() {
 		for (String name : cameras.keySet()) {
-			cameras.get(name).updateInputs(inputs.get(name));
-			Logger.processInputs("Vision/" + name, inputs.get(name));
+			outputs.put(name, cameras.get(name).update());
+			NinjasLogger.log("Vision/" + name, outputs.get(name));
 		}
 
-		if (Robot.isSimulation() && !constants.isReplay)
+		if (Robot.isSimulation())
 			sim.update(constants.robotPoseSupplier.get());
 	}
 
@@ -72,16 +68,12 @@ public class Vision {
 	 * @return an array of each camera's robot pose, the time when this pose was detected and if
 	 * it has targets
 	 */
-	public VisionOutput[] getVisionEstimations() {
-		List<VisionOutput> estimations = new ArrayList<>();
-		for (VisionCameraIOInputsAutoLogged i : inputs.values()) {
-			for (VisionOutput o : i.outputs) {
-				if (o.hasTargets)
-					estimations.add(o);
-			}
+	public VisionOutput[] getVisionOutputs() {
+		List<VisionOutput> outputsArr = new ArrayList<>();
+		for (VisionOutput[] arr : outputs.values()) {
+			Collections.addAll(outputsArr, arr);
 		}
-
-		return estimations.toArray(new VisionOutput[0]);
+		return outputsArr.toArray(new VisionOutput[0]);
 	}
 
 	/**
@@ -89,7 +81,7 @@ public class Vision {
 	 * @return distance from the closest tag to this camera
 	 */
 	public double getClosestTargetDistance(String camera) {
-		return inputs.get(camera).outputs[inputs.get(camera).outputs.length - 1].closestTargetDist;
+		return outputs.get(camera)[outputs.get(camera).length - 1].closestTargetDist;
 	}
 
 	/**
@@ -97,7 +89,7 @@ public class Vision {
 	 * @return closest tag to this camera
 	 */
 	public int getClosestTarget(String camera) {
-		return inputs.get(camera).outputs[inputs.get(camera).outputs.length - 1].closestTargetId;
+		return outputs.get(camera)[outputs.get(camera).length - 1].closestTargetId;
 	}
 
 	/**
@@ -105,7 +97,7 @@ public class Vision {
 	 * @return distance from the farthest tag to this camera
 	 */
 	public double getFarthestTargetDistance(String camera) {
-		return inputs.get(camera).outputs[inputs.get(camera).outputs.length - 1].farthestTargetDist;
+		return outputs.get(camera)[outputs.get(camera).length - 1].farthestTargetDist;
 	}
 
 	/**
@@ -113,15 +105,15 @@ public class Vision {
 	 * @return ambiguity of the most ambiguous tag from this camera
 	 */
 	public double getMaxAmbiguity(String camera) {
-		return inputs.get(camera).outputs[inputs.get(camera).outputs.length - 1].ambiguity;
+		return outputs.get(camera)[outputs.get(camera).length - 1].ambiguity;
 	}
 
 	public Transform3d getCameraToClosestTargetTransform(String camera) {
-		return inputs.get(camera).outputs[inputs.get(camera).outputs.length - 1].cameraToClosestTargetTransform;
+		return outputs.get(camera)[outputs.get(camera).length - 1].cameraToClosestTargetTransform;
 	}
 
 	public Transform3d[] getCameraToTargetsTransforms(String camera) {
-		return inputs.get(camera).outputs[inputs.get(camera).outputs.length - 1].cameraToTargetsTransforms;
+		return outputs.get(camera)[outputs.get(camera).length - 1].cameraToTargetsTransforms;
 	}
 
 	/**
@@ -129,9 +121,12 @@ public class Vision {
 	 * @return if this camera has targets
 	 */
 	public boolean hasTargets(String camera) {
-		if (inputs.get(camera).outputs.length == 0)
+		VisionOutput[] cameraOutputs = outputs.get(camera);
+		if (cameraOutputs == null || cameraOutputs.length == 0) {
 			return false;
-		return inputs.get(camera).outputs[inputs.get(camera).outputs.length - 1].hasTargets;
+		}
+
+		return Arrays.stream(cameraOutputs).anyMatch(output -> output.hasTargets);
 	}
 
 	/**
@@ -152,5 +147,10 @@ public class Vision {
 	public void ignoreTag(int id) {
 		for (String name : cameras.keySet())
 			cameras.get(name).ignoreTag(id);
+	}
+
+	public void unIgnoreTag(int id) {
+		for (String name : cameras.keySet())
+			cameras.get(name).unIgnoreTag(id);
 	}
 }

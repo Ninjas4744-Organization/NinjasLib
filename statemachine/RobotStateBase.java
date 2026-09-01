@@ -12,10 +12,10 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
+import frc.lib.NinjasLib.NinjasLogger;
 import frc.lib.NinjasLib.localization.NinjasSwervePoseTracker;
 import frc.lib.NinjasLib.swerve.Swerve;
 import frc.robot.Robot;
-import org.littletonrobotics.junction.Logger;
 
 import java.util.Optional;
 
@@ -141,7 +141,7 @@ public abstract class RobotStateBase {
                     new SwerveModulePosition(0, Rotation2d.fromDegrees(0))}, pose);
         }
 
-        Logger.recordOutput("Robot Pose", getRobotPose());
+        NinjasLogger.log("Robot Pose", getRobotPose());
     }
 
     public void setOdometryOnlyRobotPose(Pose2d pose) {
@@ -155,14 +155,14 @@ public abstract class RobotStateBase {
                 new SwerveModulePosition(0, Rotation2d.fromDegrees(0))}, pose);
         }
 
-        Logger.recordOutput("Robot Pose", getRobotPose());
+        NinjasLogger.log("Robot Pose", getRobotPose());
     }
 
     public void resetGyro(Rotation2d yaw) {
         Pose2d currentPose = getRobotPose();
         Swerve.getInstance().getGyro().resetYaw(yaw);
         poseEstimator.resetPose(new Pose2d(currentPose.getX(), currentPose.getY(), yaw));
-        Logger.recordOutput("Robot Pose", getRobotPose());
+        NinjasLogger.log("Robot Pose", getRobotPose());
     }
 
     /**
@@ -173,7 +173,7 @@ public abstract class RobotStateBase {
     public void updateRobotPose(SwerveModulePosition[] modulePositions, Rotation2d gyroYaw) {
         poseEstimator.update(gyroYaw, modulePositions);
         odometryOnlyEstimator.update(gyroYaw, modulePositions);
-        Logger.recordOutput("Robot Pose", getRobotPose());
+        NinjasLogger.log("Robot Pose", getRobotPose());
     }
 
     /**
@@ -184,7 +184,7 @@ public abstract class RobotStateBase {
     public void updateRobotPoseWithTime(SwerveModulePosition[] modulePositions, Rotation2d gyroYaw, double timestamp) {
         poseEstimator.updateWithTime(timestamp, gyroYaw, modulePositions);
         odometryOnlyEstimator.updateWithTime(timestamp, gyroYaw, modulePositions);
-        Logger.recordOutput("Robot Pose", getRobotPose());
+        NinjasLogger.log("Robot Pose", getRobotPose());
     }
 
     /**
@@ -194,7 +194,7 @@ public abstract class RobotStateBase {
      */
     public void updateRobotPose(Pose2d estimation, double timestamp, Matrix<N3, N1> visionStrength) {
         poseEstimator.addVisionMeasurement(estimation, timestamp, visionStrength);
-        Logger.recordOutput("Robot Pose", getRobotPose());
+        NinjasLogger.log("Robot Pose", getRobotPose());
     }
 
     /**

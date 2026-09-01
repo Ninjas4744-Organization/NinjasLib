@@ -112,27 +112,30 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
         return Rotation2d.fromRotations(canCoder.getAbsolutePosition().getValueAsDouble());
     }
 
-    @Override
-    public void updateInputs(SwerveModuleIOInputsAutoLogged inputs) {
-        inputs.ModuleNumber = moduleNumber;
-        inputs.State = new SwerveModuleState(driveMotor.getVelocity(), Rotation2d.fromRadians(steerMotor.getPosition()));
-        inputs.DesiredState = desiredState;
-        inputs.Position = new SwerveModulePosition(driveMotor.getPosition(), Rotation2d.fromRadians(steerMotor.getPosition()));
+    public SwerveModuleIOInputs update() {
+        SwerveModuleIOInputs inputs = new  SwerveModuleIOInputs();
+
+        inputs.moduleNumber = moduleNumber;
+        inputs.state = new SwerveModuleState(driveMotor.getVelocity(), Rotation2d.fromRadians(steerMotor.getPosition()));
+        inputs.desiredState = desiredState;
+        inputs.position = new SwerveModulePosition(driveMotor.getPosition(), Rotation2d.fromRadians(steerMotor.getPosition()));
         if (absolutePositionUpdateCounter++ >= ABSOLUTE_POSITION_UPDATE_PERIOD) {
             absolutePositionUpdateCounter = 0;
             cachedAbsolutePosition = getCANCoder();
         }
-        inputs.AbsolutePosition = cachedAbsolutePosition;
+        inputs.absolutePosition = cachedAbsolutePosition;
 
         if (swerveConstants.special.enableOdometryThread && isTalonFX) {
-            inputs.Positions = positionQueue.stream().mapToDouble((Double value) -> value).toArray();
-            inputs.Angles = angleQueue.stream().map(Rotation2d::fromRadians).toArray(Rotation2d[]::new);
-            inputs.Timestamps = timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+            inputs.positions = positionQueue.stream().mapToDouble((Double value) -> value).toArray();
+            inputs.angles = angleQueue.stream().map(Rotation2d::fromRadians).toArray(Rotation2d[]::new);
+            inputs.timestamps = timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
 
             positionQueue.clear();
             angleQueue.clear();
             timestampQueue.clear();
         }
+
+        return inputs;
     }
 
     @Override

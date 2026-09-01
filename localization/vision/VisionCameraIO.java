@@ -1,16 +1,9 @@
 package frc.lib.NinjasLib.localization.vision;
 
-import org.littletonrobotics.junction.AutoLog;
-
 public interface VisionCameraIO {
-    @AutoLog
-    class VisionCameraIOInputs {
-        public VisionOutput[] outputs = new VisionOutput[] { new VisionOutput() };
-    }
+    VisionOutput[] update();
 
-    default void updateInputs(VisionCameraIOInputsAutoLogged inputs) {
-    }
+    void ignoreTag(int id);
 
-    default void ignoreTag(int id) {
-    }
+    void unIgnoreTag(int id);
 }

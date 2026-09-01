@@ -128,9 +128,6 @@ public class SwerveConstants {
         /** Frequency of the thread that updates the odometry. Only works if enableOdometryThread is set to true */
         public int odometryThreadFrequency = 50;
 
-        /** Whether the robot is running in AdvantageKit replay simulation mode. */
-        public boolean isReplay = false;
-
         /** Robot config */
         public RobotConfig robotConfig;
 

@@ -10,12 +10,20 @@ public class LoggedCommandControllerIOPS5 implements LoggedCommandControllerIO {
     }
 
     @Override
-    public void updateInputs(LoggedCommandControllerIOInputsAutoLogged inputs) {
+    public LoggedCommandControllerIOInputs update() {
+        LoggedCommandControllerIOInputs inputs = new LoggedCommandControllerIOInputs();
+
         // Face buttons
         inputs.cross = controller.getCrossButton();
         inputs.circle = controller.getCircleButton();
         inputs.square = controller.getSquareButton();
         inputs.triangle = controller.getTriangleButton();
+
+        // Face buttons XBOX
+        inputs.A = controller.getCrossButton();
+        inputs.B = controller.getCircleButton();
+        inputs.X = controller.getSquareButton();
+        inputs.Y = controller.getTriangleButton();
 
         // D-Pad (POV)
         inputs.povUp = controller.getPOV() == 0;
@@ -41,6 +49,10 @@ public class LoggedCommandControllerIOPS5 implements LoggedCommandControllerIO {
         inputs.ps = controller.getPSButton();
         inputs.touchpad = controller.getTouchpadButton();
 
+        // Options / System XBOX
+        inputs.back = controller.getCreateButton();   // left of touchpad
+        inputs.start = controller.getOptionsButton(); // right of touchpad
+
         // Axes (joysticks and triggers)
         inputs.leftX = controller.getLeftX();
         inputs.leftY = controller.getLeftY();
@@ -48,5 +60,7 @@ public class LoggedCommandControllerIOPS5 implements LoggedCommandControllerIO {
         inputs.rightY = controller.getRightY();
         inputs.L2Axis = controller.getL2Axis();
         inputs.R2Axis = controller.getR2Axis();
+
+        return inputs;
     }
 }

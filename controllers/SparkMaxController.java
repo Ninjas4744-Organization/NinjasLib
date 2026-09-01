@@ -5,7 +5,7 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import frc.lib.NinjasLib.controllers.constants.ControlConstants.SmartControlType;
+import frc.lib.NinjasLib.controllers.constants.ControlConstants.ControlType;
 import frc.lib.NinjasLib.controllers.constants.RealControllerConstants;
 
 public class SparkMaxController extends Controller {
@@ -68,7 +68,7 @@ public class SparkMaxController extends Controller {
 	public void setPosition(double position) {
 		super.setPosition(position);
 
-        if (constants.control.controlConstants.type == SmartControlType.PIDF)
+        if (constants.control.controlConstants.type == ControlType.PIDF)
             main.getClosedLoopController().setSetpoint(getGoal(), SparkBase.ControlType.kPosition);
 
         profiledPIDController.setGoal(position);
@@ -78,7 +78,7 @@ public class SparkMaxController extends Controller {
 	public void setVelocity(double velocity) {
 		super.setVelocity(velocity);
 
-        if (constants.control.controlConstants.type == SmartControlType.PIDF)
+        if (constants.control.controlConstants.type == ControlType.PIDF)
             main.getClosedLoopController().setSetpoint(getGoal(), SparkBase.ControlType.kVelocity);
 
         profiledPIDController.setGoal(velocity);
