@@ -2,6 +2,13 @@ package frc.lib.NinjasLib.util;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.wpilibj.Timer;
 
+/**
+ * Computes a smoothed time-derivative (rate of change) of a scalar value sampled over time, e.g.
+ * to estimate velocity from repeated position measurements. This is stateful: each call to
+ * {@link #calculate(double)} uses the value and timestamp from the previous call, so it must be
+ * called once per sample (typically once per periodic loop) with a consistent time source, and a
+ * single instance should not be shared across unrelated signals.
+ */
 public class DerivativeCalculator {
     private final LinearFilter lowPassFilter;
     private double lastValue;
@@ -17,6 +24,14 @@ public class DerivativeCalculator {
         this.lowPassFilter = LinearFilter.movingAverage(averageWindow);
     }
 
+    /**
+     * Feeds in a new sample and returns the current smoothed derivative estimate. The first call
+     * after construction (or after {@link #reset()}) has no prior sample to compare against, so it
+     * returns {@code 0.0} and only records {@code currentValue} as the baseline for the next call.
+     *
+     * @param currentValue The latest sampled value.
+     * @return The smoothed rate of change of the value, per second.
+     */
     public double calculate(double currentValue) {
         double currentTime = Timer.getFPGATimestamp();
 
@@ -42,10 +57,18 @@ public class DerivativeCalculator {
         return lastDerivative;
     }
 
+    /**
+     * @return The most recently computed derivative, without taking a new sample. Same value
+     *     {@link #calculate(double)} last returned.
+     */
     public double get() {
         return lastDerivative;
     }
 
+    /**
+     * Clears all accumulated state (the moving-average filter and the last sample), so the next
+     * call to {@link #calculate(double)} behaves as if this were a freshly constructed calculator.
+     */
     public void reset() {
         initialized = false;
         lowPassFilter.reset();

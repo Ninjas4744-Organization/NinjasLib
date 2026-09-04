@@ -7,6 +7,10 @@ import frc.lib.NinjasLib.localization.OdometryThread;
 
 import java.util.Queue;
 
+/**
+ * {@link GyroIO} implementation for a NavX (AHRS) IMU over SPI (MXP port). Registers a yaw sampling
+ * signal with the {@link OdometryThread} for high-frequency odometry.
+ */
 public class GyroIONavX implements GyroIO{
     private AHRS navX;
     private final Queue<Double> yawPositionQueue;
@@ -14,6 +18,10 @@ public class GyroIONavX implements GyroIO{
     private boolean inverted;
     private Rotation2d yawOffset = Rotation2d.kZero;
 
+    /**
+     * @param frequency the NavX update frequency in Hz
+     * @param inverted whether to negate the raw yaw reading
+     */
     public GyroIONavX(int frequency, boolean inverted) {
         navX = new AHRS(AHRS.NavXComType.kMXP_SPI, frequency);
         yawTimestampQueue = OdometryThread.getInstance().makeTimestampQueue();
@@ -21,6 +29,7 @@ public class GyroIONavX implements GyroIO{
         this.inverted = inverted;
     }
 
+    /** {@inheritDoc} */
     @Override
     public GyroIOInputs update() {
         GyroIOInputs inputs = new GyroIOInputs();
@@ -45,6 +54,7 @@ public class GyroIONavX implements GyroIO{
         return inputs;
     }
 
+    /** {@inheritDoc} Implemented by resetting the NavX and applying an angle adjustment, in addition to updating {@code yawOffset}. */
     @Override
     public void resetGyroYaw(Rotation2d yaw) {
         NinjasLogger.logEvent("[Gyro Reset] " + (inverted ? -1 : 1) * navX.getYaw() + " -> " + yaw.getDegrees());

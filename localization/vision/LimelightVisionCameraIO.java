@@ -13,6 +13,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * {@link VisionCameraIO} implementation for a real Limelight smart camera. Reads MegaTag2 (and
+ * MegaTag1, for comparison) pose estimates over NetworkTables via {@code LimelightHelpers}, and
+ * feeds the current gyro yaw to the Limelight so it can compute MegaTag2 estimates on-device.
+ */
 public class LimelightVisionCameraIO implements VisionCameraIO {
     private final String cameraName;
     private LimelightHelpers.RawFiducial[] targets;
@@ -20,6 +25,14 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
     private final VisionConstants constants;
     private Map<Integer, AprilTag> tags;
 
+    /**
+     * Creates a Limelight camera IO and disables the Limelight's internal IMU fusion mode.
+     *
+     * @param name       the Limelight's configured network table name
+     * @param cameraPose unused - a Limelight computes its own pose estimate on-device, so its
+     *                   mounting transform is configured on the device itself, not here
+     * @param constants  shared vision configuration, used to obtain the AprilTag field layout
+     */
     public LimelightVisionCameraIO(String name, Transform3d cameraPose, VisionConstants constants) {
         this.constants = constants;
         cameraName = name;
@@ -28,6 +41,16 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
         fillTagsMap();
     }
 
+    /**
+     * Reads the latest MegaTag2 (and MegaTag1) pose estimates from the Limelight and packages them
+     * into a single {@link VisionOutput}. Before reading, this pushes the robot's current gyro yaw
+     * (adjusted for alliance, since MegaTag2 needs field-relative heading) to the Limelight, since
+     * MegaTag2 requires external orientation input to resolve pose. This is the method
+     * {@link Vision#periodic()} calls each loop to pull fresh data from this camera.
+     *
+     * @return an array containing a single {@link VisionOutput}, or an empty array if the alliance
+     * is not yet known or no MegaTag2 estimate is available
+     */
     public VisionOutput[] update() {
         List<VisionOutput> outputs = new ArrayList<>();
 
@@ -136,6 +159,11 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
         );
     }
 
+    /**
+     * Removes an apriltag from the ignored apriltags list, allowing it to be used again.
+     *
+     * @param id the id of the apriltag to stop ignoring
+     */
     @Override
     public void unIgnoreTag(int id) {
         ignoredTags.remove((Integer) id);

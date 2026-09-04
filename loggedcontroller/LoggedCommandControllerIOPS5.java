@@ -2,13 +2,30 @@ package frc.lib.NinjasLib.loggedcontroller;
 
 import edu.wpi.first.wpilibj.PS5Controller;
 
+/**
+ * {@link LoggedCommandControllerIO} implementation for a PlayStation 5 (DualSense) controller,
+ * backed by a {@link PS5Controller}. The Xbox-named fields ({@code A}/{@code B}/{@code X}/
+ * {@code Y}, {@code back}/{@code start}) are filled in from their PS5 equivalents so this
+ * controller can be swapped in wherever a {@link LoggedCommandControllerIOXbox} is expected.
+ */
 public class LoggedCommandControllerIOPS5 implements LoggedCommandControllerIO {
     private PS5Controller controller;
 
+    /**
+     * Creates a PS5 controller IO bound to the given driver station port.
+     *
+     * @param port the driver station USB port the controller is plugged into
+     */
     public LoggedCommandControllerIOPS5(int port) {
         controller = new PS5Controller(port);
     }
 
+    /**
+     * Reads the current state of every button, POV, and axis from the underlying
+     * {@link PS5Controller}.
+     *
+     * @return the latest {@link LoggedCommandControllerIOInputs}
+     */
     @Override
     public LoggedCommandControllerIOInputs update() {
         LoggedCommandControllerIOInputs inputs = new LoggedCommandControllerIOInputs();

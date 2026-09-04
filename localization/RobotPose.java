@@ -21,6 +21,18 @@ import frc.robot.Robot;
 
 import java.util.Optional;
 
+/**
+ * The robot's single source of truth for "where am I on the field". This is a singleton facade
+ * (accessed via {@link #get()}) that every subsystem and command should query instead of maintaining
+ * its own pose estimate. Internally it keeps two {@link NinjasSwervePoseTracker}s in lockstep: a
+ * vision-fused estimate ({@link #getRobotPose()}) and an odometry-only estimate ({@link
+ * #getOdometryOnlyRobotPose()}) that ignores vision entirely, and delegates per-camera trust and
+ * sanity checks to the injected {@link VisionStrengthCalculator} and {@link VisionFiltersCalculator}.
+ *
+ * <p>If no instance has been set with {@link #setInstance}, {@link #get()} returns a disabled
+ * placeholder whose queries return default/zero values and whose updates are no-ops, so callers never
+ * need to null-check it.
+ */
 public class RobotPose {
     private NinjasSwervePoseTracker poseEstimator;
     private NinjasSwervePoseTracker odometryOnlyEstimator;
@@ -31,6 +43,14 @@ public class RobotPose {
     private static RobotPose instance;
     private boolean disabled = false;
 
+    /**
+     * Returns the shared {@code RobotPose} instance that the rest of the robot code should query. If
+     * {@link #setInstance} has not been called yet, logs an important event and returns a disabled
+     * instance (all queries return default/zero values, all updates are no-ops) so callers can use it
+     * safely without a null check.
+     *
+     * @return The active {@code RobotPose} instance, or a disabled placeholder if none was set.
+     */
     public static RobotPose get() {
         if (instance == null) {
             NinjasLogger.logEventImportant("RobotPose instance not set. Set robot pose instance by setInstance(RobotPose instance).");
@@ -39,6 +59,12 @@ public class RobotPose {
         return instance;
     }
 
+    /**
+     * Installs the {@code RobotPose} instance returned by future calls to {@link #get()}. Should be
+     * called once during robot initialization, before any subsystem queries the robot's pose.
+     *
+     * @param instance The instance to install as the singleton.
+     */
     public static void setInstance(RobotPose instance) {
         RobotPose.instance = instance;
     }
@@ -48,9 +74,16 @@ public class RobotPose {
     }
 
     /**
-     * Create a new RobotStateWithSwerve with navX gyro sensor.
+     * Constructs an enabled {@code RobotPose}, creating its vision-fused and odometry-only swerve pose
+     * trackers. On a real robot the trackers are seeded from the current gyro yaw and module positions
+     * via {@link Swerve#get()}; in simulation they are seeded with a zeroed gyro and module set, since
+     * {@link Swerve#get()} isn't available yet at construction time. Pass the result to {@link
+     * #setInstance} to make it the active instance.
      *
-     * @param kinematics The swerve drive kinematics used in the swerve. Used to calculate odometry.
+     * @param kinematics The swerve drive kinematics used to calculate odometry.
+     * @param visionStrengthCalculator Determines how much to trust each incoming vision measurement.
+     * @param visionFiltersCalculator Determines whether an incoming vision measurement should be
+     *     rejected outright before it reaches the pose trackers.
      */
     public RobotPose(SwerveDriveKinematics kinematics, VisionStrengthCalculator visionStrengthCalculator, VisionFiltersCalculator visionFiltersCalculator) {
         this.visionStrengthCalculator = visionStrengthCalculator;
@@ -80,7 +113,10 @@ public class RobotPose {
     }
 
     /**
-     * @return 2D position of the robot on the field.
+     * The main "where is the robot" query — the vision-fused pose estimate that the rest of the robot
+     * code should use by default (for driving to targets, logging, autonomous, etc.).
+     *
+     * @return 2D position of the robot on the field, or the identity pose if disabled.
      */
     public Pose2d getRobotPose() {
         if (disabled)
@@ -90,6 +126,10 @@ public class RobotPose {
     }
 
     /**
+     * Use when a discontinuity from a vision correction would be undesirable (e.g. as a smooth input
+     * to a velocity/acceleration-based control loop), at the cost of accumulating odometry drift over
+     * time.
+     *
      * @return 2D position of the robot on the field only according to odometry, vision is not included.
      */
     public Pose2d getOdometryOnlyRobotPose() {
@@ -156,7 +196,9 @@ public class RobotPose {
     }
 
     /**
-     * Set where the code thinks the robot is.
+     * Resets both the vision-fused and odometry-only pose estimates to the given pose (e.g. when
+     * placing the robot at a known starting position, or applying a full pose correction). On a real
+     * robot this keeps the current gyro yaw; in simulation, module positions are reset to zero.
      *
      * @param pose The pose to set the robot pose to.
      */
@@ -184,6 +226,12 @@ public class RobotPose {
         NinjasLogger.log("Robot Pose", getRobotPose());
     }
 
+    /**
+     * Resets only the odometry-only pose estimate to the given pose, leaving the vision-fused estimate
+     * untouched.
+     *
+     * @param pose The pose to set the odometry-only estimate to.
+     */
     public void setOdometryOnlyRobotPose(Pose2d pose) {
         if (disabled)
             return;
@@ -201,6 +249,13 @@ public class RobotPose {
         NinjasLogger.log("Robot Pose", getRobotPose());
     }
 
+    /**
+     * Re-zeros the physical gyro to the given yaw and immediately re-anchors the vision-fused pose
+     * estimate's rotation to match, so the reported heading doesn't jump on the next odometry update.
+     * Does not touch the odometry-only estimate.
+     *
+     * @param yaw The yaw to reset the gyro to.
+     */
     public void resetGyro(Rotation2d yaw) {
         if (disabled)
             return;
@@ -212,9 +267,14 @@ public class RobotPose {
     }
 
     /**
-     * Updates the robot pose according to odometry parameters.
+     * Feeds a new wheel/gyro sample into both pose trackers, using the current time as the sample's
+     * timestamp. This is the main per-loop entry point for keeping the robot's pose current — call it
+     * once per periodic cycle with the latest module and gyro readings. Use {@link
+     * #addTimedOdometryUpdate} instead when replaying higher-frequency samples (e.g. from {@link
+     * OdometryThread}) that carry their own timestamps.
      *
      * @param modulePositions The current position of the swerve modules.
+     * @param gyroYaw The current gyro yaw.
      */
     public void addOdometryUpdate(SwerveModulePosition[] modulePositions, Rotation2d gyroYaw) {
         if (disabled)
@@ -226,9 +286,14 @@ public class RobotPose {
     }
 
     /**
-     * Updates the robot pose according to odometry parameters.
+     * Same as {@link #addOdometryUpdate}, but with an explicit sample timestamp. Use this when
+     * replaying a backlog of samples captured at a higher frequency than the main loop (e.g. from
+     * {@link OdometryThread}'s queues), so each sample is correctly ordered relative to buffered vision
+     * corrections instead of all being stamped with the current time.
      *
      * @param modulePositions The current position of the swerve modules.
+     * @param gyroYaw The gyro yaw at the time of this sample.
+     * @param timestamp The timestamp of this sample, in seconds (FPGA time).
      */
     public void addTimedOdometryUpdate(SwerveModulePosition[] modulePositions, Rotation2d gyroYaw, double timestamp) {
         if (disabled)
@@ -240,9 +305,15 @@ public class RobotPose {
     }
 
     /**
-     * Updates the robot pose according to given vision estimation.
+     * Applies a vision measurement directly to the vision-fused pose tracker, bypassing the configured
+     * {@link VisionFiltersCalculator} and {@link VisionStrengthCalculator}. Prefer {@link
+     * #addVisionUpdate(VisionOutput, double)} for normal camera pipelines; use this when the caller has
+     * already decided the measurement is valid and how much to trust it.
      *
-     * @param estimation The vision estimation.
+     * @param estimation The vision-measured robot pose.
+     * @param timestamp The timestamp of the measurement, in seconds (FPGA time).
+     * @param visionStrength Per-axis trust to apply to this measurement (x, y, theta); see {@link
+     *     NinjasPoseTracker#setVisionMeasurementStrength}.
      */
     public void addManualVisionUpdate(Pose2d estimation, double timestamp, Matrix<N3, N1> visionStrength) {
         if (disabled)
@@ -252,6 +323,21 @@ public class RobotPose {
         NinjasLogger.log("Robot Pose", getRobotPose());
     }
 
+    /**
+     * The standard entry point for feeding a camera pipeline's output into the robot's pose estimate.
+     * This is what vision subsystems should call once per camera result; it is the piece that decides
+     * whether a vision measurement is trustworthy and, if so, how much.
+     * <p>
+     * Does nothing if the estimation reports no targets. Otherwise, runs the configured {@link
+     * VisionFiltersCalculator} to sanity-check the measurement (e.g. reject implausible poses) and the
+     * configured {@link VisionStrengthCalculator} to compute per-axis trust (e.g. weighted by distance
+     * to target and current odometry drift); only measurements that pass the filter are applied, via
+     * {@link #addManualVisionUpdate}. Whether the measurement passed and its computed strength are
+     * always logged, even when rejected.
+     *
+     * @param estimation One camera's vision pose estimate for this cycle.
+     * @param timestamp The timestamp of the measurement, in seconds (FPGA time).
+     */
     public void addVisionUpdate(VisionOutput estimation, double timestamp) {
         if (!estimation.hasTargets || disabled)
             return;

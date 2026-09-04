@@ -14,6 +14,17 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.DoubleSupplier;
 
+/**
+ * A singleton background thread that samples odometry-relevant signals (CTRE Phoenix status signals
+ * and arbitrary {@link DoubleSupplier}s) at a fixed frequency, higher than the main robot loop, and
+ * hands out per-signal {@link Queue}s of the sampled values plus a matching timestamp queue. This lets
+ * consumers (e.g. swerve modules and the gyro) build a higher-resolution odometry history than a single
+ * 20&nbsp;ms periodic loop would allow, which the pose tracker can then replay through in order.
+ *
+ * <p>Signals must be registered with {@link #registerSignal(StatusSignal)}, {@link
+ * #registerSignal(DoubleSupplier)}, and {@link #makeTimestampQueue()} before the thread is started
+ * with {@link #start(int)}.
+ */
 public class OdometryThread extends Thread {
     private final Lock signalsLock = new ReentrantLock(); // Prevents conflicts when registering signals
     private BaseStatusSignal[] phoenixSignals = new BaseStatusSignal[0];
@@ -25,6 +36,11 @@ public class OdometryThread extends Thread {
 
     private static OdometryThread instance = null;
 
+    /**
+     * Returns the singleton {@code OdometryThread} instance, creating it on first call.
+     *
+     * @return The shared odometry thread instance.
+     */
     public static OdometryThread getInstance() {
         if (instance == null) {
             instance = new OdometryThread();
@@ -37,6 +53,12 @@ public class OdometryThread extends Thread {
         setDaemon(true);
     }
 
+    /**
+     * Starts the background sampling thread at the given frequency. Does nothing if no signals or
+     * timestamp queues have been registered yet, since there would be nothing to sample.
+     *
+     * @param odometryFrequency The rate, in Hz, at which to sample all registered signals.
+     */
     public void start(int odometryFrequency) {
         if (!timestampQueues.isEmpty()) {
             System.out.println("[Odometry Thread] Starting on " + odometryFrequency + "Hz");
@@ -46,7 +68,11 @@ public class OdometryThread extends Thread {
     }
 
     /**
-     * Registers a Phoenix signal to be read from the thread.
+     * Registers a CTRE Phoenix status signal to be batch-refreshed and sampled by the thread every
+     * cycle, alongside all other registered Phoenix signals.
+     *
+     * @param signal The Phoenix status signal to sample (e.g. a motor position signal).
+     * @return A queue that fills with one sampled value per thread cycle; drain it periodically.
      */
     public Queue<Double> registerSignal(StatusSignal<Angle> signal) {
         System.out.println("[Odometry Thread] Making a phoenix queue");
@@ -67,7 +93,11 @@ public class OdometryThread extends Thread {
     }
 
     /**
-     * Registers a generic signal to be read from the thread.
+     * Registers a non-Phoenix signal (e.g. a navX gyro reading) to be sampled by the thread every
+     * cycle. Unlike Phoenix signals, this is polled directly rather than batch-refreshed.
+     *
+     * @param signal Supplier for the value to sample each cycle.
+     * @return A queue that fills with one sampled value per thread cycle; drain it periodically.
      */
     public Queue<Double> registerSignal(DoubleSupplier signal) {
         System.out.println("[Odometry Thread] Making a generic queue");
@@ -85,7 +115,11 @@ public class OdometryThread extends Thread {
     }
 
     /**
-     * Returns a new queue that returns timestamp values for each sample.
+     * Creates a queue that fills with the sample timestamp (FPGA time, adjusted for average CAN
+     * latency) for each thread cycle, matched one-to-one with the values in any signal queue registered
+     * around the same time.
+     *
+     * @return A queue of per-cycle sample timestamps, in seconds.
      */
     public Queue<Double> makeTimestampQueue() {
         System.out.println("[Odometry Thread] Making a timestamp queue");
@@ -99,6 +133,11 @@ public class OdometryThread extends Thread {
         return queue;
     }
 
+    /**
+     * The thread body: repeatedly waits for all registered Phoenix signals to update (or sleeps at the
+     * configured frequency if there are none), then samples every registered signal and timestamp into
+     * its queue. Not intended to be called directly; use {@link #start(int)}.
+     */
     @Override
     public void run() {
         while (true) {

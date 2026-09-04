@@ -6,8 +6,14 @@ import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
 
 import java.util.function.Supplier;
 
+/**
+ * Top-level configuration for a {@link frc.lib.NinjasLib.controllers.Controller}: bundles the
+ * real-hardware settings ({@link #real}) used on the robot with the simulated mechanism
+ * ({@link #simSystem}) used when running in simulation, so one constants object can build either
+ * kind of controller via {@code Controller.createController}.
+ */
 public class ControllerConstants implements Cloneable {
-	/** Regular controller constants */
+	/** The real-hardware configuration (motor IDs, control gains, limits, CANcoder) used when running on the robot. */
 	public RealControllerConstants real = new RealControllerConstants();
 
 	/**
@@ -17,36 +23,67 @@ public class ControllerConstants implements Cloneable {
 	public Supplier<LinearSystemSim<?, ?, ?>> simSystem =
 		() -> new ElevatorSim(DCMotor.getKrakenX60Foc(2), real.control.gearRatio, 10, 0.03, 0, 1, true, 0);
 
+	/**
+	 * @param base the base motor/CAN configuration to apply
+	 * @return this instance, for chaining
+	 */
 	public ControllerConstants withBase(RealControllerConstants.Base base) {
 		this.real = this.real.withBase(base);
 		return this;
 	}
 
+	/**
+	 * @param control the control-loop configuration to apply
+	 * @return this instance, for chaining
+	 */
 	public ControllerConstants withControl(RealControllerConstants.Control control) {
 		this.real = this.real.withControl(control);
 		return this;
 	}
 
+	/**
+	 * @param softLimits the soft limits to apply
+	 * @return this instance, for chaining
+	 */
 	public ControllerConstants withSoftLimits(RealControllerConstants.SoftLimits softLimits) {
 		this.real = this.real.withSoftLimits(softLimits);
 		return this;
 	}
 
+	/**
+	 * @param hardLimits the hard/virtual limit switches to apply
+	 * @return this instance, for chaining
+	 */
 	public ControllerConstants withHardLimits(RealControllerConstants.HardLimits.HardLimit[] hardLimits) {
 		this.real = this.real.withHardLimits(hardLimits);
 		return this;
 	}
 
+	/**
+	 * @param canCoder the CANcoder configuration to apply
+	 * @return this instance, for chaining
+	 */
 	public ControllerConstants withCANCoder(RealControllerConstants.CANCoder canCoder) {
 		this.real = this.real.withCANCoder(canCoder);
 		return this;
 	}
 
+	/**
+	 * @param simSystem the simulated mechanism supplier to use in place of {@link #simSystem}
+	 * @return this instance, for chaining
+	 */
 	public ControllerConstants withSim(Supplier<LinearSystemSim<?, ?, ?>> simSystem) {
 		this.simSystem = simSystem;
 		return this;
 	}
 
+	/**
+	 * Deep-copies this {@link ControllerConstants}, including its nested {@link #real} constants
+	 * (with defensive copies of the follower and hard-limit arrays) and the {@link ControlConstants}
+	 * gains. The {@link #simSystem} supplier reference itself is shared, not copied.
+	 *
+	 * @return an independent copy of this instance
+	 */
 	@Override
 	public ControllerConstants clone() {
 		ControllerConstants clone = new ControllerConstants();

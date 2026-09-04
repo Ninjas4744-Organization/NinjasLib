@@ -10,44 +10,68 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import frc.lib.NinjasLib.controllers.Controller;
 import frc.lib.NinjasLib.controllers.constants.ControllerConstants;
 
+/**
+ * Top-level, builder-style configuration for a swerve drivetrain: physical chassis dimensions, speed
+ * and acceleration limits, module/motor configuration, gyro selection, simulation-only parameters, and
+ * miscellaneous options, grouped into nested holder classes. Each {@code withX} method sets the
+ * corresponding group and returns {@code this} for chaining.
+ */
 public class SwerveConstants {
+    /** Physical chassis dimensions and kinematics. */
     public Chassis chassis = new Chassis();
+
+    /** Speed, acceleration and rotation limits. */
     public Speeds speeds = new Speeds();
+
+    /** Module and drive/steer motor configuration. */
     public Modules modules = new Modules();
+
+    /** Gyro selection and configuration. */
     public Gyro gyro = new Gyro();
+
+    /** Parameters only used when running in simulation. */
     public Simulation simulation = new Simulation();
+
+    /** Miscellaneous/less common options (odometry thread, CAN bus, auto-lock, etc.). */
     public Special special = new Special();
 
+    /** @param chassis physical chassis dimensions and kinematics to use */
     public SwerveConstants withChassis(Chassis chassis) {
         this.chassis = chassis;
         return this;
     }
 
+    /** @param speeds speed, acceleration and rotation limits to use */
     public SwerveConstants withSpeeds(Speeds speeds) {
         this.speeds = speeds;
         return this;
     }
 
+    /** @param modules module and drive/steer motor configuration to use */
     public SwerveConstants withModules(Modules modules) {
         this.modules = modules;
         return this;
     }
 
+    /** @param gyro gyro selection and configuration to use */
     public SwerveConstants withGyro(Gyro gyro) {
         this.gyro = gyro;
         return this;
     }
 
+    /** @param simulation simulation-only parameters to use */
     public SwerveConstants withSimulation(Simulation simulation) {
         this.simulation = simulation;
         return this;
     }
 
+    /** @param special miscellaneous options to use */
     public SwerveConstants withSpecial(Special special) {
         this.special = special;
         return this;
     }
 
+    /** Physical dimensions of the chassis and the kinematics derived from them. */
     public static class Chassis {
         /** Distance between modules in forward axis */
         public double trackWidth = 0.6;
@@ -82,6 +106,8 @@ public class SwerveConstants {
             return this;
         }
 
+        /** @param bumperWidth width of the bumper, side to side, in meters
+         *  @param bumperLength length of the bumper, back to front, in meters */
         public Chassis withBumper(double bumperWidth, double bumperLength) {
             this.bumperWidth = bumperWidth;
             this.bumperLength = bumperLength;
@@ -89,6 +115,7 @@ public class SwerveConstants {
         }
     }
 
+    /** Physical speed/acceleration capabilities of the swerve and the soft limits enforced on them. */
     public static class Speeds {
         /** Max speed the swerve could possibly drive, the real thing if you want a speed limit do it in the speedLimit, in m/s */
         public double maxSpeed = 5;
@@ -136,12 +163,14 @@ public class SwerveConstants {
             return this;
         }
 
+        /** @param discretizeFactor multiplier applied when discretizing chassis speeds */
         public Speeds withDiscretizeFactor(double discretizeFactor) {
             this.discretizeFactor = discretizeFactor;
             return this;
         }
     }
 
+    /** Configuration shared by all swerve modules: motor types/constants and per-module hardware IDs. */
     public static class Modules {
         /** Whether to drive without module velocity PID control */
         public boolean openLoop = false;
@@ -161,13 +190,16 @@ public class SwerveConstants {
         /** The type of the controller of the steer motor */
         public Controller.ControllerType steerControllerType = Controller.ControllerType.TalonFX;
 
+        /** Fraction of max speed below which a module holds its last angle instead of rotating, to prevent jittering. */
         public double jitterPreventionPercent = 0.01;
 
+        /** @param moduleConstants per-module hardware configuration, one entry per swerve module */
         public Modules withModuleConstants(SwerveModuleConstants[] moduleConstants) {
             this.moduleConstants = moduleConstants;
             return this;
         }
 
+        /** @param openLoop whether to drive without module velocity PID control */
         public Modules withOpenLoop(boolean openLoop) {
             this.openLoop = openLoop;
             return this;
@@ -188,9 +220,13 @@ public class SwerveConstants {
         }
     }
 
+    /** Which gyro hardware to build (via {@code frc.lib.NinjasLib.swerve.gyro.Gyro}) and how to configure it. */
     public static class Gyro {
+        /** Supported gyro hardware types. */
         public enum GyroType {
+            /** A NavX (AHRS) IMU connected over SPI. */
             NavX,
+            /** A CTRE Pigeon 2 IMU connected over CAN. */
             Pigeon2
         }
 
@@ -203,8 +239,14 @@ public class SwerveConstants {
         /** Whether to invert the input from the gyro */
         public boolean gyroInverted = false;
 
+        /** Creates a default gyro configuration: Pigeon2, CAN ID 5, not inverted. */
         public Gyro() {}
 
+        /**
+         * @param gyroID CAN ID of the gyro (only used when {@code gyroType} is {@link GyroType#Pigeon2})
+         * @param gyroInverted whether to invert the gyro's input
+         * @param gyroType which gyro hardware to use
+         */
         public Gyro(int gyroID, boolean gyroInverted, GyroType gyroType) {
             this.gyroID = gyroID;
             this.gyroInverted = gyroInverted;
@@ -212,17 +254,22 @@ public class SwerveConstants {
         }
     }
 
+    /** Parameters used only by the physics simulation (motor models and module gearbox identity); ignored on a real robot. */
     public static class Simulation {
+        /** Supported swerve module gearbox families (WCP/SDS MK4 variants). */
         public enum SwerveType {
+            /** MK4 module. */
             Mark4,
+            /** MK4i module. */
             Mark4i,
+            /** MK4n module. */
             Mark4n,
         }
 
         /** The type of the drive motors */
         public DCMotor driveMotorType = DCMotor.getKrakenX60Foc(1);
 
-        /** The type of the drive motors */
+        /** The type of the steer motors */
         public DCMotor steerMotorType = DCMotor.getKrakenX60Foc(1);
 
         /** The gear ratio level- L1, L2, L3, L4... */
@@ -231,6 +278,10 @@ public class SwerveConstants {
         /** The swerve type- MK4, MK4i, MK4n*/
         public SwerveType swerveType = SwerveType.Mark4n;
 
+        /**
+         * @param driveMotorType simulated motor model used for the drive motors
+         * @param steerMotorType simulated motor model used for the steer motors
+         */
         public Simulation withMotors(DCMotor driveMotorType, DCMotor steerMotorType) {
             this.driveMotorType = driveMotorType;
             this.steerMotorType = steerMotorType;
@@ -245,6 +296,7 @@ public class SwerveConstants {
         }
     }
 
+    /** Less commonly changed options: odometry threading, PathPlanner robot config, starting pose, CAN bus, and auto-lock. */
     public static class Special {
         /** Whether to create a separate thread to run the swerve odometry */
         public boolean enableOdometryThread = false;
@@ -274,16 +326,19 @@ public class SwerveConstants {
             return this;
         }
 
+        /** @param robotConfig the PathPlanner robot configuration to use */
         public Special withRobotConfig(RobotConfig robotConfig) {
             this.robotConfig = robotConfig;
             return this;
         }
 
+        /** @param robotStartPose the field-relative pose the robot starts (and odometry resets to) */
         public Special withRobotStartPose(Pose2d robotStartPose) {
             this.robotStartPose = robotStartPose;
             return this;
         }
 
+        /** @param CANBus the CAN bus the swerve hardware is connected to */
         public Special withCANBus(CANBus CANBus) {
             this.CANBus = CANBus;
             return this;

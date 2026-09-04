@@ -5,14 +5,24 @@ import edu.wpi.first.math.geometry.Transform3d;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 
+/**
+ * {@link VisionCameraIO} implementation for a simulated PhotonVision camera, used when
+ * {@code Robot.isSimulation()} is true. Extends {@link PhotonVisionCameraIO} - so pose estimation
+ * and target processing work exactly as they do on real hardware - but additionally builds a
+ * {@code PhotonCameraSim} with representative camera properties (resolution, FOV, calibration
+ * error, FPS and latency) so {@link Vision} can register it with a {@code VisionSystemSim}.
+ */
 public class PhotonVisionSimCameraIO extends PhotonVisionCameraIO {
     private PhotonCameraSim sim;
 
     /**
-     * @param name       Name of the camera.
-     * @param cameraPose Location of the camera on the robot (from center, positive x forward,
+     * Creates a simulated PhotonVision camera, configuring simulated camera properties (a
+     * 1280x720, 74-degree-FOV camera at 25 FPS with representative calibration error and latency).
+     *
+     * @param name       name of the camera.
+     * @param cameraPose location of the camera on the robot (from center, positive x forward,
      *                   positive y left, and positive angle is counterclockwise).
-     * @param constants
+     * @param constants  shared vision configuration, used to obtain the AprilTag field layout
      */
     public PhotonVisionSimCameraIO(String name, Transform3d cameraPose, VisionConstants constants) {
         super(name, cameraPose, constants);
@@ -26,6 +36,10 @@ public class PhotonVisionSimCameraIO extends PhotonVisionCameraIO {
         sim = new PhotonCameraSim(camera, cameraProp);
     }
 
+    /**
+     * @return the underlying {@code PhotonCameraSim}, used by {@link Vision} to register this
+     * camera with the shared {@code VisionSystemSim}
+     */
     public PhotonCameraSim getSim() {
         return sim;
     }

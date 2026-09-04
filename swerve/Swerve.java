@@ -31,6 +31,12 @@ import java.util.concurrent.locks.ReentrantLock;
 import static edu.wpi.first.units.Units.Kilograms;
 import static edu.wpi.first.units.Units.Meters;
 
+/**
+ * Manages a 4-module swerve drivetrain: hardware/simulation setup, acceleration- and speed-limited
+ * driving via {@link #drive}, odometry feeding, and module/gyro access. Accessed as a singleton
+ * through {@link #get()}/{@link #setInstance}; most callers should go through
+ * {@link SwerveController} rather than this class directly.
+ */
 public class Swerve {
     private SwerveModuleIO[] modules;
     private SwerveDriveKinematics kinematics;
@@ -39,6 +45,7 @@ public class Swerve {
     private SwerveSpeeds wantedSpeeds = new SwerveSpeeds();
     private SwerveModuleIOInputs[] moduleInputs;
     private SwerveModulePosition[] previousModulePositions;
+    /** Guards module/gyro sampling against concurrent access between the main loop and the odometry thread. */
     public static final Lock odometryLock = new ReentrantLock();
 
     private SlewRateLimiter rotAccelerationLimit;
@@ -50,6 +57,10 @@ public class Swerve {
     private static Swerve instance;
     private boolean disabled = false;
 
+    /**
+     * @return the singleton {@link Swerve} instance set via {@link #setInstance}, or a disabled
+     *         no-op instance (logging a warning) if none has been set yet
+     */
     public static Swerve get() {
         if (instance == null) {
             NinjasLogger.logEventImportant("Swerve not set. Initialize Swerve by setInstance.");
@@ -58,6 +69,7 @@ public class Swerve {
         return instance;
     }
 
+    /** Sets the singleton instance returned by {@link #get()}. Call once during robot init. */
     public static void setInstance(Swerve swerve) {
         instance = swerve;
     }
@@ -66,6 +78,13 @@ public class Swerve {
         disabled = true;
     }
 
+    /**
+     * Builds and fully initializes the swerve drivetrain: creates the four modules and gyro
+     * (real hardware or a MapleSim simulation, depending on {@link Robot#isReal()}), starts the
+     * odometry thread if configured, and resets modules to their absolute encoders.
+     *
+     * @param constants the drivetrain's physical, module, gyro and behavior configuration
+     */
     public Swerve(SwerveConstants constants) {
         this.constants = constants;
 
@@ -130,8 +149,24 @@ public class Swerve {
 
     private int amountOfZeroInputFrames = 0;
     /**
-     * Drives the swerve. Applies limit calculations.
-     * @param input The input to drive: velocity, angular velocity and field/robot relative.
+     * The primary entry point for commanding the drivetrain: this is the method every driver
+     * control loop and autonomous routine should call each periodic cycle to move the robot.
+     * Drives the swerve towards the given speeds, subject to acceleration and speed limiting, and
+     * commands the resulting module states.
+     * <p>
+     * The requested {@code input} is not applied directly; it is treated as a target that
+     * {@link #wantedSpeeds} accelerates towards, bounded by the configured forward, skid and
+     * rotational acceleration/speed limits. If auto-lock is enabled in
+     * {@link SwerveConstants.Special#enableAutoLock} and the input stays within the jitter
+     * prevention deadband for {@link SwerveConstants.Special#autoLockFrames} consecutive calls,
+     * this method locks the wheels in an X pattern via {@link #lockWheelsToX()} and resets
+     * {@link #wantedSpeeds} instead of driving. On a real robot the final chassis speeds are
+     * discretized (see {@link ChassisSpeeds#discretize}) to compensate for the 20&nbsp;ms
+     * command loop before being converted to module states. This method is a no-op if the swerve
+     * was constructed disabled (see {@link #get()}).
+     *
+     * @param input the desired velocity, angular velocity, and whether it is field- or
+     *              robot-relative
      */
     public void drive(SwerveSpeeds input) {
         if (disabled)
@@ -193,14 +228,20 @@ public class Swerve {
         }, constants.modules.openLoop, false);
     }
 
+    /** Sets the max lateral (skid) acceleration, in m/s&sup2;, applied by {@link #drive}. */
     public void setMaxSkidAcceleration(double maxSkidAcceleration) {
         this.maxSkidAcceleration = maxSkidAcceleration;
     }
 
+    /** Sets the max forward acceleration, in m/s&sup2;, applied by {@link #drive}. */
     public void setMaxForwardAcceleration(double maxForwardAcceleration) {
         this.maxForwardAcceleration = maxForwardAcceleration;
     }
 
+    /**
+     * Sets the rotational acceleration limit, in rad/s&sup2;, applied by {@link #drive}, rebuilding
+     * the underlying {@link SlewRateLimiter} in place so it keeps its current output value.
+     */
     public void setRotationAccelerationLimit(double rotationAccelerationLimit) {
         constants.speeds.rotationAccelerationLimit = rotationAccelerationLimit;
 
@@ -209,14 +250,23 @@ public class Swerve {
         rotAccelerationLimit.reset(lastValue);
     }
 
+    /** Sets the max translational speed, in m/s, that {@link #drive} will command. */
     public void setSpeedLimit(double speedLimit) {
         constants.speeds.speedLimit = speedLimit;
     }
 
+    /** Sets the max rotational speed, in rad/s, that {@link #drive} will command. */
     public void setRotationSpeedLimit(double rotationSpeedLimit) {
         constants.speeds.rotationSpeedLimit = rotationSpeedLimit;
     }
 
+    /**
+     * Must be called once per robot loop cycle (e.g. from {@code Robot.robotPeriodic()} or a
+     * subsystem's {@code periodic()}). Applies any pending initial pose, refreshes gyro/module
+     * inputs and feeds odometry (directly, or by draining the odometry thread's buffered samples
+     * if {@link SwerveConstants.Special#enableOdometryThread} is set), and logs current/wanted
+     * velocities. A no-op if this swerve was constructed disabled.
+     */
     public void periodic() {
         if (disabled)
             return;

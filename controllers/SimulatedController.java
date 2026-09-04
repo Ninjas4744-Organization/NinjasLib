@@ -12,6 +12,16 @@ import frc.lib.NinjasLib.util.NinjasLogger;
 import frc.lib.NinjasLib.util.DerivativeCalculator;
 import frc.lib.NinjasLib.controllers.constants.ControllerConstants;
 
+/**
+ * A {@link Controller} implementation for simulation: instead of talking to real motor hardware,
+ * it drives a WPILib {@link LinearSystemSim} (an {@link ElevatorSim}, {@link SingleJointedArmSim},
+ * {@link DCMotorSim}, {@link FlywheelSim}, or a custom subclass, supplied via
+ * {@link ControllerConstants#simSystem}) and runs its own {@link PIDController}/
+ * {@link ProfiledPIDController}/{@link TrapezoidProfile} in software to emulate the closed-loop
+ * behavior real motor controller firmware would otherwise provide. Created automatically by
+ * {@link Controller#createController(ControllerType, ControllerConstants)} when not running on a
+ * real robot.
+ */
 public class SimulatedController extends Controller {
     private enum SimType {
         ELEVATOR,
@@ -38,6 +48,14 @@ public class SimulatedController extends Controller {
     private final PIDController PIDController;
     private boolean isCurrentlyProfiling = false;
 
+    /**
+     * Builds the simulated mechanism from {@link ControllerConstants#simSystem} (detecting which
+     * {@link LinearSystemSim} subclass it is so position/velocity/current reads can be dispatched
+     * correctly), and sets up the software trapezoid profile and PID controllers used to emulate
+     * closed-loop control per {@link ControllerConstants#real}'s {@code controlConstants}.
+     *
+     * @param constants the controller configuration, including the simulated mechanism supplier
+     */
     public SimulatedController(ControllerConstants constants) {
         super(constants.real);
 
@@ -82,6 +100,12 @@ public class SimulatedController extends Controller {
         sim.setInput(volts);
     }
 
+    /**
+     * Treats {@code percent} as a fraction of the nominal 12V bus and applies that voltage
+     * directly as the sim's input.
+     *
+     * @param percent how much to power the motor, between -1 and 1
+     */
     @Override
     public void setPercent(double percent) {
         super.setPercent(percent);
@@ -89,6 +113,13 @@ public class SimulatedController extends Controller {
         setInputVoltage(percent * 12);
     }
 
+    /**
+     * Sets the goal for both the software profiled and unprofiled PID controllers; which one
+     * actually drives the sim is chosen in {@link #periodic()} based on the configured
+     * {@link frc.lib.NinjasLib.controllers.constants.ControlConstants.ControlType ControlType}.
+     *
+     * @param position the wanted position
+     */
     @Override
     public void setPosition(double position) {
         super.setPosition(position);
@@ -97,6 +128,13 @@ public class SimulatedController extends Controller {
         PIDController.setSetpoint(position);
     }
 
+    /**
+     * Sets the goal for both the software profiled and unprofiled PID controllers; which one
+     * actually drives the sim is chosen in {@link #periodic()} based on the configured
+     * {@link frc.lib.NinjasLib.controllers.constants.ControlConstants.ControlType ControlType}.
+     *
+     * @param velocity the wanted velocity
+     */
     @Override
     public void setVelocity(double velocity) {
         super.setVelocity(velocity);
@@ -105,12 +143,17 @@ public class SimulatedController extends Controller {
         PIDController.setSetpoint(velocity);
     }
 
+    /** Stops the mechanism by driving the simulated input voltage to zero. */
     @Override
     public void stop() {
         super.stop();
         setInputVoltage(0);
     }
 
+    /**
+     * @return the sim's position output, or {@code 0} for a {@link FlywheelSim} (which has no
+     * position state) or an unrecognized {@link LinearSystemSim} subclass
+     */
     @Override
     public double getPosition() {
         // FlywheelSim only tracks velocity - no position state exists
@@ -120,6 +163,11 @@ public class SimulatedController extends Controller {
         return sim.getOutput(0);
     }
 
+    /**
+     * @return the sim's velocity, read via {@link FlywheelSim#getAngularVelocityRadPerSec()} for
+     * a flywheel (whose output vector has no dedicated velocity index) or {@code 0} for an
+     * unrecognized {@link LinearSystemSim} subclass
+     */
     @Override
     public double getVelocity() {
         if (simType == SimType.UNKNOWN)
@@ -131,21 +179,25 @@ public class SimulatedController extends Controller {
         return sim.getOutput(1);
     }
 
+    /** @return the acceleration estimated from recent velocity samples by {@link #accelerationCalculator} */
     @Override
     public double getAcceleration() {
         return accelerationCalculator.get();
     }
 
+    /** @return the sim's input voltage expressed as a fraction of the nominal 12V bus */
     @Override
     public double getOutput() {
         return sim.getInput(0) / 12;
     }
 
+    /** @return the sim's current draw, in amps; simulation makes no supply/stator distinction */
     @Override
     public double getSupplyCurrent() {
         return getCurrentDrawAmps();
     }
 
+    /** @return the sim's current draw, in amps; simulation makes no supply/stator distinction */
     @Override
     public double getStatorCurrent() {
         return getCurrentDrawAmps();
@@ -161,6 +213,13 @@ public class SimulatedController extends Controller {
         };
     }
 
+    /**
+     * Forces the sim's internal state to the given position (keeping its current velocity). Has
+     * no effect on a {@link FlywheelSim} or an unrecognized {@link LinearSystemSim} subclass,
+     * since neither exposes a position state to set.
+     *
+     * @param position the position to set the sim's encoder to
+     */
     @Override
     public void setEncoder(double position) {
         switch (simType) {
@@ -171,6 +230,16 @@ public class SimulatedController extends Controller {
         }
     }
 
+    /**
+     * Advances the simulation by one 20ms loop: since a simulated mechanism has no real motor
+     * controller firmware running its closed loop, this method performs that role in software -
+     * computing an input voltage from the profiled PID controller, plain PID controller, or
+     * trapezoid profile depending on the configured
+     * {@link frc.lib.NinjasLib.controllers.constants.ControlConstants.ControlType ControlType},
+     * applying it, clamping the mechanism to its configured soft limits, updating the
+     * acceleration estimate, and stepping the underlying {@link LinearSystemSim}. Call this from
+     * the owning subsystem's {@code simulationPeriodic()}.
+     */
     @Override
     public void periodic() {
         switch (constants.control.controlConstants.type) {

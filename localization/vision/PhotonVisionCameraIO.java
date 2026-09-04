@@ -12,6 +12,12 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 
 import java.util.*;
 
+/**
+ * {@link VisionCameraIO} implementation for a real, physically-connected PhotonVision camera.
+ * Wraps a {@code PhotonCamera}/{@code PhotonPoseEstimator} pair to turn unread pipeline results
+ * into multi-tag {@link VisionOutput} pose estimates, and tolerates the camera disconnecting.
+ * For a simulated PhotonVision camera, see the subclass {@link PhotonVisionSimCameraIO}.
+ */
 public class PhotonVisionCameraIO implements VisionCameraIO {
     protected final PhotonCamera camera;
     private final PhotonPoseEstimator estimator;
@@ -23,9 +29,13 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
     private String cameraName;
 
     /**
-     * @param name Name of the camera.
-     * @param cameraPose Location of the camera on the robot (from center, positive x forward,
-     *     positive y left, and positive angle is counterclockwise).
+     * Creates a PhotonVision camera IO and builds its {@code PhotonPoseEstimator} from the current
+     * field layout (via {@code constants.fieldLayoutGetter}).
+     *
+     * @param name       name of the camera, matching its name in the PhotonVision UI/coprocessor
+     * @param cameraPose location of the camera on the robot (from center, positive x forward,
+     *                   positive y left, and positive angle is counterclockwise)
+     * @param constants  shared vision configuration, used to obtain the AprilTag field layout
      */
     public PhotonVisionCameraIO(String name, Transform3d cameraPose, VisionConstants constants) {
         this.constants = constants;
@@ -39,6 +49,19 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
         estimator.setFieldTags(constants.fieldLayoutGetter.getFieldLayout(ignoredTags).get());
     }
 
+    /**
+     * Drains all unread pipeline results from the camera and turns each one into a
+     * {@link VisionOutput} carrying a multi-tag pose estimate (via
+     * {@code PhotonPoseEstimator.estimateCoprocMultiTagPose}) plus the per-target data used to
+     * populate {@link Vision}'s target-distance/ambiguity accessors. This is the method
+     * {@link Vision#periodic()} calls each loop to pull fresh data from this camera.
+     * <p>
+     * If reading from the camera throws (e.g. it is unplugged), the camera is marked disconnected
+     * and every subsequent call returns an empty array until the object is recreated.
+     *
+     * @return one {@link VisionOutput} per unread pipeline result, or an empty array if there were
+     * no new results or the camera is disconnected
+     */
     public VisionOutput[] update() {
         if(disconnected)
             return new VisionOutput[0];
@@ -116,6 +139,7 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
 
     /**
      * Adds an apriltag to the ignored apriltags list. If the camera sees a tag in the ignored list, it ignores it.
+     *
      * @param id the id of the apriltag to ignore
      */
     @Override
@@ -125,6 +149,11 @@ public class PhotonVisionCameraIO implements VisionCameraIO {
         estimator.setFieldTags(constants.fieldLayoutGetter.getFieldLayout(ignoredTags).get());
     }
 
+    /**
+     * Removes an apriltag from the ignored apriltags list, allowing it to be used again.
+     *
+     * @param id the id of the apriltag to stop ignoring
+     */
     @Override
     public void unIgnoreTag(int id) {
         ignoredTags.remove((Integer) id);

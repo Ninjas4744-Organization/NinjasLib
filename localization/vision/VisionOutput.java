@@ -9,6 +9,15 @@ import edu.wpi.first.util.struct.StructSerializable;
 
 import java.nio.ByteBuffer;
 
+/**
+ * A single pose estimate and its supporting AprilTag detections, produced by one call to
+ * {@link VisionCameraIO#update()}. This is the common data type all camera IO implementations
+ * ({@link LimelightVisionCameraIO}, {@link PhotonVisionCameraIO}, {@link PhotonVisionSimCameraIO})
+ * report through, and what {@link Vision} consumes and republishes to NetworkTables.
+ * <p>
+ * Implements {@link StructSerializable} via the nested {@link VisionOutputStruct} so instances can
+ * be logged/published directly.
+ */
 public class VisionOutput implements StructSerializable {
 	/** The pose of the robot. If using limelight, this will be MegaTag2 */
 	public Pose2d robotPose = new Pose2d();
@@ -52,7 +61,10 @@ public class VisionOutput implements StructSerializable {
 	 */
 	public Transform3d[] cameraToTargetsTransforms = new Transform3d[0];
 
-	/** The ambiguity of the tag which was detected least ambiguously */
+	/**
+	 * The pose ambiguity of the detected target(s); lower is more confident. Only meaningfully
+	 * populated by {@link PhotonVisionCameraIO} - {@link LimelightVisionCameraIO} always reports 0.
+	 */
 	public double ambiguity = 0;
 
 	/** The distance from the camera of the tag which was detected the farthest */
@@ -76,20 +88,31 @@ public class VisionOutput implements StructSerializable {
 	/** The name of the camera */
 	public String cameraName = "";
 
+	/** The shared {@link Struct} instance used to serialize {@link VisionOutput} for logging/NetworkTables. */
 	public static final VisionOutputStruct struct = new VisionOutputStruct();
 
+	/**
+	 * WPILib {@link Struct} implementation that (de)serializes a {@link VisionOutput} to/from raw
+	 * bytes. The {@code targetsIds}, {@code targetsPoses} and {@code cameraToTargetsTransforms}
+	 * arrays are packed/unpacked with a fixed capacity of 3 entries, padded with sentinel values
+	 * ({@code -1} for ids, {@code -999} coordinates for poses/transforms) when fewer targets are
+	 * present.
+	 */
 	public static class VisionOutputStruct implements Struct<VisionOutput> {
 
+		/** @return {@link VisionOutput}, the type this struct (de)serializes */
 		@Override
 		public Class<VisionOutput> getTypeClass() {
 			return VisionOutput.class;
 		}
 
+		/** @return the struct's schema type name, {@code "VisionOutput"} */
 		@Override
 		public String getTypeName() {
 			return "VisionOutput";
 		}
 
+		/** @return the fixed serialized size in bytes of a packed {@link VisionOutput} */
 		@Override
 		public int getSize() {
 			int size = 0;
@@ -112,6 +135,7 @@ public class VisionOutput implements StructSerializable {
 			return size;
 		}
 
+		/** @return the nested structs referenced by {@link VisionOutput}'s fields */
 		@Override
 		public Struct<?>[] getNested() {
 			return new Struct<?>[]{
@@ -121,6 +145,7 @@ public class VisionOutput implements StructSerializable {
 			};
 		}
 
+		/** @return the struct's binary schema string describing field layout and order */
 		@Override
 		public String getSchema() {
 			return "Pose2d robotPose;Pose2d robotPoseMegaTag1;double timestamp;double latency;double closestTargetId;Pose3d closestTargetPose;" +
@@ -129,6 +154,13 @@ public class VisionOutput implements StructSerializable {
 				"double ambiguity;double farthestTargetDist;double closestTargetDist;double closestTargetDistMegaTag1;bool hasTargets;bool hasTargetsMegaTag1;double amountOfTargets";
 		}
 
+		/**
+		 * Reads a {@link VisionOutput} from its packed binary representation, reconstructing the
+		 * variable-length target arrays from their fixed-capacity, sentinel-padded encoding.
+		 *
+		 * @param bb the buffer to read from
+		 * @return the decoded {@link VisionOutput}
+		 */
 		@Override
 		public VisionOutput unpack(ByteBuffer bb) {
 			VisionOutput output = new VisionOutput();
@@ -185,6 +217,13 @@ public class VisionOutput implements StructSerializable {
 			return output;
 		}
 
+		/**
+		 * Writes a {@link VisionOutput} to its packed binary representation. The variable-length
+		 * target arrays are truncated/padded to a fixed capacity of 3 entries with sentinel values.
+		 *
+		 * @param bb    the buffer to write to
+		 * @param value the {@link VisionOutput} to encode
+		 */
 		@Override
 		public void pack(ByteBuffer bb, VisionOutput value) {
 			Pose2d.struct.pack(bb, value.robotPose);
@@ -228,6 +267,7 @@ public class VisionOutput implements StructSerializable {
 			bb.putDouble(value.amountOfTargets);
 		}
 
+		/** @return {@code false} - {@link VisionOutput} is a mutable, field-based value holder */
 		@Override
 		public boolean isImmutable() {
 			return false;

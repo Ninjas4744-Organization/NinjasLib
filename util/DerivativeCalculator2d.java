@@ -3,6 +3,13 @@ import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Timer;
 
+/**
+ * Computes a smoothed time-derivative (velocity) of a {@link Translation2d} value sampled over
+ * time, e.g. to estimate a field-relative velocity from repeated pose measurements. This is
+ * stateful: each call to {@link #calculate(Translation2d)} uses the value and timestamp from the
+ * previous call, so it must be called once per sample (typically once per periodic loop) with a
+ * consistent time source, and a single instance should not be shared across unrelated signals.
+ */
 public class DerivativeCalculator2d {
     private final LinearFilter xFilter;
     private final LinearFilter yFilter;
@@ -20,6 +27,14 @@ public class DerivativeCalculator2d {
         this.yFilter = LinearFilter.movingAverage(averageWindow);
     }
 
+    /**
+     * Feeds in a new sample and returns the current smoothed derivative estimate. The first call
+     * after construction (or after {@link #reset()}) has no prior sample to compare against, so it
+     * returns a zero vector and only records {@code currentValue} as the baseline for the next call.
+     *
+     * @param currentValue The latest sampled value.
+     * @return The smoothed rate of change of the value, per second.
+     */
     public Translation2d calculate(Translation2d currentValue) {
         double currentTime = Timer.getFPGATimestamp();
 
@@ -45,10 +60,19 @@ public class DerivativeCalculator2d {
         return lastDerivative;
     }
 
+    /**
+     * @return The most recently computed derivative, without taking a new sample. Same value
+     *     {@link #calculate(Translation2d)} last returned.
+     */
     public Translation2d get() {
         return lastDerivative;
     }
 
+    /**
+     * Clears all accumulated state (the moving-average filters and the last sample), so the next
+     * call to {@link #calculate(Translation2d)} behaves as if this were a freshly constructed
+     * calculator.
+     */
     public void reset() {
         initialized = false;
         xFilter.reset();
