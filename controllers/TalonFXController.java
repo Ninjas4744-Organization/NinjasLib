@@ -151,6 +151,10 @@ public class TalonFXController extends Controller {
         main.setPosition(position);
     }
 
+    public TalonFX getController() {
+        return main;
+    }
+
     public StatusSignal<Angle> getPositionSignal(int frequency) {
         StatusSignal<Angle> signal = main.getPosition();
         signal.setUpdateFrequency(frequency);
