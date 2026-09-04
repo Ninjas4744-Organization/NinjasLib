@@ -4,11 +4,33 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import edu.wpi.first.wpilibj.simulation.ElevatorSim;
+import edu.wpi.first.wpilibj.simulation.FlywheelSim;
+import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
+import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
+import frc.lib.NinjasLib.util.NinjasLogger;
 import frc.lib.NinjasLib.util.DerivativeCalculator;
 import frc.lib.NinjasLib.controllers.constants.ControllerConstants;
 
 public class SimulatedController extends Controller {
-    private DCMotorSim motorSim;
+    private enum SimType {
+        ELEVATOR,
+        ARM,
+        DC_MOTOR,
+        FLYWHEEL,
+        UNKNOWN
+    }
+
+    /**
+     * Can be any LinearSystemSim subclass - ElevatorSim, SingleJointedArmSim, DCMotorSim,
+     * FlywheelSim, or a custom one. Position/velocity/current access is dispatched based on the
+     * actual runtime type, since the output shape differs between mechanisms (e.g. FlywheelSim has
+     * no position state). The type is checked once here and cached, rather than re-checked with
+     * instanceof (and re-logged if unknown) on every call.
+     */
+    private final LinearSystemSim<?, ?, ?> sim;
+    private final SimType simType;
+
     private DerivativeCalculator accelerationCalculator;
 
     private final TrapezoidProfile profile;
@@ -19,7 +41,20 @@ public class SimulatedController extends Controller {
     public SimulatedController(ControllerConstants constants) {
         super(constants.real);
 
-        motorSim = new DCMotorSim(constants.simSystem, constants.simMotor, 0.001, 0.01);
+        sim = constants.simSystem.get();
+
+        if (sim instanceof ElevatorSim)
+            simType = SimType.ELEVATOR;
+        else if (sim instanceof SingleJointedArmSim)
+            simType = SimType.ARM;
+        else if (sim instanceof DCMotorSim)
+            simType = SimType.DC_MOTOR;
+        else if (sim instanceof FlywheelSim)
+            simType = SimType.FLYWHEEL;
+        else {
+            simType = SimType.UNKNOWN;
+            NinjasLogger.logEventImportant("[SimulatedController] Unknown LinearSystemSim subclass, position/velocity/current/encoder will read as 0: " + sim.getClass().getSimpleName());
+        }
 
         profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(
             constants.real.control.controlConstants.cruiseVelocity,
@@ -29,8 +64,8 @@ public class SimulatedController extends Controller {
             constants.real.control.controlConstants.P,
             constants.real.control.controlConstants.I,
             constants.real.control.controlConstants.D,
-          new TrapezoidProfile.Constraints(
-              constants.real.control.controlConstants.cruiseVelocity, constants.real.control.controlConstants.acceleration));
+            new TrapezoidProfile.Constraints(
+                constants.real.control.controlConstants.cruiseVelocity, constants.real.control.controlConstants.acceleration));
         profiledPIDController.setIZone(constants.real.control.controlConstants.IZone);
 
         PIDController = new PIDController(
@@ -40,14 +75,18 @@ public class SimulatedController extends Controller {
         );
         PIDController.setIZone(constants.real.control.controlConstants.IZone);
 
-        accelerationCalculator = new DerivativeCalculator(5);
+        accelerationCalculator = new DerivativeCalculator(3);
+    }
+
+    private void setInputVoltage(double volts) {
+        sim.setInput(volts);
     }
 
     @Override
     public void setPercent(double percent) {
         super.setPercent(percent);
 
-        motorSim.setInputVoltage(percent * 12);
+        setInputVoltage(percent * 12);
     }
 
     @Override
@@ -69,17 +108,27 @@ public class SimulatedController extends Controller {
     @Override
     public void stop() {
         super.stop();
-        motorSim.setInputVoltage(0);
+        setInputVoltage(0);
     }
 
     @Override
     public double getPosition() {
-        return motorSim.getAngularPositionRotations() * constants.control.conversionFactor;
+        // FlywheelSim only tracks velocity - no position state exists
+        if (simType == SimType.FLYWHEEL || simType == SimType.UNKNOWN)
+            return 0;
+
+        return sim.getOutput(0);
     }
 
     @Override
     public double getVelocity() {
-        return motorSim.getAngularVelocityRPM() / 60 * constants.control.conversionFactor;
+        if (simType == SimType.UNKNOWN)
+            return 0;
+
+        if (simType == SimType.FLYWHEEL)
+            return ((FlywheelSim) sim).getAngularVelocityRadPerSec();
+
+        return sim.getOutput(1);
     }
 
     @Override
@@ -89,22 +138,37 @@ public class SimulatedController extends Controller {
 
     @Override
     public double getOutput() {
-        return motorSim.getInputVoltage() / 12; // TODO FIX
+        return sim.getInput(0) / 12;
     }
 
     @Override
     public double getSupplyCurrent() {
-        return motorSim.getCurrentDrawAmps();
+        return getCurrentDrawAmps();
     }
 
     @Override
     public double getStatorCurrent() {
-        return motorSim.getCurrentDrawAmps();
+        return getCurrentDrawAmps();
+    }
+
+    private double getCurrentDrawAmps() {
+        return switch (simType) {
+            case ELEVATOR -> ((ElevatorSim) sim).getCurrentDrawAmps();
+            case ARM -> ((SingleJointedArmSim) sim).getCurrentDrawAmps();
+            case DC_MOTOR -> ((DCMotorSim) sim).getCurrentDrawAmps();
+            case FLYWHEEL -> ((FlywheelSim) sim).getCurrentDrawAmps();
+            case UNKNOWN -> 0;
+        };
     }
 
     @Override
     public void setEncoder(double position) {
-        motorSim.setState(position / constants.control.conversionFactor * 2 * Math.PI, motorSim.getAngularVelocityRadPerSec());
+        switch (simType) {
+            case ELEVATOR -> ((ElevatorSim) sim).setState(position, getVelocity());
+            case ARM -> ((SingleJointedArmSim) sim).setState(position, getVelocity());
+            case DC_MOTOR -> ((DCMotorSim) sim).setState(position, getVelocity());
+            case FLYWHEEL, UNKNOWN -> {} // no position state to set, or unsupported sim type
+        }
     }
 
     @Override
@@ -114,30 +178,30 @@ public class SimulatedController extends Controller {
                 isCurrentlyProfiling = true;
 
                 if (controlState == ControlState.POSITION)
-                    motorSim.setInputVoltage(profiledPIDController.calculate(getPosition()));
+                    setInputVoltage(profiledPIDController.calculate(getPosition()));
                 else if (controlState == ControlState.VELOCITY)
-                    motorSim.setInputVoltage(constants.control.controlConstants.V * getGoal() + profiledPIDController.calculate(getVelocity()));
+                    setInputVoltage(constants.control.controlConstants.V * getGoal() + profiledPIDController.calculate(getVelocity()));
                 break;
 
             case PIDF, TORQUE_CURRENT:
                 if (controlState == ControlState.POSITION)
-                    motorSim.setInputVoltage(PIDController.calculate(getPosition()));
+                    setInputVoltage(PIDController.calculate(getPosition()));
                 else if (controlState == ControlState.VELOCITY)
-                    motorSim.setInputVoltage(constants.control.controlConstants.V * getGoal() + PIDController.calculate(getVelocity()));
+                    setInputVoltage(constants.control.controlConstants.V * getGoal() + PIDController.calculate(getVelocity()));
                 break;
 
             case PROFILE:
                 if (controlState == ControlState.POSITION)
-                    motorSim.setInputVoltage(profile.calculate(
-                      0.02,
-                      new TrapezoidProfile.State(getPosition(), getVelocity()),
-                      new TrapezoidProfile.State(getGoal(), 0))
+                    setInputVoltage(profile.calculate(
+                        0.02,
+                        new TrapezoidProfile.State(getPosition(), getVelocity()),
+                        new TrapezoidProfile.State(getGoal(), 0))
                         .velocity * constants.control.controlConstants.V);
                 else if (controlState == ControlState.VELOCITY)
-                    motorSim.setInputVoltage(profile.calculate(
-                      0.02,
-                      new TrapezoidProfile.State(getPosition(), getVelocity()),
-                      new TrapezoidProfile.State(getPosition(), getGoal()))
+                    setInputVoltage(profile.calculate(
+                        0.02,
+                        new TrapezoidProfile.State(getPosition(), getVelocity()),
+                        new TrapezoidProfile.State(getPosition(), getGoal()))
                         .velocity * constants.control.controlConstants.V);
                 break;
         }
@@ -147,19 +211,17 @@ public class SimulatedController extends Controller {
         isCurrentlyProfiling = false;
 
         if (getPosition() >= constants.softLimits.max) {
-            stop();
+//            stop();
             setEncoder(constants.softLimits.max);
         }
 
         if (getPosition() <= constants.softLimits.min) {
-            stop();
+//            stop();
             setEncoder(constants.softLimits.min);
         }
 
         accelerationCalculator.calculate(getVelocity());
-
-        motorSim.update(0.02);
-
+        sim.update(0.02);
         super.periodic();
     }
 }

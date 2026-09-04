@@ -1,4 +1,4 @@
-package frc.lib.NinjasLib;
+package frc.lib.NinjasLib.util;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;

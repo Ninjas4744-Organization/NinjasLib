@@ -1,20 +1,21 @@
 package frc.lib.NinjasLib.controllers.constants;
 
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N2;
-import edu.wpi.first.math.system.LinearSystem;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.wpilibj.simulation.ElevatorSim;
+import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
+
+import java.util.function.Supplier;
 
 public class ControllerConstants implements Cloneable {
 	/** Regular controller constants */
 	public RealControllerConstants real = new RealControllerConstants();
 
-	/** Type of motor for simulation control */
-	public DCMotor simMotor = DCMotor.getKrakenX60(real.base.followers.length + 1);
-
-	/** Type of system for simulation control */
-	public LinearSystem<N2, N1, N2> simSystem = LinearSystemId.createElevatorSystem(simMotor, 6, 0.03, real.control.gearRatio);
+	/**
+	 * Supplier for the simulated system. Can be any LinearSystemSim subclass -
+	 * ElevatorSim, SingleJointedArmSim, DCMotorSim, FlywheelSim, or a custom one.
+	 */
+	public Supplier<LinearSystemSim<?, ?, ?>> simSystem =
+		() -> new ElevatorSim(DCMotor.getKrakenX60Foc(2), real.control.gearRatio, 10, 0.03, 0, 1, true, 0);
 
 	public ControllerConstants withBase(RealControllerConstants.Base base) {
 		this.real = this.real.withBase(base);
@@ -41,8 +42,7 @@ public class ControllerConstants implements Cloneable {
 		return this;
 	}
 
-	public ControllerConstants withSim(DCMotor simMotor, LinearSystem<N2, N1, N2> simSystem) {
-		this.simMotor = simMotor;
+	public ControllerConstants withSim(Supplier<LinearSystemSim<?, ?, ?>> simSystem) {
 		this.simSystem = simSystem;
 		return this;
 	}
@@ -105,7 +105,6 @@ public class ControllerConstants implements Cloneable {
 		clone.real.canCoder.config.MagnetSensor.AbsoluteSensorDiscontinuityPoint = this.real.canCoder.config.MagnetSensor.AbsoluteSensorDiscontinuityPoint;
 		clone.real.canCoder.mode = this.real.canCoder.mode;
 
-		clone.simMotor = this.simMotor;
 		clone.simSystem = this.simSystem;
 
 		return clone;
