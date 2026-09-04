@@ -1,6 +1,6 @@
 package frc.lib.NinjasLib.loggeddigitalinput;
 
-import frc.lib.NinjasLib.NinjasLogger;
+import frc.lib.NinjasLib.util.NinjasLogger;
 
 public class LoggedDigitalInput {
     private LoggedDigitalInputIO io;

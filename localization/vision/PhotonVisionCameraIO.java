@@ -3,7 +3,7 @@ package frc.lib.NinjasLib.localization.vision;
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
-import frc.lib.NinjasLib.NinjasLogger;
+import frc.lib.NinjasLib.util.NinjasLogger;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;

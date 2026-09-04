@@ -5,7 +5,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.lib.NinjasLib.NinjasLogger;
+import frc.lib.NinjasLib.util.NinjasLogger;
 import frc.lib.NinjasLib.commands.BackgroundCommand;
 import frc.lib.NinjasLib.commands.StateEndCommand;
 import org.jgrapht.Graph;

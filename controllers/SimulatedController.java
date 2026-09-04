@@ -4,7 +4,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
-import frc.lib.NinjasLib.DerivativeCalculator;
+import frc.lib.NinjasLib.util.DerivativeCalculator;
 import frc.lib.NinjasLib.controllers.constants.ControllerConstants;
 
 public class SimulatedController extends Controller {

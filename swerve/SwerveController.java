@@ -6,16 +6,16 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import frc.lib.NinjasLib.NinjasLogger;
-import frc.lib.NinjasLib.statemachine.RobotStateBase;
+import frc.lib.NinjasLib.util.NinjasLogger;
+import frc.lib.NinjasLib.localization.RobotPose;
 import frc.lib.NinjasLib.swerve.constants.SwerveControllerConstants;
 
 public class SwerveController {
     private ProfiledPIDController rotationProfiledPID;
     private PIDController rotationPID;
-    private final PIDController drivePID;
-    private final SwerveControllerConstants constants;
-    private final boolean isProfiledRotationPID;
+    private PIDController drivePID;
+    private SwerveControllerConstants constants;
+    private boolean isProfiledRotationPID;
 
     private SwerveSpeeds lastInput;
     private String channel;
@@ -25,18 +25,30 @@ public class SwerveController {
     private double rotationCorrectionLastInput = 0;
 
     private static SwerveController instance = null;
+    private boolean disabled = false;
 
     public static void setInstance(SwerveController swerveController) {
         instance = swerveController;
     }
 
-    public static SwerveController getInstance() {
-        if (instance == null)
-            throw new RuntimeException("SwerveController constants not given. Initialize SwerveController by setConstants(SwerveControllerConstants, SwerveIO) first.");
+    public static SwerveController get() {
+        if (instance == null) {
+            NinjasLogger.logEventImportant("SwerveController instance not set. Initialize SwerveController by setInstance(SwerveController).");
+            return new SwerveController();
+        }
         return instance;
     }
 
+    private SwerveController() {
+        disabled = true;
+    }
+
     public SwerveController(SwerveControllerConstants constants) {
+        if (constants.swerveConstants == null) {
+            disabled = true;
+            return;
+        }
+
         this.constants = constants;
 
         channel = "";
@@ -78,9 +90,12 @@ public class SwerveController {
      * @param angle the angle to look at
      */
     public double lookAt(Rotation2d angle) {
+        if (disabled)
+            return 0;
+
         if (isProfiledRotationPID)
-            return rotationProfiledPID.calculate(RobotStateBase.get().getRobotPose().getRotation().getRadians(), angle.getRadians());
-        return rotationPID.calculate(RobotStateBase.get().getRobotPose().getRotation().getRadians(), angle.getRadians());
+            return rotationProfiledPID.calculate(RobotPose.get().getRobotPose().getRotation().getRadians(), angle.getRadians());
+        return rotationPID.calculate(RobotPose.get().getRobotPose().getRotation().getRadians(), angle.getRadians());
     }
 
     /**
@@ -89,6 +104,9 @@ public class SwerveController {
      * @param direction - the direction vector to look
      */
     public double lookAt(Translation2d direction) {
+        if (disabled)
+            return 0;
+
         if (!(direction.getX() == 0 && direction.getY() == 0))
             return lookAt(direction.getAngle());
 
@@ -96,25 +114,34 @@ public class SwerveController {
     }
 
     public double lookAt(Pose2d target, Rotation2d offset) {
-        Translation2d lookAtTranslation = RobotStateBase.get().getTransform(target).getTranslation().rotateBy(offset);
+        if (disabled)
+            return 0;
+
+        Translation2d lookAtTranslation = RobotPose.get().getTransform(target).getTranslation().rotateBy(offset);
         return lookAt(lookAtTranslation);
     }
 
     public void resetLookAt() {
+        if (disabled)
+            return;
+
         if (isProfiledRotationPID)
-            rotationProfiledPID.reset(RobotStateBase.get().getRobotPose().getRotation().getRadians());
+            rotationProfiledPID.reset(RobotPose.get().getRobotPose().getRotation().getRadians());
         else
             NinjasLogger.logEvent("Tried to reset a non profiled swerve rotation pid");
     }
 
     public Translation2d pidTo(Translation2d target) {
-        double dist = RobotStateBase.get().getDistance(new Pose2d(target, Rotation2d.kZero));
-        return RobotStateBase.get().getTranslation(new Pose2d(target, Rotation2d.kZero)).div(dist).times(drivePID.calculate(-dist));
+        if (disabled)
+            return new Translation2d();
+
+        double dist = RobotPose.get().getDistance(new Pose2d(target, Rotation2d.kZero));
+        return RobotPose.get().getTranslation(new Pose2d(target, Rotation2d.kZero)).div(dist).times(drivePID.calculate(-dist));
     }
 
     public void setControl(SwerveSpeeds input, String channel) {
         if (channel.equals(this.channel)) {
-            Swerve.getInstance().drive(input);
+            Swerve.get().drive(input);
             lastInput = input;
         }
     }
@@ -152,6 +179,9 @@ public class SwerveController {
      * @return the m/s chassis speeds to give the swerve
      */
     public SwerveSpeeds fromPercent(SwerveSpeeds percent) {
+        if (disabled)
+            return new SwerveSpeeds();
+
         return new SwerveSpeeds(
             percent.vxMetersPerSecond * constants.swerveConstants.speeds.maxSpeed,
             percent.vyMetersPerSecond * constants.swerveConstants.speeds.maxSpeed,
@@ -161,7 +191,10 @@ public class SwerveController {
     }
 
     public void periodic() {
-        Swerve.getInstance().periodic();
+        if (disabled)
+            return;
+
+        Swerve.get().periodic();
 
         NinjasLogger.log("Swerve/Input", lastInput);
         NinjasLogger.log("Swerve/Channel", channel);

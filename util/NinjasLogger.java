@@ -1,10 +1,7 @@
-package frc.lib.NinjasLib;
+package frc.lib.NinjasLib.util;
 
 import dev.doglog.DogLog;
 import edu.wpi.first.wpilibj.DriverStation;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class NinjasLogger extends DogLog {
     private static long eventsCount;

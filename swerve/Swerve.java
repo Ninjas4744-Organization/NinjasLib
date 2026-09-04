@@ -10,10 +10,9 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.lib.NinjasLib.NinjasLogger;
+import frc.lib.NinjasLib.util.NinjasLogger;
 import frc.lib.NinjasLib.localization.OdometryThread;
-import frc.lib.NinjasLib.localization.vision.Vision;
-import frc.lib.NinjasLib.statemachine.RobotStateBase;
+import frc.lib.NinjasLib.localization.RobotPose;
 import frc.lib.NinjasLib.swerve.constants.SwerveConstants;
 import frc.lib.NinjasLib.swerve.gyro.*;
 import frc.lib.NinjasLib.swerve.module.SwerveModuleIO;
@@ -51,7 +50,7 @@ public class Swerve {
     private static Swerve instance;
     private boolean disabled = false;
 
-    public static Swerve getInstance() {
+    public static Swerve get() {
         if (instance == null) {
             NinjasLogger.logEventImportant("Swerve not set. Initialize Swerve by setInstance.");
             return new Swerve(); // Disabled swerve
@@ -223,7 +222,7 @@ public class Swerve {
             return;
 
         if(constants.special.robotStartPose.getX() != -999) {
-            RobotStateBase.get().setRobotPose(constants.special.robotStartPose);
+            RobotPose.get().setRobotPose(constants.special.robotStartPose);
             constants.special.robotStartPose = new Pose2d(-999, -999, Rotation2d.kZero);
         }
 
@@ -242,9 +241,9 @@ public class Swerve {
             }
 
             if (Robot.isReal())
-                RobotStateBase.get().updateRobotPose(getModulePositions(), gyro.getYawOffsetted());
+                RobotPose.get().addOdometryUpdate(getModulePositions(), gyro.getYawOffsetted());
             else
-                RobotStateBase.get().setRobotPose(simulation.getSimulatedDriveTrainPose());
+                RobotPose.get().setRobotPose(simulation.getSimulatedDriveTrainPose());
         }
 
         NinjasLogger.log("Swerve/Current Velocity", getSpeeds().getAsFieldRelative());
@@ -285,14 +284,14 @@ public class Swerve {
                     odometryUpdateModulePositions[j].angle = moduleInputs[j].angles[i];
                 }
 
-                RobotStateBase.get().updateRobotPoseWithTime(odometryUpdateModulePositions, gyroYawArray[i], sampleTimestamps[i]);
+                RobotPose.get().addTimedOdometryUpdate(odometryUpdateModulePositions, gyroYawArray[i], sampleTimestamps[i]);
 
                 NinjasLogger.log("Swerve/Odometry Thread/Samples/" + i + "/Module Positions", odometryUpdateModulePositions);
                 NinjasLogger.log("Swerve/Odometry Thread/Samples/" + i + "/Gyro Yaw", gyroYawArray[i]);
                 NinjasLogger.log("Swerve/Odometry Thread/Samples/" + i + "/Timestamp", sampleTimestamps[i]);
             }
         } else
-            RobotStateBase.get().setRobotPose(simulation.getSimulatedDriveTrainPose());
+            RobotPose.get().setRobotPose(simulation.getSimulatedDriveTrainPose());
 
         NinjasLogger.log("Swerve/Odometry Thread/Odometry Update Frames Percent", odometryUpdateFramesWithUpdate / (double) odometryUpdateFrames * 100);
     }

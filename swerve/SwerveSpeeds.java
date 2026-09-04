@@ -5,7 +5,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.util.struct.Struct;
 import edu.wpi.first.util.struct.StructSerializable;
-import frc.lib.NinjasLib.statemachine.RobotStateBase;
+import frc.lib.NinjasLib.localization.RobotPose;
 
 import java.nio.ByteBuffer;
 
@@ -45,7 +45,7 @@ public class SwerveSpeeds extends ChassisSpeeds implements StructSerializable {
     }
 
     public SwerveSpeeds getAsFieldRelative() {
-        return getAsFieldRelative(RobotStateBase.get().getRobotPose().getRotation());
+        return getAsFieldRelative(RobotPose.get().getRobotPose().getRotation());
     }
 
     public SwerveSpeeds getAsRobotRelative(Rotation2d robotAngle) {
@@ -55,7 +55,7 @@ public class SwerveSpeeds extends ChassisSpeeds implements StructSerializable {
     }
 
     public SwerveSpeeds getAsRobotRelative() {
-        return getAsRobotRelative(RobotStateBase.get().getRobotPose().getRotation());
+        return getAsRobotRelative(RobotPose.get().getRobotPose().getRotation());
     }
 
     public SwerveSpeeds getAs(boolean fieldRelative, Rotation2d robotAngle) {

@@ -1,7 +1,7 @@
 package frc.lib.NinjasLib.loggedcontroller;
 
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.lib.NinjasLib.NinjasLogger;
+import frc.lib.NinjasLib.util.NinjasLogger;
 
 public class LoggedCommandController {
     private LoggedCommandControllerIO.LoggedCommandControllerIOInputs inputs = new LoggedCommandControllerIO.LoggedCommandControllerIOInputs();

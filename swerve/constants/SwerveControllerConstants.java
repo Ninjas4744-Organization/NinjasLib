@@ -7,10 +7,10 @@ public class SwerveControllerConstants {
     public SwerveConstants swerveConstants;
 
     /** Swerve auto driving PID constants */
-    public ControlConstants drivePIDConstants;
+    public ControlConstants drivePIDConstants = ControlConstants.createPID(0, 0, 0, 0);
 
     /** Swerve auto driving angle PID constants */
-    public ControlConstants rotationPIDConstants;
+    public ControlConstants rotationPIDConstants = ControlConstants.createPID(0, 0, 0, 0);
 
     public SwerveControllerConstants withSwerveConstants(SwerveConstants swerveConstants) {
         this.swerveConstants = swerveConstants;

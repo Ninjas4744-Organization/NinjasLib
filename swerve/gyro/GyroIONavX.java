@@ -2,7 +2,7 @@ package frc.lib.NinjasLib.swerve.gyro;
 
 import com.studica.frc.AHRS;
 import edu.wpi.first.math.geometry.Rotation2d;
-import frc.lib.NinjasLib.NinjasLogger;
+import frc.lib.NinjasLib.util.NinjasLogger;
 import frc.lib.NinjasLib.localization.OdometryThread;
 
 import java.util.Queue;

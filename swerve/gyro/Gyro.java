@@ -2,7 +2,7 @@ package frc.lib.NinjasLib.swerve.gyro;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
-import frc.lib.NinjasLib.NinjasLogger;
+import frc.lib.NinjasLib.util.NinjasLogger;
 
 public class Gyro {
     private GyroIO io;

@@ -1,4 +1,4 @@
-package frc.lib.NinjasLib;
+package frc.lib.NinjasLib.util;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Timer;

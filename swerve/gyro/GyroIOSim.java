@@ -1,8 +1,7 @@
 package frc.lib.NinjasLib.swerve.gyro;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.units.Units;
-import frc.lib.NinjasLib.NinjasLogger;
+import frc.lib.NinjasLib.util.NinjasLogger;
 import frc.lib.NinjasLib.localization.OdometryThread;
 import org.ironmaple.simulation.drivesims.GyroSimulation;
 

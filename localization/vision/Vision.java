@@ -2,7 +2,7 @@ package frc.lib.NinjasLib.localization.vision;
 
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Transform3d;
-import frc.lib.NinjasLib.NinjasLogger;
+import frc.lib.NinjasLib.util.NinjasLogger;
 import frc.robot.Robot;
 import org.photonvision.simulation.VisionSystemSim;
 
@@ -16,7 +16,7 @@ public class Vision {
 	private VisionConstants constants;
 	private boolean disabled = false;
 
-	public static Vision getInstance() {
+	public static Vision get() {
 		if (instance == null) {
 			NinjasLogger.logEventImportant("Vision instance not set. Set vision instance by setInstance(Vision vision).");
 			return new Vision(); // Disabled vision
@@ -73,7 +73,7 @@ public class Vision {
 
 		for (String name : cameras.keySet()) {
 			outputs.put(name, cameras.get(name).update());
-			NinjasLogger.log("Vision/" + name, outputs.get(name));
+			NinjasLogger.log("Vision/" + name + "/Outputs", outputs.get(name));
 		}
 
 		if (Robot.isSimulation())
