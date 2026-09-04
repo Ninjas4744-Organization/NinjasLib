@@ -16,9 +16,40 @@ public class ControllerConstants implements Cloneable {
 	/** Type of system for simulation control */
 	public LinearSystem<N2, N1, N2> simSystem = LinearSystemId.createElevatorSystem(simMotor, 6, 0.03, real.control.gearRatio);
 
+	public ControllerConstants withBase(RealControllerConstants.Base base) {
+		this.real = this.real.withBase(base);
+		return this;
+	}
+
+	public ControllerConstants withControl(RealControllerConstants.Control control) {
+		this.real = this.real.withControl(control);
+		return this;
+	}
+
+	public ControllerConstants withSoftLimits(RealControllerConstants.SoftLimits softLimits) {
+		this.real = this.real.withSoftLimits(softLimits);
+		return this;
+	}
+
+	public ControllerConstants withHardLimits(RealControllerConstants.HardLimits.HardLimit[] hardLimits) {
+		this.real = this.real.withHardLimits(hardLimits);
+		return this;
+	}
+
+	public ControllerConstants withCANCoder(RealControllerConstants.CANCoder canCoder) {
+		this.real = this.real.withCANCoder(canCoder);
+		return this;
+	}
+
+	public ControllerConstants withSim(DCMotor simMotor, LinearSystem<N2, N1, N2> simSystem) {
+		this.simMotor = simMotor;
+		this.simSystem = simSystem;
+		return this;
+	}
+
 	@Override
 	public ControllerConstants clone() {
-        ControllerConstants clone = new ControllerConstants();
+		ControllerConstants clone = new ControllerConstants();
 
 		clone.real = new RealControllerConstants();
 		clone.real.base.main = new RealControllerConstants.Base.SimpleControllerConstants();

@@ -10,6 +10,31 @@ public class RealControllerConstants {
     public HardLimits hardLimits = new HardLimits();
     public CANCoder canCoder = new CANCoder();
 
+    public RealControllerConstants withBase(Base base) {
+        this.base = base;
+        return this;
+    }
+
+    public RealControllerConstants withControl(Control control) {
+        this.control = control;
+        return this;
+    }
+
+    public RealControllerConstants withSoftLimits(SoftLimits softLimits) {
+        this.softLimits = softLimits;
+        return this;
+    }
+
+    public RealControllerConstants withHardLimits(HardLimits.HardLimit[] hardLimits) {
+        this.hardLimits.limits = hardLimits;
+        return this;
+    }
+
+    public RealControllerConstants withCANCoder(CANCoder canCoder) {
+        this.canCoder = canCoder;
+        return this;
+    }
+
     public static class Base {
         /** Controller constants for the main controller in the subsystem */
         public SimpleControllerConstants main = new SimpleControllerConstants();
@@ -32,12 +57,42 @@ public class RealControllerConstants {
         /** The name of the canbus the swerve is running on. 'rio' by default if CANivore is not present */
         public CANBus CANBus = com.ctre.phoenix6.CANBus.roboRIO();
 
+        public Base withMain(SimpleControllerConstants main) {
+            this.main = main;
+            return this;
+        }
+
+        public Base withIsBrakeMode(boolean isBrakeMode) {
+            this.isBrakeMode = isBrakeMode;
+            return this;
+        }
+
+        public Base withSupplyCurrentLimit(double supplyCurrentLimit) {
+            this.supplyCurrentLimit = supplyCurrentLimit;
+            return this;
+        }
+
+        public Base withStatorCurrentLimit(double statorCurrentLimit) {
+            this.statorCurrentLimit = statorCurrentLimit;
+            return this;
+        }
+
+        public Base withFollowers(SimpleControllerConstants[] followers) {
+            this.followers = followers;
+            return this;
+        }
+
+        public Base withCANBus(CANBus CANBus) {
+            this.CANBus = CANBus;
+            return this;
+        }
+
         public static class SimpleControllerConstants {
             /**
              * The ID of the controller, chosen in the device's configuration software like Phoenix Tuner X or Rev
              * Hardware Client
              */
-            public int id;
+            public int id = 0;
 
             /**
              * Whether to invert the output of this controller. If this controller is a follower it
@@ -45,6 +100,23 @@ public class RealControllerConstants {
              * follower is inverted it will be inverted twice so not inverted.
              */
             public boolean inverted = false;
+
+            public SimpleControllerConstants() {}
+
+            public SimpleControllerConstants(int id, boolean inverted) {
+                this.id = id;
+                this.inverted = inverted;
+            }
+
+            public SimpleControllerConstants withId(int id) {
+                this.id = id;
+                return this;
+            }
+
+            public SimpleControllerConstants withInverted(boolean inverted) {
+                this.inverted = inverted;
+                return this;
+            }
         }
     }
 
@@ -70,6 +142,32 @@ public class RealControllerConstants {
 
         /** Whether to enable FOC. This only does something for TalonFX controllers. With FOC the torque is increased but the max speed is decreased from 100 to 95 rps */
         public boolean enableFOC = true;
+
+        public Control withControlConstants(ControlConstants controlConstants) {
+            this.controlConstants = controlConstants;
+            return this;
+        }
+
+        public Control withConversion(double gearRatio, double conversionFactor) {
+            this.gearRatio = gearRatio;
+            this.conversionFactor = conversionFactor;
+            return this;
+        }
+
+        public Control withPositionGoalTolerance(double positionGoalTolerance) {
+            this.positionGoalTolerance = positionGoalTolerance;
+            return this;
+        }
+
+        public Control withVelocityGoalTolerance(double velocityGoalTolerance) {
+            this.velocityGoalTolerance = velocityGoalTolerance;
+            return this;
+        }
+
+        public Control withEnableFOC(boolean enableFOC) {
+            this.enableFOC = enableFOC;
+            return this;
+        }
     }
 
     public static class SoftLimits {
@@ -78,6 +176,16 @@ public class RealControllerConstants {
 
         /** The up soft limit, makes the system unable to move above it */
         public double max = Double.POSITIVE_INFINITY;
+
+        public SoftLimits withMin(double min) {
+            this.min = min;
+            return this;
+        }
+
+        public SoftLimits withMax(double max) {
+            this.max = max;
+            return this;
+        }
     }
 
     public static class HardLimits {
@@ -116,6 +224,52 @@ public class RealControllerConstants {
              * switch is hit the encoder will reset to this value.
              */
             public double homePosition = 0;
+
+            public HardLimit withId(int id) {
+                this.id = id;
+                return this;
+            }
+
+            public HardLimit withVirtual(boolean isVirtual, double virtualStallThreshold) {
+                this.isVirtual = isVirtual;
+                this.virtualStallThreshold = virtualStallThreshold;
+                return this;
+            }
+
+            public HardLimit withMinPos(double minPos) {
+                this.minPos = minPos;
+                return this;
+            }
+
+            public HardLimit withMaxPos(double maxPos) {
+                this.maxPos = maxPos;
+                return this;
+            }
+
+            public HardLimit withFrames(double frames) {
+                this.frames = frames;
+                return this;
+            }
+
+            public HardLimit withInverted(boolean inverted) {
+                this.inverted = inverted;
+                return this;
+            }
+
+            public HardLimit withDirection(int direction) {
+                this.direction = direction;
+                return this;
+            }
+
+            public HardLimit withAutoStopReset(boolean autoStopReset) {
+                this.autoStopReset = autoStopReset;
+                return this;
+            }
+
+            public HardLimit withHomePosition(double homePosition) {
+                this.homePosition = homePosition;
+                return this;
+            }
         }
     }
 
@@ -135,6 +289,24 @@ public class RealControllerConstants {
          * Sync: Updates the encoder's position automatically to CANCoder every time it can. Through Phoenix Pro.
          */
         public CANCoderMode mode = CANCoderMode.Normal;
+
+        public CANCoder withId(int id) {
+            this.id = id;
+            this.enable = true;
+            return this;
+        }
+
+        public CANCoder withConfig(CANcoderConfiguration config) {
+            this.config = config;
+            this.enable = true;
+            return this;
+        }
+
+        public CANCoder withMode(CANCoderMode mode) {
+            this.mode = mode;
+            this.enable = true;
+            return this;
+        }
 
         public enum CANCoderMode {
             Normal,

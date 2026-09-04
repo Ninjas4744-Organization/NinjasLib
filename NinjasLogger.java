@@ -1,19 +1,14 @@
 package frc.lib.NinjasLib;
 
 import dev.doglog.DogLog;
+import edu.wpi.first.wpilibj.DriverStation;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class NinjasLogger extends DogLog {
-//    private static final List<String> events = new ArrayList<>();
     private static long eventsCount;
-
-//    private static final char[] ALPHABET = {
-//        '3', '4', '6', '7', '9',
-//        'A', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M',
-//        'N', 'P', 'Q', 'R', 'T', 'U', 'V', 'W', 'X', 'Y'
-//    };
+    private static final int kImportantEventSpamCount = 5;
 
     private static final char[] ALPHABET = {
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
@@ -51,7 +46,14 @@ public class NinjasLogger extends DogLog {
 
         System.out.println(event);
         log("Event", event);
-//        events.add(event);
-//        log("Events", events.toArray(new String[0]));
+    }
+
+    public static void logEventImportant(String event) {
+        for (int i = 0; i < kImportantEventSpamCount; i++) {
+            String e = "[" + numToId(eventsCount) + "] [IMPORTANT] " + event;
+            eventsCount++;
+            DriverStation.reportError(e, false);
+            log("Event", e);
+        }
     }
 }
