@@ -54,7 +54,7 @@ public class SwerveController {
                 new TrapezoidProfile.Constraints(constants.rotationPIDConstants.cruiseVelocity, constants.rotationPIDConstants.acceleration)
             );
             rotationProfiledPID.setIZone(constants.rotationPIDConstants.IZone);
-            rotationProfiledPID.enableContinuousInput(constants.rotationPIDContinuousConnections.getFirst(), constants.rotationPIDContinuousConnections.getSecond());
+            rotationProfiledPID.enableContinuousInput(-Math.PI, Math.PI);
         } else {
             rotationPID = new PIDController(
                 constants.rotationPIDConstants.P,
@@ -62,7 +62,7 @@ public class SwerveController {
                 constants.rotationPIDConstants.D
             );
             rotationPID.setIZone(constants.rotationPIDConstants.IZone);
-            rotationPID.enableContinuousInput(constants.rotationPIDContinuousConnections.getFirst(), constants.rotationPIDContinuousConnections.getSecond());
+            rotationPID.enableContinuousInput(-Math.PI, Math.PI);
         }
 
         drivePID = new PIDController(
@@ -153,9 +153,9 @@ public class SwerveController {
      */
     public SwerveSpeeds fromPercent(SwerveSpeeds percent) {
         return new SwerveSpeeds(
-            percent.vxMetersPerSecond * constants.swerveConstants.limits.maxSpeed,
-            percent.vyMetersPerSecond * constants.swerveConstants.limits.maxSpeed,
-            percent.omegaRadiansPerSecond * constants.swerveConstants.limits.maxAngularVelocity,
+            percent.vxMetersPerSecond * constants.swerveConstants.speeds.maxSpeed,
+            percent.vyMetersPerSecond * constants.swerveConstants.speeds.maxSpeed,
+            percent.omegaRadiansPerSecond * constants.swerveConstants.speeds.maxAngularVelocity,
             percent.fieldRelative
         );
     }

@@ -28,10 +28,12 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
     private SwerveModuleState desiredState = new SwerveModuleState();
     private boolean isOpenLoop;
     private boolean preventJittering;
+    private double jitterPreventionPercent;
 
     public SwerveModuleIOSim(SwerveConstants swerveConstants, SwerveModuleConstants constants, SwerveModuleSimulation simulationModule) {
         moduleNumber = constants.moduleNumber;
-        maxModuleSpeed = swerveConstants.limits.maxSpeed;
+        maxModuleSpeed = swerveConstants.speeds.maxSpeed;
+        jitterPreventionPercent = swerveConstants.modules.jitterPreventionPercent;
 
         this.simulationModule = simulationModule;
 
@@ -64,7 +66,7 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
         Rotation2d angle = desiredState.angle;
         if (preventJittering) {
             // Prevent rotating module if speed is less than 1%. Prevents jittering.
-            angle = (Math.abs(desiredState.speedMetersPerSecond) <= (maxModuleSpeed * 0.01)) ? lastAngle : desiredState.angle;
+            angle = (Math.abs(desiredState.speedMetersPerSecond) <= (maxModuleSpeed * jitterPreventionPercent)) ? lastAngle : desiredState.angle;
         }
         //Prevent jumping from -180 to 180
         double errorBound = (Math.PI - -Math.PI) / 2.0;
@@ -99,7 +101,7 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
         Rotation2d angle = desiredState.angle;
         if (preventJittering) {
             // Prevent rotating module if speed is less than 1%. Prevents jittering.
-            angle = (Math.abs(desiredState.speedMetersPerSecond) <= (maxModuleSpeed * 0.01)) ? lastAngle : desiredState.angle;
+            angle = (Math.abs(desiredState.speedMetersPerSecond) <= (maxModuleSpeed * jitterPreventionPercent)) ? lastAngle : desiredState.angle;
         }
         //Prevent jumping from -180 to 180
         double errorBound = (Math.PI - -Math.PI) / 2.0;

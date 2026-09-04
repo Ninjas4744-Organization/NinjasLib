@@ -82,7 +82,7 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
 
         //Drive
         if (isOpenLoop)
-            driveMotor.setPercent(desiredState.speedMetersPerSecond / swerveConstants.limits.maxSpeed);
+            driveMotor.setPercent(desiredState.speedMetersPerSecond / swerveConstants.speeds.maxSpeed);
         else
             driveMotor.setVelocity(desiredState.speedMetersPerSecond);
 
@@ -90,7 +90,7 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
         Rotation2d angle = desiredState.angle;
         if (preventJittering) {
             // Prevent rotating module if speed is less than 1%. Prevents jittering.
-            angle = (Math.abs(desiredState.speedMetersPerSecond) <= (swerveConstants.limits.maxSpeed * 0.01)) ? lastAngle : desiredState.angle;
+            angle = (Math.abs(desiredState.speedMetersPerSecond) <= (swerveConstants.speeds.maxSpeed * swerveConstants.modules.jitterPreventionPercent)) ? lastAngle : desiredState.angle;
         }
         //Prevent jumping from -180 to 180
         double errorBound = (Math.PI - -Math.PI) / 2.0;

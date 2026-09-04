@@ -12,6 +12,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.lib.NinjasLib.NinjasLogger;
 import frc.lib.NinjasLib.localization.OdometryThread;
+import frc.lib.NinjasLib.localization.vision.Vision;
 import frc.lib.NinjasLib.statemachine.RobotStateBase;
 import frc.lib.NinjasLib.swerve.constants.SwerveConstants;
 import frc.lib.NinjasLib.swerve.gyro.*;
@@ -32,9 +33,9 @@ import static edu.wpi.first.units.Units.Kilograms;
 import static edu.wpi.first.units.Units.Meters;
 
 public class Swerve {
-    private final SwerveModuleIO[] modules;
-    private final SwerveDriveKinematics kinematics;
-    private final Gyro gyro;
+    private SwerveModuleIO[] modules;
+    private SwerveDriveKinematics kinematics;
+    private Gyro gyro;
 
     private SwerveSpeeds wantedSpeeds = new SwerveSpeeds();
     private SwerveModuleIOInputs[] moduleInputs;
@@ -45,13 +46,16 @@ public class Swerve {
     private double maxSkidAcceleration;
     private double maxForwardAcceleration;
 
-    private final SwerveConstants constants;
+    private SwerveConstants constants;
     private SwerveDriveSimulation simulation;
     private static Swerve instance;
+    private boolean disabled = false;
 
     public static Swerve getInstance() {
-        if (instance == null)
-            throw new RuntimeException("Swerve not set. Initialize Swerve by setInstance.");
+        if (instance == null) {
+            NinjasLogger.logEventImportant("Swerve not set. Initialize Swerve by setInstance.");
+            return new Swerve(); // Disabled swerve
+        }
         return instance;
     }
 
@@ -59,12 +63,16 @@ public class Swerve {
         instance = swerve;
     }
 
+    private Swerve() {
+        disabled = true;
+    }
+
     public Swerve(SwerveConstants constants) {
         this.constants = constants;
 
-        rotAccelerationLimit = new SlewRateLimiter(constants.limits.rotationAccelerationLimit);
-        maxSkidAcceleration = constants.limits.maxSkidAcceleration;
-        maxForwardAcceleration = constants.limits.maxForwardAcceleration;
+        rotAccelerationLimit = new SlewRateLimiter(constants.speeds.rotationAccelerationLimit);
+        maxSkidAcceleration = constants.speeds.maxSkidAcceleration;
+        maxForwardAcceleration = constants.speeds.maxForwardAcceleration;
 
         kinematics = constants.chassis.kinematics;
 
@@ -127,8 +135,11 @@ public class Swerve {
      * @param input The input to drive: velocity, angular velocity and field/robot relative.
      */
     public void drive(SwerveSpeeds input) {
+        if (disabled)
+            return;
+
         if (constants.special.enableAutoLock) {
-            if (input.toTranslation().getNorm() < 0.01 * constants.limits.maxSpeed && Math.abs(input.omegaRadiansPerSecond) < 0.01 * constants.limits.maxAngularVelocity)
+            if (input.toTranslation().getNorm() < constants.modules.jitterPreventionPercent * constants.speeds.maxSpeed && Math.abs(input.omegaRadiansPerSecond) < constants.modules.jitterPreventionPercent * constants.speeds.maxAngularVelocity)
                 amountOfZeroInputFrames++;
             else amountOfZeroInputFrames = 0;
 
@@ -145,21 +156,21 @@ public class Swerve {
                 input.toTranslation(),
                 maxForwardAcceleration,
                 maxSkidAcceleration,
-                constants.limits.maxSpeed),
+                constants.speeds.maxSpeed),
             input.omegaRadiansPerSecond,
             input.fieldRelative);
 
         Translation2d clampedVel = wantedSpeeds.toTranslation();
-        if (wantedSpeeds.getSpeed() > constants.limits.speedLimit)
-            clampedVel = new Translation2d(constants.limits.speedLimit, clampedVel.getAngle());
+        if (wantedSpeeds.getSpeed() > constants.speeds.speedLimit)
+            clampedVel = new Translation2d(constants.speeds.speedLimit, clampedVel.getAngle());
 
         wantedSpeeds = new SwerveSpeeds(clampedVel,
-            rotAccelerationLimit.calculate(MathUtil.clamp(wantedSpeeds.omegaRadiansPerSecond, -constants.limits.rotationSpeedLimit, constants.limits.rotationSpeedLimit)),
+            rotAccelerationLimit.calculate(MathUtil.clamp(wantedSpeeds.omegaRadiansPerSecond, -constants.speeds.rotationSpeedLimit, constants.speeds.rotationSpeedLimit)),
             wantedSpeeds.fieldRelative);
 
         wantedSpeeds = wantedSpeeds.getAsRobotRelative(gyro.getYaw());
         if (Robot.isReal())
-            wantedSpeeds = new SwerveSpeeds(ChassisSpeeds.discretize(wantedSpeeds, 0.02 * constants.limits.discretizeFactor), wantedSpeeds.fieldRelative);
+            wantedSpeeds = new SwerveSpeeds(ChassisSpeeds.discretize(wantedSpeeds, 0.02 * constants.speeds.discretizeFactor), wantedSpeeds.fieldRelative);
 
         setModuleStates(kinematics.toSwerveModuleStates(wantedSpeeds), constants.modules.openLoop, true);
     }
@@ -192,7 +203,7 @@ public class Swerve {
     }
 
     public void setRotationAccelerationLimit(double rotationAccelerationLimit) {
-        constants.limits.rotationAccelerationLimit = rotationAccelerationLimit;
+        constants.speeds.rotationAccelerationLimit = rotationAccelerationLimit;
 
         double lastValue = rotAccelerationLimit.lastValue();
         rotAccelerationLimit = new SlewRateLimiter(rotationAccelerationLimit);
@@ -200,14 +211,17 @@ public class Swerve {
     }
 
     public void setSpeedLimit(double speedLimit) {
-        constants.limits.speedLimit = speedLimit;
+        constants.speeds.speedLimit = speedLimit;
     }
 
     public void setRotationSpeedLimit(double rotationSpeedLimit) {
-        constants.limits.rotationSpeedLimit = rotationSpeedLimit;
+        constants.speeds.rotationSpeedLimit = rotationSpeedLimit;
     }
 
     public void periodic() {
+        if (disabled)
+            return;
+
         if(constants.special.robotStartPose.getX() != -999) {
             RobotStateBase.get().setRobotPose(constants.special.robotStartPose);
             constants.special.robotStartPose = new Pose2d(-999, -999, Rotation2d.kZero);
@@ -287,13 +301,19 @@ public class Swerve {
      * @return How many times odometry updates in a second. 50 by default but can be different if using odometry thread.
      */
     public double getOdometryFrequency() {
+        if (disabled)
+            return 50;
+
         if (constants.special.enableOdometryThread)
             return constants.special.odometryThreadFrequency;
         return 50;
     }
 
     private void setModuleStates(SwerveModuleState[] desiredStates, boolean isOpenLoop, boolean preventJittering) {
-        SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, constants.limits.maxSpeed);
+        if (disabled)
+            return;
+
+        SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, constants.speeds.maxSpeed);
 
         for (int i = 0; i < modules.length; i++)
             modules[i].setDesiredState(desiredStates[i], isOpenLoop, preventJittering);
@@ -303,6 +323,9 @@ public class Swerve {
      * @return State(Speed (m/s), Angle) of each swerve module
      */
     public SwerveModuleState[] getModuleStates() {
+        if (disabled)
+            return new SwerveModuleState[0];
+
         SwerveModuleState[] states = new SwerveModuleState[4];
         for (int i = 0; i < modules.length; i++)
             states[i] = moduleInputs[i].state;
@@ -313,6 +336,9 @@ public class Swerve {
      * @return Current speed of swerve according to odometry. m/s
      */
     public SwerveSpeeds getSpeeds() {
+        if (disabled)
+            return new SwerveSpeeds();
+
         return new SwerveSpeeds(kinematics.toChassisSpeeds(getModuleStates()), false);
     }
 
@@ -327,6 +353,9 @@ public class Swerve {
      * @return Position(Distance (m), Angle) of each swerve module
      */
     public SwerveModulePosition[] getModulePositions() {
+        if (disabled)
+            return new  SwerveModulePosition[0];
+
         SwerveModulePosition[] positions = new SwerveModulePosition[4];
         for (int i = 0; i < modules.length; i++)
             positions[i] = moduleInputs[i].position;
@@ -335,7 +364,7 @@ public class Swerve {
 
     /** Resets the swerve modules to their absolute encoders */
     public void resetModulesToAbsolute() {
-        if (Robot.isSimulation())
+        if (Robot.isSimulation() || disabled)
             return;
 
         NinjasLogger.logEvent("Resetting modules to absolute");
@@ -347,6 +376,9 @@ public class Swerve {
      * @return Odometry translation from last call of this function to this call
      */
     public Translation2d getOdometryTwist() {
+        if (disabled)
+            return new Translation2d();
+
         if (previousModulePositions == null) {
             previousModulePositions = getModulePositions();
             return new Translation2d();
