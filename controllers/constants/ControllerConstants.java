@@ -92,7 +92,8 @@ public class ControllerConstants implements Cloneable {
 			clone.real.hardLimits.limits[i].frames = this.real.hardLimits.limits[i].frames;
 			clone.real.hardLimits.limits[i].inverted = this.real.hardLimits.limits[i].inverted;
 			clone.real.hardLimits.limits[i].direction = this.real.hardLimits.limits[i].direction;
-			clone.real.hardLimits.limits[i].autoStopReset = this.real.hardLimits.limits[i].autoStopReset;
+			clone.real.hardLimits.limits[i].enableLimitTriggerMethod = this.real.hardLimits.limits[i].enableLimitTriggerMethod;
+			clone.real.hardLimits.limits[i].limitTriggerMethod = this.real.hardLimits.limits[i].limitTriggerMethod;
 			clone.real.hardLimits.limits[i].homePosition = this.real.hardLimits.limits[i].homePosition;
 		}
 

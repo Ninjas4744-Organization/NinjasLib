@@ -2,6 +2,7 @@ package frc.lib.NinjasLib.controllers.constants;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import frc.lib.NinjasLib.controllers.Controller;
 
 public class RealControllerConstants {
     public Base base = new Base();
@@ -216,8 +217,15 @@ public class RealControllerConstants {
             /** the direction of movement in which the limit will be clicked, for example if an elevator goes down when given minus as output and the limit switch is at the bottom then this value should be -1. */
             public int direction = -1;
 
-            /** Whether to automatically stop the motor and reset the encoder when limit is clicked. */
-            public boolean autoStopReset = true;
+            public boolean enableLimitTriggerMethod = true;
+
+            public LimitTriggerMethod limitTriggerMethod = (controller, limitConstants, preLimit) -> {
+                if (!preLimit)
+                    controller.setEncoder(limitConstants.homePosition); // Reset encoder
+
+                if (Math.signum(controller.getOutput()) == limitConstants.direction)
+                    controller.setPosition(limitConstants.homePosition); // Set control to current position to hold position
+            };
 
             /**
              * The home position of the subsystem where the limit switch is and is usually 0. when the limit
@@ -261,8 +269,13 @@ public class RealControllerConstants {
                 return this;
             }
 
-            public HardLimit withAutoStopReset(boolean autoStopReset) {
-                this.autoStopReset = autoStopReset;
+            public HardLimit withEnableLimitTriggerMethod(boolean enableLimitTriggerMethod) {
+                this.enableLimitTriggerMethod = enableLimitTriggerMethod;
+                return this;
+            }
+
+            public HardLimit withLimitTriggerMethod(LimitTriggerMethod limitTriggerMethod) {
+                this.limitTriggerMethod = limitTriggerMethod;
                 return this;
             }
 
@@ -270,6 +283,11 @@ public class RealControllerConstants {
                 this.homePosition = homePosition;
                 return this;
             }
+        }
+
+        @FunctionalInterface
+        public interface LimitTriggerMethod {
+            void trigger(Controller controller, HardLimit limitConstants, boolean preLimit);
         }
     }
 

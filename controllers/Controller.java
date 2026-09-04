@@ -180,7 +180,7 @@ public abstract class Controller {
             return false;
 
         if (Robot.isReal()) return constants.hardLimits.limits[index].isVirtual
-                ? limitFrames[index] >= constants.hardLimits.limits[index].frames || (preLimits[index] && Math.signum(getOutput()) != -constants.hardLimits.limits[index].direction)
+                ? limitFrames[index] >= constants.hardLimits.limits[index].frames || (preLimits[index] && Math.signum(getVelocity()) != -constants.hardLimits.limits[index].direction)
                 : limitFrames[index] >= constants.hardLimits.limits[index].frames;
         else return constants.hardLimits.limits[index].direction > 0 ? getPosition() >= constants.hardLimits.limits[index].homePosition : getPosition() <= constants.hardLimits.limits[index].homePosition;
     }
@@ -214,10 +214,9 @@ public abstract class Controller {
                 }
             }
 
-            if (constants.hardLimits.limits[i].autoStopReset && getLimit(i) && !preLimits[i])
-                setEncoder(constants.hardLimits.limits[i].homePosition);
-            if (constants.hardLimits.limits[i].autoStopReset && getLimit(i) && Math.signum(getOutput()) == constants.hardLimits.limits[i].direction)
-                stop();
+            if (constants.hardLimits.limits[i].enableLimitTriggerMethod) {
+                constants.hardLimits.limits[i].limitTriggerMethod.trigger(this, constants.hardLimits.limits[i], preLimits[i]);
+            }
 
             preLimits[i] = getLimit(i);
         }
