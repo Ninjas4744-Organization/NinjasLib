@@ -1,0 +1,1256 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Guides and manuals for NinjasLib, Team 4744's shared FRC library.">
+      
+      
+      
+        <link rel="canonical" href="https://ninjas4744-organization.github.io/NinjasLib/guides/state-machine.html">
+      
+      
+        <link rel="prev" href="controllers.html">
+      
+      
+        <link rel="next" href="localization.html">
+      
+      
+        
+          <link rel="alternate" href="state-machine.html" hreflang="en">
+        
+          <link rel="alternate" href="../he/guides/state-machine.html" hreflang="he">
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>State Machines - NinjasLib</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#state-machines" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="NinjasLib" class="md-header__button md-logo" aria-label="NinjasLib" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            NinjasLib
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              State Machines
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="state-machine.html" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../he/guides/state-machine.html" hreflang="he" class="md-select__link">
+              עברית
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/Ninjas4744-Organization/NinjasLib" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    NinjasLib
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../getting-started.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="swerve.html" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../javadoc/index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Javadoc
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="NinjasLib" class="md-nav__button md-logo" aria-label="NinjasLib" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    NinjasLib
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/Ninjas4744-Organization/NinjasLib" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    NinjasLib
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="swerve.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Swerve Drive
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="controllers.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Motor Controllers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State Machines
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="state-machine.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State Machines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-a-state-machine-and-why-bother" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is a state machine, and why bother
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-a-state-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defining a state machine
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#driving-transitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Driving transitions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-hop-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-hop paths
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#querying-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Querying state
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-happens-under-the-hood-each-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What happens under the hood each loop
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-continuous-mode-pattern-omni-edges-state-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The "continuous mode" pattern: omni-edges + state commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multiple-state-machines-can-coexist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multiple state machines can coexist
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="localization.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Localization & Vision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="logged-controller.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gamepad (LoggedCommandController)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="logged-digital-input.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logged Digital Input
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="commands.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="utilities.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../javadoc/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Javadoc
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-a-state-machine-and-why-bother" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is a state machine, and why bother
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-a-state-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defining a state machine
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#driving-transitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Driving transitions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-hop-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-hop paths
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#querying-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Querying state
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-happens-under-the-hood-each-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What happens under the hood each loop
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-continuous-mode-pattern-omni-edges-state-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The "continuous mode" pattern: omni-edges + state commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multiple-state-machines-can-coexist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multiple state machines can coexist
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="state-machines">State Machines<a class="headerlink" href="#state-machines" title="Permanent link">&para;</a></h1>
+<h2 id="what-is-a-state-machine-and-why-bother">What is a state machine, and why bother<a class="headerlink" href="#what-is-a-state-machine-and-why-bother" title="Permanent link">&para;</a></h2>
+<p>Most subsystems, described honestly, are a small number of distinct <em>modes</em> plus the <em>events</em> that
+move between them: an intake is idle, or intaking, or holding a piece; a drivetrain is being driven
+by a controller, or following an autonomous path, or aiming at a target. Written as plain code, this
+usually turns into a scatter of booleans and <code>if</code> statements — <code>isIntaking</code>, <code>hasPiece</code>,
+<code>wasIntakingLastLoop</code> — checked in slightly different combinations in different places, until it's
+genuinely hard to say what states the subsystem can actually be in, or what's supposed to happen when
+moving between two of them.</p>
+<p>A <strong>state machine</strong> makes that structure explicit instead of implicit. You draw it as a graph:</p>
+<pre class="mermaid"><code>stateDiagram-v2
+    [*] --&gt; IDLE
+    IDLE --&gt; INTAKING
+    INTAKING --&gt; HOLDING: beam break triggers
+    HOLDING --&gt; FEEDING
+    INTAKING --&gt; IDLE
+    HOLDING --&gt; IDLE
+    FEEDING --&gt; IDLE</code></pre>
+<p>Each box is a state the subsystem can settle in; each arrow is a <em>transition</em> — something that runs
+while moving from one state to the other. The rules write themselves once the graph exists: the
+subsystem is in exactly one state at a time, and it can only reach another state by an arrow that's
+actually drawn. There's no such thing as an invalid transition to guard against in code, because an
+edge that was never added simply isn't a way to get there.</p>
+<p><code>StateMachineBase&lt;StateEnum&gt;</code> is NinjasLib's implementation of this idea: an enum lists every state
+(the graph's vertices), and you wire up <code>Command</code>s between them (the graph's edges) inside <code>define()</code>.
+It extends <code>SubsystemBase</code>, so once constructed, its <code>periodic()</code> runs automatically every loop
+through the normal command scheduler — advancing transitions, firing timeouts, and running
+per-state background tasks, all described below.</p>
+<p>Reach for a state machine whenever a subsystem's behavior is naturally "in state X, doing Y, until Z
+happens," and you want the valid transitions — and what happens during them — to be one explicit,
+readable definition instead of state spread across booleans.</p>
+<h2 id="defining-a-state-machine">Defining a state machine<a class="headerlink" href="#defining-a-state-machine" title="Permanent link">&para;</a></h2>
+<p>Subclass <code>StateMachineBase</code>, give it an enum, and build the graph inside <code>define()</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">Indexer</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">StateMachineBase</span><span class="o">&lt;</span><span class="n">Indexer</span><span class="p">.</span><span class="na">State</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">enum</span><span class="w"> </span><span class="n">State</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">IDLE</span><span class="p">,</span><span class="w"> </span><span class="n">INTAKING</span><span class="p">,</span><span class="w"> </span><span class="n">HOLDING</span><span class="p">,</span><span class="w"> </span><span class="n">FEEDING</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="nf">Indexer</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">        </span><span class="kd">super</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">class</span><span class="p">);</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="nd">@Override</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="kd">protected</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">define</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">        </span><span class="c1">// A -&gt; B transition commands. They don't need to change currentState themselves;</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">        </span><span class="c1">// the state machine advances the state once the command finishes.</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">        </span><span class="n">addEdge</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">IDLE</span><span class="p">,</span><span class="w"> </span><span class="n">State</span><span class="p">.</span><span class="na">INTAKING</span><span class="p">,</span><span class="w"> </span><span class="n">Commands</span><span class="p">.</span><span class="na">runOnce</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">motor</span><span class="p">.</span><span class="na">setPercent</span><span class="p">(</span><span class="mf">0.6</span><span class="p">)));</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">        </span><span class="n">addEdge</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">INTAKING</span><span class="p">,</span><span class="w"> </span><span class="n">State</span><span class="p">.</span><span class="na">HOLDING</span><span class="p">,</span><span class="w"> </span><span class="n">Commands</span><span class="p">.</span><span class="na">runOnce</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">motor</span><span class="p">.</span><span class="na">setPercent</span><span class="p">(</span><span class="mi">0</span><span class="p">)));</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">        </span><span class="n">addEdge</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">HOLDING</span><span class="p">,</span><span class="w"> </span><span class="n">State</span><span class="p">.</span><span class="na">FEEDING</span><span class="p">,</span><span class="w"> </span><span class="n">Commands</span><span class="p">.</span><span class="na">runOnce</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">motor</span><span class="p">.</span><span class="na">setPercent</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)));</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">        </span><span class="c1">// From any state, force back to IDLE:</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">        </span><span class="n">addOmniEdge</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">IDLE</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Commands</span><span class="p">.</span><span class="na">runOnce</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">motor</span><span class="p">.</span><span class="na">setPercent</span><span class="p">(</span><span class="mi">0</span><span class="p">)));</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">        </span><span class="c1">// Auto-transition once a condition becomes true, no explicit changeState() call needed:</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">        </span><span class="n">addStateEnd</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">INTAKING</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">beamBreak</span><span class="p">.</span><span class="na">get</span><span class="p">(),</span><span class="w"> </span><span class="n">State</span><span class="p">.</span><span class="na">HOLDING</span><span class="p">);</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">        </span><span class="c1">// A command that keeps running for as long as the state machine stays in HOLDING:</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">        </span><span class="n">addStateCommand</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">HOLDING</span><span class="p">,</span><span class="w"> </span><span class="n">Commands</span><span class="p">.</span><span class="na">run</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">motor</span><span class="p">.</span><span class="na">setPercent</span><span class="p">(</span><span class="mf">0.05</span><span class="p">)));</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="p">}</span>
+</code></pre></div>
+<ul>
+<li><strong><code>addEdge(start, end, command)</code></strong> adds one transition. The command represents <em>what happens while
+  transitioning</em> — it does not need to (and should not) mutate <code>currentState</code> itself.
+  Overloads accept lists of start/end states to add many edges at once, and <code>addOmniEdge(end, ...)</code>
+  connects every other state to one destination (handy for a universal "abort"/"stow" transition).</li>
+<li><strong><code>addStateEnd(state, condition, nextState)</code></strong> auto-fires a transition once <code>condition</code> becomes true
+  while sitting in <code>state</code> — no explicit <code>changeState</code> call needed. The condition can be a
+  <code>BooleanSupplier</code>, a <code>Time</code> (wait this long), or a <code>StateEndCommand</code> (wait for a sequence of
+  wait-only commands). <strong>The end condition must only represent waiting for an event — it must not run
+  actual subsystem logic</strong>, since it may be evaluated/cancelled outside the normal transition
+  lifecycle.</li>
+<li><strong><code>addStateCommand(state, command)</code></strong> runs <code>command</code> for as long as the machine is settled in
+  <code>state</code> (started once the incoming transition finishes, stopped the moment a new transition starts).
+  Useful for a low background hold current, a status light, or similar "while in this state" behavior.</li>
+</ul>
+<h2 id="driving-transitions">Driving transitions<a class="headerlink" href="#driving-transitions" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">indexer</span><span class="p">.</span><span class="na">changeState</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">INTAKING</span><span class="p">);</span><span class="w">       </span><span class="c1">// no-op if already transitioning elsewhere</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">indexer</span><span class="p">.</span><span class="na">changeStateForce</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">HOLDING</span><span class="p">);</span><span class="w">   </span><span class="c1">// reroutes even mid-transition, to the new target</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">indexer</span><span class="p">.</span><span class="na">forceState</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">IDLE</span><span class="p">);</span><span class="w">            </span><span class="c1">// jump directly, skipping any edge command</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1">// As a Command, for binding to a trigger:</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">controller</span><span class="p">.</span><span class="na">a</span><span class="p">().</span><span class="na">onTrue</span><span class="p">(</span><span class="n">indexer</span><span class="p">.</span><span class="na">changeStateCommand</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">INTAKING</span><span class="p">));</span>
+</code></pre></div>
+<ul>
+<li><strong><code>changeState</code></strong> only takes effect if there's a direct edge from the <em>current</em> state and the
+  machine isn't already transitioning.</li>
+<li><strong><code>changeStateForce</code></strong> also works while transitioning, rerouting from the current <em>target</em> state
+  instead — use this when a newer request should override one still in flight.</li>
+<li><strong><code>forceState</code></strong> skips the graph entirely: it cancels the current edge and any state-end commands,
+  and jumps straight to the given state without running a transition command. Use it for
+  initialization or emergency resets, not normal flow.</li>
+</ul>
+<h2 id="multi-hop-paths">Multi-hop paths<a class="headerlink" href="#multi-hop-paths" title="Permanent link">&para;</a></h2>
+<p><code>runStatesPath(target)</code> finds the shortest path (BFS) from the current state to <code>target</code> through the
+defined edges, then automatically fires each transition in turn as the previous one completes:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">indexer</span><span class="p">.</span><span class="na">runStatesPath</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">FEEDING</span><span class="p">);</span><span class="w"> </span><span class="c1">// walks IDLE -&gt; INTAKING -&gt; HOLDING -&gt; FEEDING automatically</span>
+</code></pre></div>
+<p>If no path exists, or the machine is already transitioning, this does nothing. <code>isRunningPath()</code>,
+<code>getPathTarget()</code>, and <code>getCurrentPath()</code> let you inspect an in-progress path.</p>
+<h2 id="querying-state">Querying state<a class="headerlink" href="#querying-state" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">indexer</span><span class="p">.</span><span class="na">getCurrentState</span><span class="p">();</span><span class="w">      </span><span class="c1">// settled state, or the state being transitioned FROM</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">indexer</span><span class="p">.</span><span class="na">getTargetState</span><span class="p">();</span><span class="w">       </span><span class="c1">// destination of an in-progress transition, or null</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">indexer</span><span class="p">.</span><span class="na">isTransitioning</span><span class="p">();</span><span class="w">      </span><span class="c1">// true while an edge command is running</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">indexer</span><span class="p">.</span><span class="na">isInStates</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">HOLDING</span><span class="p">,</span><span class="w"> </span><span class="n">State</span><span class="p">.</span><span class="na">FEEDING</span><span class="p">);</span><span class="w"> </span><span class="c1">// membership check across several states</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">indexer</span><span class="p">.</span><span class="na">canTransitionTo</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">FEEDING</span><span class="p">);</span><span class="w">           </span><span class="c1">// is there a direct edge from the current state?</span>
+</code></pre></div>
+<h2 id="what-happens-under-the-hood-each-loop">What happens under the hood each loop<a class="headerlink" href="#what-happens-under-the-hood-each-loop" title="Permanent link">&para;</a></h2>
+<p><code>periodic()</code> (called automatically since this is a <code>SubsystemBase</code>) does four things in order:</p>
+<ol>
+<li>If not transitioning, checks the current state's <code>addStateEnd</code> conditions and fires the first one
+   that's both finished and leads to a state the graph allows transitioning to.</li>
+<li>If the current transition command just finished, commits <code>currentState = targetState</code>, schedules
+   the new state's end conditions, and starts/stops its <code>addStateCommand</code> background task.</li>
+<li>If a multi-hop path is in progress, kicks off the next hop.</li>
+<li>Logs <code>Is Transitioning</code>, <code>Current State</code>, <code>Target State</code>, and <code>Path States</code> via <code>NinjasLogger</code>
+   under <code>&lt;subsystem name&gt;/State Machine/...</code>.</li>
+</ol>
+<p>The full transition graph is also printed to the console once at construction (right after
+<code>define()</code> returns), which is a quick way to sanity-check you wired up the edges you meant to.</p>
+<h2 id="the-continuous-mode-pattern-omni-edges-state-commands">The "continuous mode" pattern: omni-edges + state commands<a class="headerlink" href="#the-continuous-mode-pattern-omni-edges-state-commands" title="Permanent link">&para;</a></h2>
+<p>Some states aren't a momentary step on the way somewhere else — they're an ongoing <em>mode</em> that stays
+active until something explicitly switches out of it. Driving is the clearest example: a drivetrain
+is always being driven by exactly one thing (the driver's joysticks, an autonomous path, an
+aim-at-target routine, ...), and whichever one that is should keep running every loop until something
+else takes over. <a href="../getting-started.html#the-shape-of-a-ninjaslib-based-robot"><code>SwerveSubsystem</code> in Getting Started</a>
+is built exactly this way. The graph for it looks like this:</p>
+<pre class="mermaid"><code>stateDiagram-v2
+    DRIVER --&gt; AUTO
+    AUTO --&gt; DRIVER
+    DRIVER --&gt; LOOK_HUB
+    LOOK_HUB --&gt; DRIVER
+    AUTO --&gt; LOOK_HUB
+    LOOK_HUB --&gt; AUTO</code></pre>
+<p>Every state can reach every other state directly — which is exactly what <code>addOmniEdge</code> is for:
+<code>addOmniEdge(LOOK_HUB, ...)</code> adds an edge from every <em>other</em> state into <code>LOOK_HUB</code> in one call, so any
+mode can hand off to any other mode on demand. Pair that with <code>addStateCommand</code>, which supplies the
+behavior that runs continuously for as long as you stay in that mode:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">addOmniEdge</span><span class="p">(</span><span class="n">LOOK_HUB</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Commands</span><span class="p">.</span><span class="na">runOnce</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">SwerveController</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">setChannel</span><span class="p">(</span><span class="s">"Look Hub"</span><span class="p">)));</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">addStateCommand</span><span class="p">(</span><span class="n">LOOK_HUB</span><span class="p">,</span><span class="w"> </span><span class="n">Commands</span><span class="p">.</span><span class="na">run</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="n">SwerveController</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">setControl</span><span class="p">(</span><span class="n">aimAtTarget</span><span class="p">(),</span><span class="w"> </span><span class="s">"Look Hub"</span><span class="p">)</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="p">));</span>
+</code></pre></div>
+<p>The omni-edge is the (usually instant) hand-off into the mode; the state command is the mode itself,
+re-evaluated every loop until something transitions out. This is also why
+<a href="swerve.html#sharing-the-drivetrain-safely-between-commands"><code>SwerveController</code>'s channel gate</a> exists:
+with several state commands all technically capable of calling <code>Swerve.get().drive(...)</code>, the channel
+check is what guarantees only the <em>current</em> state's command actually reaches the motors.</p>
+<h2 id="multiple-state-machines-can-coexist">Multiple state machines can coexist<a class="headerlink" href="#multiple-state-machines-can-coexist" title="Permanent link">&para;</a></h2>
+<p>There's no limit to how many <code>StateMachineBase</code>s a robot has, and they don't need to know about each
+other to work correctly — each one is its own independent <code>SubsystemBase</code>, registered with and ticked
+by the command scheduler on its own. A drivetrain state machine, an intake state machine, and a
+shooting-sequence state machine can all run side by side, each with its own graph, none of them aware
+the others exist:</p>
+<pre class="mermaid"><code>stateDiagram-v2
+    state "Robot" as robot {
+        state "SwerveSubsystem" as swerve {
+            [*] --&gt; DRIVER
+            DRIVER --&gt; LOOK_HUB
+            LOOK_HUB --&gt; DRIVER
+        }
+        --
+        state "ShootSubsystem" as shoot {
+            [*] --&gt; IDLE
+            IDLE --&gt; PREPARE
+            PREPARE --&gt; SHOOTING : swerve reaches LOOK_HUB and is on-target
+            SHOOTING --&gt; IDLE
+        }
+    }</code></pre>
+<p>But they often <em>do</em> want to coordinate — and since a state machine is just a subsystem with a public
+API (<code>changeState</code>, <code>getCurrentState</code>, whatever custom methods you add), one state machine's
+transition command can drive another one exactly like it would call any other subsystem:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">ShootSubsystem</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">StateMachineBase</span><span class="o">&lt;</span><span class="n">ShootSubsystem</span><span class="p">.</span><span class="na">ShootState</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">enum</span><span class="w"> </span><span class="n">ShootState</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">IDLE</span><span class="p">,</span><span class="w"> </span><span class="n">PREPARE</span><span class="p">,</span><span class="w"> </span><span class="n">SHOOTING</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">SwerveSubsystem</span><span class="w"> </span><span class="n">swerve</span><span class="p">;</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">Shooter</span><span class="w"> </span><span class="n">shooter</span><span class="p">;</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="nf">ShootSubsystem</span><span class="p">(</span><span class="n">SwerveSubsystem</span><span class="w"> </span><span class="n">swerve</span><span class="p">,</span><span class="w"> </span><span class="n">Shooter</span><span class="w"> </span><span class="n">shooter</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">        </span><span class="kd">super</span><span class="p">(</span><span class="n">ShootState</span><span class="p">.</span><span class="na">class</span><span class="p">);</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">        </span><span class="n">currentState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ShootState</span><span class="p">.</span><span class="na">IDLE</span><span class="p">;</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">        </span><span class="k">this</span><span class="p">.</span><span class="na">swerve</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">swerve</span><span class="p">;</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">        </span><span class="k">this</span><span class="p">.</span><span class="na">shooter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">shooter</span><span class="p">;</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="w">    </span><span class="nd">@Override</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">    </span><span class="kd">protected</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">define</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="w">        </span><span class="n">addEdge</span><span class="p">(</span><span class="n">ShootState</span><span class="p">.</span><span class="na">IDLE</span><span class="p">,</span><span class="w"> </span><span class="n">ShootState</span><span class="p">.</span><span class="na">PREPARE</span><span class="p">,</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="w">            </span><span class="n">swerve</span><span class="p">.</span><span class="na">changeStateCommand</span><span class="p">(</span><span class="n">SwerveSubsystem</span><span class="p">.</span><span class="na">SwerveState</span><span class="p">.</span><span class="na">LOOK_HUB</span><span class="p">));</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="w">        </span><span class="c1">// Wait for the OTHER state machine to actually reach its target before shooting:</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="w">        </span><span class="n">addStateEnd</span><span class="p">(</span><span class="n">ShootState</span><span class="p">.</span><span class="na">PREPARE</span><span class="p">,</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="w">            </span><span class="p">()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">swerve</span><span class="p">.</span><span class="na">getCurrentState</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">SwerveSubsystem</span><span class="p">.</span><span class="na">SwerveState</span><span class="p">.</span><span class="na">LOOK_HUB</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">swerve</span><span class="p">.</span><span class="na">atGoal</span><span class="p">(),</span>
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="w">            </span><span class="n">ShootState</span><span class="p">.</span><span class="na">SHOOTING</span><span class="p">);</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="w">        </span><span class="n">addStateCommand</span><span class="p">(</span><span class="n">ShootState</span><span class="p">.</span><span class="na">SHOOTING</span><span class="p">,</span><span class="w"> </span><span class="n">shooter</span><span class="p">.</span><span class="na">runCmd</span><span class="p">());</span>
+<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="w">        </span><span class="n">addOmniEdge</span><span class="p">(</span><span class="n">ShootState</span><span class="p">.</span><span class="na">IDLE</span><span class="p">,</span><span class="w"> </span><span class="n">shooter</span><span class="p">::</span><span class="n">stopCmd</span><span class="p">);</span>
+<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a><span class="p">}</span>
+</code></pre></div>
+<p><code>ShootSubsystem</code> never touches <code>Swerve</code> or <code>SwerveController</code> directly — it only calls
+<code>SwerveSubsystem</code>'s own public methods, the same way any other piece of code would. This is the same
+principle as any other subsystem dependency: pass the sibling in (here, through the constructor)
+and call its public API.</p>
+<div class="admonition note">
+<p class="admonition-title">Construction order matters</p>
+<p><code>define()</code> runs <em>during</em> <code>super(StateEnum.class)</code>, i.e. before the rest of your constructor body
+executes. If <code>define()</code> reaches for a sibling subsystem — through a constructor parameter as
+above, or a static getter like <code>RobotContainer.getSwerve()</code> — that sibling must already exist by
+the time this state machine is constructed. In practice this just means: build state machines
+that depend on other subsystems <em>after</em> those subsystems, in <code>RobotContainer</code>.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.top", "navigation.tracking", "content.code.copy", "content.code.annotate", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

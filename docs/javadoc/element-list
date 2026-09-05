@@ -1,0 +1,13 @@
+frc.lib.NinjasLib.commands
+frc.lib.NinjasLib.controllers
+frc.lib.NinjasLib.controllers.constants
+frc.lib.NinjasLib.localization
+frc.lib.NinjasLib.localization.vision
+frc.lib.NinjasLib.loggedcontroller
+frc.lib.NinjasLib.loggeddigitalinput
+frc.lib.NinjasLib.statemachine
+frc.lib.NinjasLib.swerve
+frc.lib.NinjasLib.swerve.constants
+frc.lib.NinjasLib.swerve.gyro
+frc.lib.NinjasLib.swerve.module
+frc.lib.NinjasLib.util

@@ -1,0 +1,1243 @@
+
+<!doctype html>
+<html lang="he" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Guides and manuals for NinjasLib, Team 4744's shared FRC library.">
+      
+      
+      
+        <link rel="canonical" href="https://ninjas4744-organization.github.io/NinjasLib/he/guides/state-machine.html">
+      
+      
+        <link rel="prev" href="controllers.html">
+      
+      
+        <link rel="next" href="localization.html">
+      
+      
+        
+          <link rel="alternate" href="../../guides/state-machine.html" hreflang="en">
+        
+          <link rel="alternate" href="state-machine.html" hreflang="he">
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>מכונות מצבים - NinjasLib</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="rtl" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#_1" class="md-skip">
+          לדלג לתוכן
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="כותרת עליונה">
+    <a href="../index.html" title="NinjasLib" class="md-header__button md-logo" aria-label="NinjasLib" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            NinjasLib
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              מכונות מצבים
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="בחירת שפה">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../guides/state-machine.html" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="state-machine.html" hreflang="he" class="md-select__link">
+              עברית
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="חיפוש" placeholder="חיפוש" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="חיפוש">
+        
+        <button type="reset" class="md-search__icon md-icon" title="ניקוי" aria-label="ניקוי" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            אתחול חיפוש
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/Ninjas4744-Organization/NinjasLib" title="לעבור אל המאגר" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    NinjasLib
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="לשוניות" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  בית
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../getting-started.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  איך מתחילים
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="swerve.html" class="md-tabs__link">
+          
+  
+  
+  מדריכים
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../javadoc/index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Javadoc
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="ניווט" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="NinjasLib" class="md-nav__button md-logo" aria-label="NinjasLib" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    NinjasLib
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/Ninjas4744-Organization/NinjasLib" title="לעבור אל המאגר" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    NinjasLib
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    בית
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    איך מתחילים
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    מדריכים
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    מדריכים
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="swerve.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    שילדת סוורב
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="controllers.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    בקרי מנועים
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    מכונות מצבים
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="state-machine.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    מכונות מצבים
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="תוכן העניינים">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      תוכן העניינים
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        מה זו מכונת מצבים, ולמה בכלל
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        הגדרת מכונת מצבים
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        הפעלת מעברים
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        מסלולים מרובי-שלבים
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        שאילתת מצב
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        מה קורה מתחת למכסה בכל לולאה
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#omni-edges-state-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        דפוס "המצב הרציף": omni-edges + state commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        מכונות מצבים מרובות יכולות להתקיים יחד
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="localization.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    מיקום וראייה ממוחשבת
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="logged-controller.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    שלט (LoggedCommandController)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="logged-digital-input.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    כניסה דיגיטלית מתועדת
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="commands.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    פקודות
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="utilities.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    כלי עזר
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../javadoc/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Javadoc
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="תוכן העניינים">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      תוכן העניינים
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        מה זו מכונת מצבים, ולמה בכלל
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        הגדרת מכונת מצבים
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        הפעלת מעברים
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        מסלולים מרובי-שלבים
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        שאילתת מצב
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        מה קורה מתחת למכסה בכל לולאה
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#omni-edges-state-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        דפוס "המצב הרציף": omni-edges + state commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        מכונות מצבים מרובות יכולות להתקיים יחד
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="_1">מכונות מצבים<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<h2 id="_2">מה זו מכונת מצבים, ולמה בכלל<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>רוב תת-המערכות, אם מתארים אותן בכנות, הן מספר קטן של <em>מצבים</em> מובחנים, בתוספת ה<em>אירועים</em> שעוברים
+בינם: קולט הוא idle, או intaking, או מחזיק חלק; שילדת הינע נשלטת על ידי הנהג, או עוקבת אחר מסלול
+אוטונומי, או מכוונת למטרה. כתוב כקוד רגיל, זה בדרך כלל מתגלגל לפיזור של בוליאנים ותנאי <code>if</code> -
+<code>isIntaking</code>, <code>hasPiece</code>, <code>wasIntakingLastLoop</code> - שנבדקים בשילובים קצת שונים במקומות שונים, עד
+שקשה באמת לדעת באילו מצבים תת-המערכת בכלל יכולה להיות, או מה אמור לקרות כשעוברים בין שניים מהם.</p>
+<p><strong>מכונת מצבים</strong> הופכת את המבנה הזה למפורש במקום מרומז. מציירים אותו כגרף:</p>
+<pre class="mermaid"><code>stateDiagram-v2
+    [*] --&gt; IDLE
+    IDLE --&gt; INTAKING
+    INTAKING --&gt; HOLDING: beam break triggers
+    HOLDING --&gt; FEEDING
+    INTAKING --&gt; IDLE
+    HOLDING --&gt; IDLE
+    FEEDING --&gt; IDLE</code></pre>
+<p>כל תיבה היא מצב שתת-המערכת יכולה להתייצב בו; כל חץ הוא <em>מעבר</em> - משהו שרץ בזמן המעבר ממצב אחד לשני.
+הכללים כותבים את עצמם ברגע שהגרף קיים: תת-המערכת נמצאת בדיוק במצב אחד בכל רגע, והיא יכולה להגיע
+למצב אחר רק על ידי חץ שבאמת מצויר. אין דבר כזה מעבר לא תקין לשמור עליו בקוד, כיוון שקשת שאף פעם
+לא נוספה פשוט לא היא דרך להגיע לשם.</p>
+<p><code>StateMachineBase&lt;StateEnum&gt;</code> הוא המימוש של NinjasLib לרעיון הזה: enum מפרט את כל המצבים (קודקודי
+הגרף), ואתם מחברים <code>Command</code>ים ביניהם (קשתות הגרף) בתוך <code>define()</code>. היא נגזרת מ-<code>SubsystemBase</code>, כך
+שברגע שהיא נבנית, ה-<code>periodic()</code> שלה רץ אוטומטית בכל לולאה דרך מתזמן הפקודות הרגיל - מקדם מעברים,
+מפעיל תנאי סיום, ומריץ משימות רקע לפי מצב, כל אלה מתוארים בהמשך.</p>
+<p>להשתמש במכונת מצבים כל פעם שההתנהגות של תת-מערכת היא באופן טבעי "במצב X, עושה Y, עד ש-Z קורה",
+וכשרוצים שהמעברים התקינים - ומה שקורה בזמנם - יהיו הגדרה אחת מפורשת וקריאה במקום מצב מפוזר על
+פני בוליאנים.</p>
+<h2 id="_3">הגדרת מכונת מצבים<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>יורשים מ-<code>StateMachineBase</code>, נותנים לה enum, ובונים את הגרף בתוך <code>define()</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">Indexer</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">StateMachineBase</span><span class="o">&lt;</span><span class="n">Indexer</span><span class="p">.</span><span class="na">State</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">enum</span><span class="w"> </span><span class="n">State</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">IDLE</span><span class="p">,</span><span class="w"> </span><span class="n">INTAKING</span><span class="p">,</span><span class="w"> </span><span class="n">HOLDING</span><span class="p">,</span><span class="w"> </span><span class="n">FEEDING</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="nf">Indexer</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">        </span><span class="kd">super</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">class</span><span class="p">);</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="nd">@Override</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="kd">protected</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">define</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">        </span><span class="c1">// פקודות מעבר A -&gt; B. הן לא צריכות לשנות את currentState בעצמן;</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">        </span><span class="c1">// מכונת המצבים מקדמת את המצב בעצמה כשהפקודה מסתיימת.</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">        </span><span class="n">addEdge</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">IDLE</span><span class="p">,</span><span class="w"> </span><span class="n">State</span><span class="p">.</span><span class="na">INTAKING</span><span class="p">,</span><span class="w"> </span><span class="n">Commands</span><span class="p">.</span><span class="na">runOnce</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">motor</span><span class="p">.</span><span class="na">setPercent</span><span class="p">(</span><span class="mf">0.6</span><span class="p">)));</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">        </span><span class="n">addEdge</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">INTAKING</span><span class="p">,</span><span class="w"> </span><span class="n">State</span><span class="p">.</span><span class="na">HOLDING</span><span class="p">,</span><span class="w"> </span><span class="n">Commands</span><span class="p">.</span><span class="na">runOnce</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">motor</span><span class="p">.</span><span class="na">setPercent</span><span class="p">(</span><span class="mi">0</span><span class="p">)));</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">        </span><span class="n">addEdge</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">HOLDING</span><span class="p">,</span><span class="w"> </span><span class="n">State</span><span class="p">.</span><span class="na">FEEDING</span><span class="p">,</span><span class="w"> </span><span class="n">Commands</span><span class="p">.</span><span class="na">runOnce</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">motor</span><span class="p">.</span><span class="na">setPercent</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)));</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">        </span><span class="c1">// מכל מצב, לכפות חזרה ל-IDLE:</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">        </span><span class="n">addOmniEdge</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">IDLE</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Commands</span><span class="p">.</span><span class="na">runOnce</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">motor</span><span class="p">.</span><span class="na">setPercent</span><span class="p">(</span><span class="mi">0</span><span class="p">)));</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">        </span><span class="c1">// מעבר אוטומטי כשתנאי הופך לאמת, בלי צריך לקרוא ל-changeState() בעצמכם:</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">        </span><span class="n">addStateEnd</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">INTAKING</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">beamBreak</span><span class="p">.</span><span class="na">get</span><span class="p">(),</span><span class="w"> </span><span class="n">State</span><span class="p">.</span><span class="na">HOLDING</span><span class="p">);</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">        </span><span class="c1">// פקודה שממשיכה לרוץ כל עוד מכונת המצבים נשארת ב-HOLDING:</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">        </span><span class="n">addStateCommand</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">HOLDING</span><span class="p">,</span><span class="w"> </span><span class="n">Commands</span><span class="p">.</span><span class="na">run</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">motor</span><span class="p">.</span><span class="na">setPercent</span><span class="p">(</span><span class="mf">0.05</span><span class="p">)));</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="p">}</span>
+</code></pre></div>
+<ul>
+<li><strong><code>addEdge(start, end, command)</code></strong> מוסיף מעבר אחד. הפקודה מייצגת <em>מה קורה בזמן המעבר</em> - היא לא
+  צריכה (ולא כדאי) לשנות את <code>currentState</code> בעצמה. יש overloads שמקבלים רשימות של מצבי start/end
+  להוספת הרבה קשתות בבת אחת, ו-<code>addOmniEdge(end, ...)</code> מחבר כל מצב אחר ליעד אחד (שימושי למעבר
+  אוניברסלי של "בטל"/"אחסן").</li>
+<li><strong><code>addStateEnd(state, condition, nextState)</code></strong> מפעיל מעבר אוטומטית כש-<code>condition</code> הופך לאמת
+  בזמן שנמצאים ב-<code>state</code> - בלי צריך קריאה מפורשת ל-<code>changeState</code>. התנאי יכול להיות <code>BooleanSupplier</code>,
+  <code>Time</code> (חכה כך וכך זמן), או <code>StateEndCommand</code> (חכה לרצף של פקודות חכייה בלבד). <strong>תנאי הסיום מוכרח
+  לייצג המתנה לאירוע בלבד - הוא לא צריך להריץ לוגיקה אמיתית של תת-המערכת</strong>, כיוון שהוא עלול
+  להיבדק/להתבטל מחוץ למחזור החיים הרגיל של המעבר.</li>
+<li><strong><code>addStateCommand(state, command)</code></strong> מריצה את <code>command</code> כל עוד המכונה מיושבת ב-<code>state</code> (מתחילה
+  ברגע שהמעבר הנכנס מסתיים, נעצרת ברגע שמעבר חדש מתחיל). שימושי להחזקת זרם נמוך ברקע, נורית סטטוס,
+  או התנהגות דומה של "כל עוד במצב הזה".</li>
+</ul>
+<h2 id="_4">הפעלת מעברים<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">indexer</span><span class="p">.</span><span class="na">changeState</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">INTAKING</span><span class="p">);</span><span class="w">       </span><span class="c1">// no-op אם כבר עוברים למצב אחר</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">indexer</span><span class="p">.</span><span class="na">changeStateForce</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">HOLDING</span><span class="p">);</span><span class="w">   </span><span class="c1">// מנתב מחדש אפילו באמצע מעבר, ליעד החדש</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">indexer</span><span class="p">.</span><span class="na">forceState</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">IDLE</span><span class="p">);</span><span class="w">            </span><span class="c1">// דילוג ישיר, בלי להריץ פקודת מעבר</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1">// כ-Command, לקישור לטריגר:</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">controller</span><span class="p">.</span><span class="na">a</span><span class="p">().</span><span class="na">onTrue</span><span class="p">(</span><span class="n">indexer</span><span class="p">.</span><span class="na">changeStateCommand</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">INTAKING</span><span class="p">));</span>
+</code></pre></div>
+<ul>
+<li><strong><code>changeState</code></strong> משפיע רק אם יש קשת ישירה מהמצב <em>הנוכחי</em> והמכונה לא כבר באמצע מעבר.</li>
+<li><strong><code>changeStateForce</code></strong> עובד גם באמצע מעבר, ומנתב מחדש מהמצב <em>היעד</em> הנוכחי במקום - להשתמש בזה
+  כשבקשה חדשה יותר צריכה לעקוף אחת שכבר בדרך.</li>
+<li><strong><code>forceState</code></strong> מדלג על הגרף לחלוטין: הוא מבטל את הקשת הנוכחית ואת פקודות סיום המצב, וקופץ ישר
+  למצב הנתון בלי להריץ פקודת מעבר. להשתמש בזה לאתחול או לאיפוס חירום, לא לזרימה רגילה.</li>
+</ul>
+<h2 id="-">מסלולים מרובי-שלבים<a class="headerlink" href="#-" title="Permanent link">&para;</a></h2>
+<p><code>runStatesPath(target)</code> מוצא את המסלול הקצר ביותר (BFS) מהמצב הנוכחי ל-<code>target</code> דרך הקשתות
+המוגדרות, ואז מפעיל אוטומטית כל מעבר בתורו כשהקודם מסתיים:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">indexer</span><span class="p">.</span><span class="na">runStatesPath</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">FEEDING</span><span class="p">);</span><span class="w"> </span><span class="c1">// עובר IDLE -&gt; INTAKING -&gt; HOLDING -&gt; FEEDING אוטומטית</span>
+</code></pre></div>
+<p>אם אין מסלול, או שהמכונה כבר באמצע מעבר, זה לא עושה כלום. <code>isRunningPath()</code>, <code>getPathTarget()</code>,
+ו-<code>getCurrentPath()</code> מאפשרים לבדוק מסלול שבתהליך.</p>
+<h2 id="_5">שאילתת מצב<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">indexer</span><span class="p">.</span><span class="na">getCurrentState</span><span class="p">();</span><span class="w">      </span><span class="c1">// מצב מיושב, או המצב שעוברים ממנו</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">indexer</span><span class="p">.</span><span class="na">getTargetState</span><span class="p">();</span><span class="w">       </span><span class="c1">// יעד של מעבר בתהליך, או null</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">indexer</span><span class="p">.</span><span class="na">isTransitioning</span><span class="p">();</span><span class="w">      </span><span class="c1">// true כל עוד פקודת קשת רצה</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">indexer</span><span class="p">.</span><span class="na">isInStates</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">HOLDING</span><span class="p">,</span><span class="w"> </span><span class="n">State</span><span class="p">.</span><span class="na">FEEDING</span><span class="p">);</span><span class="w"> </span><span class="c1">// בדיקת שייכות לכמה מצבים</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">indexer</span><span class="p">.</span><span class="na">canTransitionTo</span><span class="p">(</span><span class="n">State</span><span class="p">.</span><span class="na">FEEDING</span><span class="p">);</span><span class="w">           </span><span class="c1">// יש קשת ישירה מהמצב הנוכחי?</span>
+</code></pre></div>
+<h2 id="_6">מה קורה מתחת למכסה בכל לולאה<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<p><code>periodic()</code> (שנקרא אוטומטית כיוון שזו <code>SubsystemBase</code>) עושה ארבע פעולות בסדר הזה:</p>
+<ol>
+<li>אם לא באמצע מעבר, בודק את תנאי <code>addStateEnd</code> של המצב הנוכחי, ומפעיל את הראשון שגם הסתיים וגם
+   מוביל למצב שהגרף מתיר מעבר אליו.</li>
+<li>אם פקודת המעבר הנוכחית בדיוק הסתיימה, מקבע <code>currentState = targetState</code>, מתזמן את תנאי הסיום
+   של המצב החדש, ומתחיל/מפסיק את משימת הרקע (<code>addStateCommand</code>) שלו.</li>
+<li>אם מסלול מרובה-שלבים בתהליך, מפעיל את השלב הבא.</li>
+<li>מתעד <code>Is Transitioning</code>, <code>Current State</code>, <code>Target State</code>, ו-<code>Path States</code> דרך <code>NinjasLogger</code>
+   תחת <code>&lt;שם תת-המערכת&gt;/State Machine/...</code>.</li>
+</ol>
+<p>גרף המעברים המלא גם נדפס לקונסולה פעם אחת בבנייה (ממש אחרי ש-<code>define()</code> מסתיים), מה שהוא דרך
+מהירה לבדוק שחיברתם את הקשתות שהתכוונתם.</p>
+<h2 id="omni-edges-state-commands">דפוס "המצב הרציף": omni-edges + state commands<a class="headerlink" href="#omni-edges-state-commands" title="Permanent link">&para;</a></h2>
+<p>חלק מהמצבים הם לא שלב רגעי בדרך למקום אחר - הם <em>מצב</em> מתמשך שנשאר פעיל עד שמשהו במפורש עובר ממנו.
+נהיגה היא הדוגמה הברורה ביותר: שילדת הינע תמיד נשלטת בדיוק על ידי דבר אחד (הג'ויסטיקים של הנהג,
+מסלול אוטונומי, שגרת כיוון-למטרה, ...), ומה שזה יהיה צריך להמשיך לרוץ בכל לולאה עד שדבר אחר משתלט.
+<a href="../getting-started.html"><code>SwerveSubsystem</code> באיך מתחילים</a> נבנית
+בדיוק כך. הגרף שלה נראה כך:</p>
+<pre class="mermaid"><code>stateDiagram-v2
+    DRIVER --&gt; AUTO
+    AUTO --&gt; DRIVER
+    DRIVER --&gt; LOOK_HUB
+    LOOK_HUB --&gt; DRIVER
+    AUTO --&gt; LOOK_HUB
+    LOOK_HUB --&gt; AUTO</code></pre>
+<p>כל מצב יכול להגיע לכל מצב אחר ישירות - שזה בדיוק מה ש-<code>addOmniEdge</code> בשבילו: <code>addOmniEdge(LOOK_HUB,
+...)</code> מוסיף קשת מכל מצב <em>אחר</em> לתוך <code>LOOK_HUB</code> בקריאה אחת, כך שכל מצב יכול להעביר שליטה לכל מצב
+אחר על פי דרישה. משלבים את זה עם <code>addStateCommand</code>, שמספקת את ההתנהגות שרצה ברציפות כל עוד נשארים
+במצב הזה:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">addOmniEdge</span><span class="p">(</span><span class="n">LOOK_HUB</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Commands</span><span class="p">.</span><span class="na">runOnce</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">SwerveController</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">setChannel</span><span class="p">(</span><span class="s">"Look Hub"</span><span class="p">)));</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">addStateCommand</span><span class="p">(</span><span class="n">LOOK_HUB</span><span class="p">,</span><span class="w"> </span><span class="n">Commands</span><span class="p">.</span><span class="na">run</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="n">SwerveController</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">setControl</span><span class="p">(</span><span class="n">aimAtTarget</span><span class="p">(),</span><span class="w"> </span><span class="s">"Look Hub"</span><span class="p">)</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="p">));</span>
+</code></pre></div>
+<p>ה-omni-edge הוא ההעברה (בדרך כלל מיידית) לתוך המצב; ה-state command הוא המצב עצמו, מוערך מחדש בכל
+לולאה עד שמשהו עובר ממנו. זאת גם הסיבה ש<a href="swerve.html">שער הערוץ של <code>SwerveController</code></a> קיים: כשכמה state commands יכולים טכנית כולם לקרוא ל-<code>Swerve.get().drive(...)</code>, בדיקת הערוץ היא
+מה שמבטיח שרק ה-command של המצב <em>הנוכחי</em> מגיע בפועל למנועים.</p>
+<h2 id="_7">מכונות מצבים מרובות יכולות להתקיים יחד<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<p>אין הגבלה על כמה <code>StateMachineBase</code> יש לרובוט, והן לא צריכות לדעת אחת על השנייה כדי לעבוד נכון -
+כל אחת היא <code>SubsystemBase</code> עצמאית משלה, רשומה ומופעלת על ידי מתזמן הפקודות בעצמה. מכונת מצבים של
+הינע, מכונת מצבים של קולט, ומכונת מצבים של רצף ירי יכולות כולן לרוץ זו לצד זו, כל אחת עם הגרף שלה,
+בלי שאף אחת מהן מודעת לקיום האחרות:</p>
+<pre class="mermaid"><code>stateDiagram-v2
+    state "Robot" as robot {
+        state "SwerveSubsystem" as swerve {
+            [*] --&gt; DRIVER
+            DRIVER --&gt; LOOK_HUB
+            LOOK_HUB --&gt; DRIVER
+        }
+        --
+        state "ShootSubsystem" as shoot {
+            [*] --&gt; IDLE
+            IDLE --&gt; PREPARE
+            PREPARE --&gt; SHOOTING : swerve reaches LOOK_HUB and is on-target
+            SHOOTING --&gt; IDLE
+        }
+    }</code></pre>
+<p>אבל לפעמים הן <em>כן</em> רוצות לתקשר - וכיוון שמכונת מצבים היא בסך הכול תת-מערכת עם API ציבורי
+(<code>changeState</code>, <code>getCurrentState</code>, כל שיטה מותאמת אישית שמוסיפים), פקודת מעבר של מכונת מצבים אחת
+יכולה להפעיל מכונה אחרת בדיוק כמו שהיא הייתה קוראת לכל תת-מערכת אחרת:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">ShootSubsystem</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">StateMachineBase</span><span class="o">&lt;</span><span class="n">ShootSubsystem</span><span class="p">.</span><span class="na">ShootState</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">enum</span><span class="w"> </span><span class="n">ShootState</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">IDLE</span><span class="p">,</span><span class="w"> </span><span class="n">PREPARE</span><span class="p">,</span><span class="w"> </span><span class="n">SHOOTING</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">SwerveSubsystem</span><span class="w"> </span><span class="n">swerve</span><span class="p">;</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">Shooter</span><span class="w"> </span><span class="n">shooter</span><span class="p">;</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="nf">ShootSubsystem</span><span class="p">(</span><span class="n">SwerveSubsystem</span><span class="w"> </span><span class="n">swerve</span><span class="p">,</span><span class="w"> </span><span class="n">Shooter</span><span class="w"> </span><span class="n">shooter</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">        </span><span class="kd">super</span><span class="p">(</span><span class="n">ShootState</span><span class="p">.</span><span class="na">class</span><span class="p">);</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">        </span><span class="n">currentState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ShootState</span><span class="p">.</span><span class="na">IDLE</span><span class="p">;</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">        </span><span class="k">this</span><span class="p">.</span><span class="na">swerve</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">swerve</span><span class="p">;</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">        </span><span class="k">this</span><span class="p">.</span><span class="na">shooter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">shooter</span><span class="p">;</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="w">    </span><span class="nd">@Override</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">    </span><span class="kd">protected</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">define</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="w">        </span><span class="n">addEdge</span><span class="p">(</span><span class="n">ShootState</span><span class="p">.</span><span class="na">IDLE</span><span class="p">,</span><span class="w"> </span><span class="n">ShootState</span><span class="p">.</span><span class="na">PREPARE</span><span class="p">,</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="w">            </span><span class="n">swerve</span><span class="p">.</span><span class="na">changeStateCommand</span><span class="p">(</span><span class="n">SwerveSubsystem</span><span class="p">.</span><span class="na">SwerveState</span><span class="p">.</span><span class="na">LOOK_HUB</span><span class="p">));</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="w">        </span><span class="c1">// מחכה שהמכונה האחרת בפועל תגיע ליעד שלה לפני שיורים:</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="w">        </span><span class="n">addStateEnd</span><span class="p">(</span><span class="n">ShootState</span><span class="p">.</span><span class="na">PREPARE</span><span class="p">,</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="w">            </span><span class="p">()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">swerve</span><span class="p">.</span><span class="na">getCurrentState</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">SwerveSubsystem</span><span class="p">.</span><span class="na">SwerveState</span><span class="p">.</span><span class="na">LOOK_HUB</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">swerve</span><span class="p">.</span><span class="na">atGoal</span><span class="p">(),</span>
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="w">            </span><span class="n">ShootState</span><span class="p">.</span><span class="na">SHOOTING</span><span class="p">);</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="w">        </span><span class="n">addStateCommand</span><span class="p">(</span><span class="n">ShootState</span><span class="p">.</span><span class="na">SHOOTING</span><span class="p">,</span><span class="w"> </span><span class="n">shooter</span><span class="p">.</span><span class="na">runCmd</span><span class="p">());</span>
+<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="w">        </span><span class="n">addOmniEdge</span><span class="p">(</span><span class="n">ShootState</span><span class="p">.</span><span class="na">IDLE</span><span class="p">,</span><span class="w"> </span><span class="n">shooter</span><span class="p">::</span><span class="n">stopCmd</span><span class="p">);</span>
+<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a><span class="p">}</span>
+</code></pre></div>
+<p><code>ShootSubsystem</code> אף פעם לא נוגע ב-<code>Swerve</code> או ב-<code>SwerveController</code> ישירות - היא קוראת רק לשיטות
+הציבוריות של <code>SwerveSubsystem</code> עצמה, בדיוק כמו שכל קוד אחר היה עושה. זה אותו עיקרון כמו כל תלות
+אחרת בין תת-מערכות: מעבירים את האחות (כאן, דרך הבנאי) וקוראים ל-API הציבורי שלה.</p>
+<div class="admonition note">
+<p class="admonition-title">סדר הבנייה משנה</p>
+<p><code>define()</code> רץ <em>בזמן</em> <code>super(StateEnum.class)</code>, כלומר לפני ששאר גוף הבנאי שלכם רץ. אם <code>define()</code>
+מגיע לתת-מערכת אחות - דרך פרמטר בנאי כמו למעלה, או getter סטטי כמו <code>RobotContainer.getSwerve()</code>
+- האחות הזאת חייבת כבר להתקיים ברגע שמכונת המצבים הזאת נבנית. בפועל זה אומר: לבנות מכונות
+מצבים שתלויות בתת-מערכות אחרות <em>אחרי</em> אותן תת-מערכות, ב-<code>RobotContainer</code>.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  חזרה למעלה
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.top", "navigation.tracking", "content.code.copy", "content.code.annotate", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u05d4\u05d5\u05e2\u05ea\u05e7 \u05dc\u05dc\u05d5\u05d7", "clipboard.copy": "\u05d4\u05e2\u05ea\u05e7\u05d4 \u05dc\u05dc\u05d5\u05d7", "search.result.more.one": "\u05e2\u05d5\u05d3 \u05d0\u05d7\u05d3 \u05d1\u05d3\u05e3 \u05d4\u05d6\u05d4", "search.result.more.other": "\u05e2\u05d5\u05d3 # \u05d1\u05d3\u05e3 \u05d4\u05d6\u05d4", "search.result.none": "\u05d0\u05d9\u05df \u05de\u05e1\u05de\u05db\u05d9\u05dd \u05ea\u05d5\u05d0\u05de\u05d9\u05dd", "search.result.one": "\u05de\u05e1\u05de\u05da1 \u05ea\u05d5\u05d0\u05dd", "search.result.other": "# \u05de\u05e1\u05de\u05da \u05ea\u05d5\u05d0\u05dd", "search.result.placeholder": "\u05d9\u05e9 \u05dc\u05d4\u05e7\u05dc\u05d9\u05d3 \u05db\u05d3\u05d9 \u05dc\u05d4\u05ea\u05d7\u05d9\u05dc \u05dc\u05d7\u05e4\u05e9", "search.result.term.missing": "\u05d7\u05e1\u05e8", "select.version": "\u05d1\u05d7\u05d9\u05e8\u05ea \u05d2\u05e8\u05e1\u05d4"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
