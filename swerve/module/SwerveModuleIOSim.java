@@ -13,7 +13,13 @@ import org.ironmaple.simulation.motorsims.SimulatedMotorController;
 
 import static edu.wpi.first.units.Units.*;
 
+/**
+ * {@link SwerveModuleIO} implementation for a simulated swerve module, backed by an ironmaple
+ * {@link SwerveModuleSimulation} and driven by its own drive/steer {@link PIDController}s instead of
+ * real motor controllers.
+ */
 public class SwerveModuleIOSim implements SwerveModuleIO {
+    /** Index of this module within the swerve drive. */
     public final int moduleNumber;
 
     private final SwerveModuleSimulation simulationModule;
@@ -28,10 +34,20 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
     private SwerveModuleState desiredState = new SwerveModuleState();
     private boolean isOpenLoop;
     private boolean preventJittering;
+    private double jitterPreventionPercent;
 
+    /**
+     * Builds this module's simulated drive/steer PID controllers from the drive and steer motor PID
+     * gains configured in {@code swerveConstants}.
+     *
+     * @param swerveConstants the shared swerve constants (motor PID gains, max speed, etc.)
+     * @param constants this module's specific number/IDs (only {@code moduleNumber} is used here)
+     * @param simulationModule the ironmaple module simulation backing this module's physics
+     */
     public SwerveModuleIOSim(SwerveConstants swerveConstants, SwerveModuleConstants constants, SwerveModuleSimulation simulationModule) {
         moduleNumber = constants.moduleNumber;
-        maxModuleSpeed = swerveConstants.limits.maxSpeed;
+        maxModuleSpeed = swerveConstants.speeds.maxSpeed;
+        jitterPreventionPercent = swerveConstants.modules.jitterPreventionPercent;
 
         this.simulationModule = simulationModule;
 
@@ -47,6 +63,12 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
         lastAngle = simulationModule.getCurrentState().angle;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Also caches {@code isOpenLoop}/{@code preventJittering} and re-applies the same PID-computed
+     * voltages from {@link #periodic()} on every subsequent cycle until the next call.
+     */
     @Override
     public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop, boolean preventJittering) {
         desiredState = SwerveUtils.optimizeModuleState(desiredState, simulationModule.getCurrentState().angle);
@@ -64,7 +86,7 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
         Rotation2d angle = desiredState.angle;
         if (preventJittering) {
             // Prevent rotating module if speed is less than 1%. Prevents jittering.
-            angle = (Math.abs(desiredState.speedMetersPerSecond) <= (maxModuleSpeed * 0.01)) ? lastAngle : desiredState.angle;
+            angle = (Math.abs(desiredState.speedMetersPerSecond) <= (maxModuleSpeed * jitterPreventionPercent)) ? lastAngle : desiredState.angle;
         }
         //Prevent jumping from -180 to 180
         double errorBound = (Math.PI - -Math.PI) / 2.0;
@@ -75,15 +97,27 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
         lastAngle = angle;
     }
 
-    @Override
-    public void updateInputs(SwerveModuleIOInputsAutoLogged inputs) {
-        inputs.ModuleNumber = moduleNumber;
-        inputs.State = simulationModule.getCurrentState();
-        inputs.DesiredState = desiredState;
-        inputs.Position = new SwerveModulePosition(simulationModule.getDriveWheelFinalPosition().in(Radians) * simulationModule.config.WHEEL_RADIUS.in(Meters), inputs.State.angle);
-        inputs.AbsolutePosition = Rotation2d.kZero;
+    /** {@inheritDoc} The absolute position field is always {@link Rotation2d#kZero}, since there is no simulated absolute encoder. */
+    public SwerveModuleIOInputs update() {
+        SwerveModuleIOInputs inputs = new SwerveModuleIOInputs();
+
+        inputs.moduleNumber = moduleNumber;
+        inputs.state = simulationModule.getCurrentState();
+        inputs.desiredState = desiredState;
+        inputs.position = new SwerveModulePosition(simulationModule.getDriveWheelFinalPosition().in(Radians) * simulationModule.config.WHEEL_RADIUS.in(Meters), inputs.state.angle);
+        inputs.absolutePosition = Rotation2d.kZero;
+
+        return inputs;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Since the simulated motors don't hold a commanded voltage between calls the way real motor
+     * controllers do, this re-runs the same drive/steer PID and jitter-prevention logic as
+     * {@link #setDesiredState} against the last desired state, so the module keeps being driven
+     * towards it every cycle.
+     */
     @Override
     public void periodic() {
         //Drive
@@ -96,7 +130,7 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
         Rotation2d angle = desiredState.angle;
         if (preventJittering) {
             // Prevent rotating module if speed is less than 1%. Prevents jittering.
-            angle = (Math.abs(desiredState.speedMetersPerSecond) <= (maxModuleSpeed * 0.01)) ? lastAngle : desiredState.angle;
+            angle = (Math.abs(desiredState.speedMetersPerSecond) <= (maxModuleSpeed * jitterPreventionPercent)) ? lastAngle : desiredState.angle;
         }
         //Prevent jumping from -180 to 180
         double errorBound = (Math.PI - -Math.PI) / 2.0;

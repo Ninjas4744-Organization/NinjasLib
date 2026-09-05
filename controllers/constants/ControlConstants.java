@@ -4,11 +4,20 @@ import com.ctre.phoenix6.signals.GravityTypeValue;
 
 /** Proportional Integral Derivative Feedforward, constants for combining PID and Feedforward */
 public class ControlConstants implements Cloneable {
-    public enum SmartControlType {
+    /**
+     * Which closed-loop control scheme a {@link Controller} should use, determining which
+     * onboard/software control mode {@code setPosition}/{@code setVelocity} dispatch to.
+     */
+    public enum ControlType {
+		/** Plain PID(F) control, running each loop with no motion profiling. */
 		PIDF,
+		/** PID(F) control wrapped in a trapezoid motion profile (Motion Magic-style). */
 		PROFILED_PIDF,
+		/** Open-loop trapezoid motion profile, with no PID feedback correction. */
 		PROFILE,
+		/** Torque-current (FOC) closed-loop control; only supported on TalonFX. */
 		TORQUE_CURRENT,
+		/** No control configured. */
 		NONE
 	}
 
@@ -75,11 +84,21 @@ public class ControlConstants implements Cloneable {
 	/** the rate of acceleration change in the profile */
     public double jerk = 0;
 
-	public SmartControlType type = SmartControlType.NONE;
+	/** Which control scheme these constants apply to; set automatically by the {@code createXxx} factory methods below. */
+	public ControlType type = ControlType.NONE;
 
+	/**
+	 * Builds plain PID constants (control type {@link ControlType#PIDF}, no feedforward terms).
+	 *
+	 * @param P     proportional gain
+	 * @param I     integral gain
+	 * @param D     derivative gain
+	 * @param IZone error zone below which the integral term is active
+	 * @return the new {@link ControlConstants}
+	 */
 	public static ControlConstants createPID(double P, double I, double D, double IZone) {
 		ControlConstants constants = new ControlConstants();
-		constants.type = SmartControlType.PIDF;
+		constants.type = ControlType.PIDF;
 		constants.P = P;
 		constants.I = I;
 		constants.D = D;
@@ -87,9 +106,23 @@ public class ControlConstants implements Cloneable {
 		return constants;
 	}
 
+	/**
+	 * Builds PID constants with feedforward terms (control type {@link ControlType#PIDF}).
+	 *
+	 * @param P           proportional gain
+	 * @param I           integral gain
+	 * @param D           derivative gain
+	 * @param IZone       error zone below which the integral term is active
+	 * @param V           velocity feedforward
+	 * @param A           acceleration feedforward
+	 * @param S           static-friction feedforward
+	 * @param G           gravity feedforward
+	 * @param gravityType whether gravity compensation should behave like an elevator or an arm
+	 * @return the new {@link ControlConstants}
+	 */
 	public static ControlConstants createPIDF(double P, double I, double D, double IZone, double V, double A, double S, double G, GravityTypeValue gravityType) {
 		ControlConstants constants = new ControlConstants();
-		constants.type = SmartControlType.PIDF;
+		constants.type = ControlType.PIDF;
 		constants.P = P;
 		constants.I = I;
 		constants.D = D;
@@ -102,9 +135,23 @@ public class ControlConstants implements Cloneable {
 		return constants;
 	}
 
+    /**
+     * Builds open-loop trapezoid-profile constants (control type {@link ControlType#PROFILE}),
+     * with no PID feedback.
+     *
+     * @param cruiseVelocity the max velocity the profile should reach
+     * @param acceleration   the rate at which the profile accelerates up to cruise velocity
+     * @param jerk           the rate of acceleration change in the profile
+     * @param V              velocity feedforward
+     * @param A              acceleration feedforward
+     * @param S              static-friction feedforward
+     * @param G              gravity feedforward
+     * @param gravityType    whether gravity compensation should behave like an elevator or an arm
+     * @return the new {@link ControlConstants}
+     */
     public static ControlConstants createProfile(double cruiseVelocity, double acceleration, double jerk, double V, double A, double S, double G, GravityTypeValue gravityType) {
 		ControlConstants constants = new ControlConstants();
-		constants.type = SmartControlType.PROFILE;
+		constants.type = ControlType.PROFILE;
         constants.cruiseVelocity = cruiseVelocity;
         constants.acceleration = acceleration;
         constants.jerk = jerk;
@@ -116,9 +163,28 @@ public class ControlConstants implements Cloneable {
 		return constants;
 	}
 
+    /**
+     * Builds trapezoid-profiled PID constants with feedforward (control type
+     * {@link ControlType#PROFILED_PIDF}) - PID feedback correction layered on top of a motion
+     * profile, similar to CTRE Motion Magic.
+     *
+     * @param P              proportional gain
+     * @param I              integral gain
+     * @param D              derivative gain
+     * @param IZone          error zone below which the integral term is active
+     * @param cruiseVelocity the max velocity the profile should reach
+     * @param acceleration   the rate at which the profile accelerates up to cruise velocity
+     * @param jerk           the rate of acceleration change in the profile
+     * @param V              velocity feedforward
+     * @param A              acceleration feedforward
+     * @param S              static-friction feedforward
+     * @param G              gravity feedforward
+     * @param gravityType    whether gravity compensation should behave like an elevator or an arm
+     * @return the new {@link ControlConstants}
+     */
     public static ControlConstants createProfiledPIDF(double P, double I, double D, double IZone, double cruiseVelocity, double acceleration, double jerk, double V, double A, double S, double G, GravityTypeValue gravityType) {
 		ControlConstants constants = new ControlConstants();
-		constants.type = SmartControlType.PROFILED_PIDF;
+		constants.type = ControlType.PROFILED_PIDF;
 		constants.P = P;
 		constants.I = I;
 		constants.D = D;
@@ -134,15 +200,25 @@ public class ControlConstants implements Cloneable {
 		return constants;
 	}
 
+	/**
+	 * Builds torque-current FOC constants (control type {@link ControlType#TORQUE_CURRENT}); only
+	 * supported on TalonFX.
+	 *
+	 * @param P proportional gain
+	 * @param A acceleration feedforward
+	 * @param S static-friction feedforward
+	 * @return the new {@link ControlConstants}
+	 */
 	public static ControlConstants createTorqueCurrent(double P, double A, double S) {
 		ControlConstants constants = new ControlConstants();
-		constants.type = SmartControlType.TORQUE_CURRENT;
+		constants.type = ControlType.TORQUE_CURRENT;
 		constants.P = P;
 		constants.A = A;
 		constants.S = S;
 		return constants;
 	}
 
+	/** @return a human-readable dump of every gain, feedforward, and profile constant, for logging/debugging */
 	@Override
 	public String toString() {
 		return String.format("ControlConstants(Type: %s, P: %f, I: %f, D: %f, IZone: %f, V: %f, A: %f, S: %f, G: %f, GravityType: %s, CruiseVelocity: %f, Acceleration: %f, Jerk: %f)",
@@ -150,6 +226,7 @@ public class ControlConstants implements Cloneable {
 		);
 	}
 
+	/** @return a new {@link ControlConstants} with the same field values as this one */
 	@Override
 	public ControlConstants clone() {
         ControlConstants clone = new ControlConstants();

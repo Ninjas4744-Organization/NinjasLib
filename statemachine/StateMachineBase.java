@@ -5,13 +5,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.NinjasLib.util.NinjasLogger;
 import frc.lib.NinjasLib.commands.BackgroundCommand;
 import frc.lib.NinjasLib.commands.StateEndCommand;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.BFSShortestPath;
 import org.jgrapht.graph.SimpleDirectedGraph;
-import org.littletonrobotics.junction.Logger;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,6 +20,23 @@ import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
+/**
+ * Generic base class for building a robot state machine as a {@link SubsystemBase}. A state
+ * machine over {@code StateEnum} is a directed graph whose vertices are the enum's constants and
+ * whose edges are transition {@link Command}s; subclasses build this graph by overriding
+ * {@link #define()} and calling {@link #addEdge}, {@link #addOmniEdge}, {@link #addStateEnd} and
+ * {@link #addStateCommand}.
+ * <p>
+ * Once built, callers drive the state machine with {@link #changeState}, {@link #changeStateForce}
+ * or {@link #forceState} for a single transition, or {@link #runStatesPath} to automatically hop
+ * through several states via the shortest path to a target. {@link #periodic()} advances the
+ * currently-running transition command, fires any configured state-end conditions, starts/stops
+ * each state's background command, advances an in-progress path, and logs the state machine's
+ * status via {@link NinjasLogger} - subclasses must ensure it is called every loop (which happens
+ * automatically for a registered {@link SubsystemBase}).
+ *
+ * @param <StateEnum> The enum type enumerating every state this state machine can be in.
+ */
 public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extends SubsystemBase {
     protected StateEnum currentState;
 
@@ -70,7 +87,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             if(ends != null) {
                 for(Command end : ends.keySet()) {
                     if(end.isFinished() && canTransitionTo(ends.get(end))) {
-                        System.out.println("[" + getName() + "] State end condition " + getCurrentState().name() + " -> " + ends.get(end).name());
+                        NinjasLogger.logEvent("[" + getName() + "] State end condition " + getCurrentState().name() + " -> " + ends.get(end).name());
                         changeState(ends.get(end));
                         break;
                     }
@@ -81,7 +98,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
         // Check if transition command ended
         if(currentEdge != null && (currentEdge.isFinished() || !currentEdge.isScheduled())) {
 
-            System.out.println("[" + getName() + "] Ended transition " + getCurrentState().name() + " -> " + getTargetState().name());
+            NinjasLogger.logEvent("[" + getName() + "] Ended transition " + getCurrentState().name() + " -> " + getTargetState().name());
 
             currentState = getTargetState();
             currentEdge = null;
@@ -108,10 +125,10 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             }
         }
 
-        Logger.recordOutput(getName() + "/State Machine/Is Transitioning", isTransitioning());
-        Logger.recordOutput(getName() + "/State Machine/Current State", getCurrentState());
-        Logger.recordOutput(getName() + "/State Machine/Target State", getTargetState() == null ? "N/A" : getTargetState().name());
-        Logger.recordOutput(getName() + "/State Machine/Path States", currentPath == null ? new String[0] : currentPath.stream().map(Enum::name).toArray(String[]::new));
+        NinjasLogger.log(getName() + "/State Machine/Is Transitioning", isTransitioning());
+        NinjasLogger.log(getName() + "/State Machine/Current State", getCurrentState().name());
+        NinjasLogger.log(getName() + "/State Machine/Target State", getTargetState() == null ? "N/A" : getTargetState().name());
+        NinjasLogger.log(getName() + "/State Machine/Path States", currentPath == null ? new String[0] : currentPath.stream().map(Enum::name).toArray(String[]::new));
     }
 
     /**
@@ -147,7 +164,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
                 }
             }
 
-            System.out.println("[" + getName() + "] Force state " + getCurrentState().name() + " -> " + wantedState.name());
+            NinjasLogger.logEvent("[" + getName() + "] Force state " + getCurrentState().name() + " -> " + wantedState.name());
             currentState = wantedState;
 
             Command stateTask = stateCommands.get(getCurrentState());
@@ -184,7 +201,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             currentEdge = edge;
             CommandScheduler.getInstance().schedule(currentEdge);
 
-            System.out.println("[" + getName() + "] Started " + getCurrentState().name() + " -> " + getTargetState().name());
+            NinjasLogger.logEvent("[" + getName() + "] Started " + getCurrentState().name() + " -> " + getTargetState().name());
         }
     }
 
@@ -244,48 +261,59 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
     }
 
     /**
+     * Wraps {@link #changeState(Enum)} in an instant command, for binding a state transition to a
+     * trigger (e.g. a button or another command sequence) instead of calling it directly.
+     *
      * @param wantedState The state to change to.
-     * @return Instant command that runs {@link #changeState(Enum)}.
+     * @return An instant command that runs {@link #changeState(Enum)}.
      */
     public Command changeStateCommand(StateEnum wantedState) {
         return Commands.runOnce(() -> changeState(wantedState));
     }
 
     /**
+     * Wraps {@link #changeStateForce(Enum)} in an instant command, for binding a forced transition
+     * to a trigger instead of calling it directly.
+     *
      * @param wantedState The state to change to.
-     * @return Instant command that runs {@link #changeStateForce(Enum)}.
+     * @return An instant command that runs {@link #changeStateForce(Enum)}.
      */
     public Command changeStateForceCommand(StateEnum wantedState) {
         return Commands.runOnce(() -> changeStateForce(wantedState));
     }
 
     /**
+     * Wraps {@link #forceState(Enum)} in an instant command, for binding a forced state assignment
+     * to a trigger instead of calling it directly.
+     *
      * @param wantedState The state to force into.
-     * @return Instant command that runs {@link #forceState(Enum)}.
+     * @return An instant command that runs {@link #forceState(Enum)}.
      */
     public Command forceStateCommand(StateEnum wantedState) {
         return Commands.runOnce(() -> forceState(wantedState));
     }
 
     /**
-     * @param start The start state
-     * @param end The end state
-     * @return Whether there is an edge command connecting the start state to the end state.
+     * @param start The start state.
+     * @param end The end state.
+     * @return Whether an edge command connects {@code start} directly to {@code end}.
      */
     public boolean canTransitionTo(StateEnum start, StateEnum end) {
         return graph.containsEdge(start, end);
     }
 
     /**
-     * @param state The state
-     * @return Whether the robot can transition to this state: Whether there is an edge command connecting the current robot state to this state.
+     * @param state The state to check.
+     * @return Whether an edge command connects the current state directly to {@code state}.
      */
     public boolean canTransitionTo(StateEnum state) {
         return graph.containsEdge(getCurrentState(), state);
     }
 
     /**
-     * @return Whether the robot is currently transitioning from one state to another. Whether the statemachine is running an edge command.
+     * @return Whether the state machine is currently running an edge (transition) command between
+     *     two states, i.e. {@link #getCurrentState()} is not yet settled and
+     *     {@link #getTargetState()} is non-null.
      */
     public boolean isTransitioning() {
         return currentEdge != null;
@@ -300,7 +328,9 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
     }
 
     /**
-     * @return The current robot state from RobotStateBase.
+     * @return The state machine's current state. While transitioning, this is still the state
+     *     being transitioned away from until the edge command finishes - see
+     *     {@link #getTargetState()} for the destination.
      */
     public StateEnum getCurrentState() {
         return currentState;
@@ -318,21 +348,23 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
 
     /**
      * @param states One or more states to check against.
-     * @return Whether the current state is one of the given states.
+     * @return Whether {@link #getCurrentState()} is one of the given states.
      */
     public boolean isInStates(StateEnum... states) {
         return Arrays.asList(states).contains(getCurrentState());
     }
 
     /**
-     * @return Whether the state machine is currently following a BFS path to a target state.
+     * @return Whether the state machine is currently following a multi-hop path started by
+     *     {@link #runStatesPath(Enum)}.
      */
     public boolean isRunningPath() {
         return currentPath != null;
     }
 
     /**
-     * @return The final target state of the current BFS path, or null if no path is running.
+     * @return The final destination state of the path started by {@link #runStatesPath(Enum)}, or
+     *     {@code null} if no path is currently running.
      */
     public StateEnum getPathTarget() {
         if (currentPath != null)
@@ -341,7 +373,8 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
     }
 
     /**
-     * @return The remaining states in the current BFS path (excluding the current state), or null if no path is running.
+     * @return The states remaining in the current {@link #runStatesPath(Enum)} path, excluding the
+     *     current state, or {@code null} if no path is currently running.
      */
     public List<StateEnum> getCurrentPath() {
         return currentPath;
@@ -365,7 +398,7 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
      */
     protected void addEdge(StateEnum start, StateEnum end, Command command) {
         if (start.equals(end)) {
-            System.out.println("[" + getName() + "] Start and end state of an edge cannot be the same");
+            NinjasLogger.logEvent("[" + getName() + "] Start and end state of an edge cannot be the same");
             return;
         }
         graph.addEdge(start, end, command);
@@ -512,7 +545,9 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
     }
 
     /**
-     * Prints the statemachine graph including states and edges to the console.
+     * Prints every state and its outgoing edges to the console. Called automatically once at
+     * construction (after {@link #define()}) so the state machine's full transition graph is
+     * visible for debugging on startup.
      */
     public void printGraph() {
         System.out.println("---------------" + getName() + " Graph---------------");

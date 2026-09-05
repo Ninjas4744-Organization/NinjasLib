@@ -19,6 +19,19 @@ import java.util.NavigableMap;
 import java.util.Optional;
 import java.util.TreeMap;
 
+/**
+ * A generic, odometry-plus-vision pose tracker for a drivetrain of type {@code T} (the wheel/module
+ * position type, e.g. {@code SwerveModulePosition[]}). This is the base localization engine used by
+ * {@link NinjasSwervePoseTracker}: it fuses wheel/gyro odometry (via a WPILib {@link Odometry}) with
+ * asynchronous, latency-compensated vision measurements to produce a single best-estimate {@link
+ * Pose2d} of the robot.
+ *
+ * <p>Odometry-only poses are buffered over a rolling time window, and each accepted vision
+ * measurement is stored as a correction relative to that buffer. This lets vision measurements that
+ * arrive late (and out of order) still be blended in at the correct point in time, without discarding
+ * or reordering odometry updates. {@link #update}/{@link #updateWithTime} must be called every loop for
+ * this scheme to work; {@link #addVisionMeasurement} can be called as infrequently as needed.
+ */
 public class NinjasPoseTracker<T> {
     private final Odometry<T> m_odometry;
     private final Matrix<N3, N3> m_visionK = new Matrix<>(Nat.N3(), Nat.N3());
@@ -35,10 +48,13 @@ public class NinjasPoseTracker<T> {
     private Pose2d m_poseEstimate;
 
     /**
-     * Constructs a PoseEstimator.
+     * Constructs a pose tracker wrapping the given odometry object. Initializes the pose estimate to
+     * the odometry object's current pose, and sets a default vision measurement trust (see {@link
+     * #setVisionMeasurementStrength}).
      *
-     * @param kinematics A correctly-configured kinematics object for your drivetrain.
-     * @param odometry A correctly-configured odometry object for your drivetrain.
+     * @param kinematics A correctly-configured kinematics object for your drivetrain. Currently unused
+     *     directly by this class, but kept for API symmetry with {@code odometry}.
+     * @param odometry A correctly-configured, already-initialized odometry object for your drivetrain.
      */
     @SuppressWarnings("PMD.UnusedFormalParameter")
     public NinjasPoseTracker(
@@ -51,6 +67,14 @@ public class NinjasPoseTracker<T> {
         setVisionMeasurementStrength(VecBuilder.fill(0.1, 0.1, 0.05));
     }
 
+    /**
+     * Sets how strongly future vision measurements correct the pose estimate, as a diagonal Kalman
+     * gain (one value per x/y/theta axis). Larger values trust vision more and pull the pose towards
+     * it faster; smaller values trust odometry more. This gain stays in effect until changed again, or
+     * overridden per-call by {@link #addVisionMeasurement(Pose2d, double, Matrix)}.
+     *
+     * @param strength Per-axis trust in [0, 1]: x (meters), y (meters), theta (radians).
+     */
     public final void setVisionMeasurementStrength(Matrix<N3, N1> strength) {
         for (int row = 0; row < 3; ++row) {
             m_visionK.set(row, row, strength.get(row, 0));
@@ -88,9 +112,9 @@ public class NinjasPoseTracker<T> {
     }
 
     /**
-     * Resets the robot's translation.
+     * Resets the robot's translation, keeping the current rotation.
      *
-     * @param translation The pose to translation to.
+     * @param translation The translation to reset to.
      */
     public void resetTranslation(Translation2d translation) {
         m_odometry.resetTranslation(translation);
@@ -121,10 +145,13 @@ public class NinjasPoseTracker<T> {
     }
 
     /**
-     * Return the pose at a given timestamp, if the buffer is not empty.
+     * Returns the vision-compensated pose at a given timestamp, by sampling the odometry buffer and
+     * applying whichever vision correction was active at that time. The timestamp is clamped into the
+     * buffer's time range, so this always returns a value once at least one odometry sample exists.
      *
      * @param timestampSeconds The pose's timestamp in seconds.
-     * @return The pose at the given timestamp (or Optional.empty() if the buffer is empty).
+     * @return The pose at the given timestamp, or {@code Optional.empty()} if no odometry samples have
+     *     been recorded yet.
      */
     public Optional<Pose2d> sampleAt(double timestampSeconds) {
         // Step 0: If there are no odometry updates to sample, skip.

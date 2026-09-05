@@ -2,10 +2,15 @@ package frc.lib.NinjasLib.swerve.gyro;
 
 import com.studica.frc.AHRS;
 import edu.wpi.first.math.geometry.Rotation2d;
+import frc.lib.NinjasLib.util.NinjasLogger;
 import frc.lib.NinjasLib.localization.OdometryThread;
 
 import java.util.Queue;
 
+/**
+ * {@link GyroIO} implementation for a NavX (AHRS) IMU over SPI (MXP port). Registers a yaw sampling
+ * signal with the {@link OdometryThread} for high-frequency odometry.
+ */
 public class GyroIONavX implements GyroIO{
     private AHRS navX;
     private final Queue<Double> yawPositionQueue;
@@ -13,6 +18,10 @@ public class GyroIONavX implements GyroIO{
     private boolean inverted;
     private Rotation2d yawOffset = Rotation2d.kZero;
 
+    /**
+     * @param frequency the NavX update frequency in Hz
+     * @param inverted whether to negate the raw yaw reading
+     */
     public GyroIONavX(int frequency, boolean inverted) {
         navX = new AHRS(AHRS.NavXComType.kMXP_SPI, frequency);
         yawTimestampQueue = OdometryThread.getInstance().makeTimestampQueue();
@@ -20,15 +29,18 @@ public class GyroIONavX implements GyroIO{
         this.inverted = inverted;
     }
 
+    /** {@inheritDoc} */
     @Override
-    public void updateInputs(GyroIOInputsAutoLogged inputs) {
-        inputs.Yaw = Rotation2d.fromDegrees((inverted ? -1 : 1) * navX.getYaw());
-        inputs.YawOffsetted = Rotation2d.fromDegrees((inverted ? -1 : 1) * navX.getYaw()).plus(yawOffset);
-        inputs.Pitch = Rotation2d.fromDegrees(navX.getPitch());
-        inputs.Roll = Rotation2d.fromDegrees(navX.getRoll());
-        inputs.AccelerationX = navX.getWorldLinearAccelX() * 9.81;
-        inputs.AccelerationY = navX.getWorldLinearAccelY() * 9.81;
-        inputs.AccelerationZ = navX.getWorldLinearAccelZ() * 9.81;
+    public GyroIOInputs update() {
+        GyroIOInputs inputs = new GyroIOInputs();
+
+        inputs.yaw = Rotation2d.fromDegrees((inverted ? -1 : 1) * navX.getYaw());
+        inputs.yawOffsetted = Rotation2d.fromDegrees((inverted ? -1 : 1) * navX.getYaw()).plus(yawOffset);
+        inputs.pitch = Rotation2d.fromDegrees(navX.getPitch());
+        inputs.roll = Rotation2d.fromDegrees(navX.getRoll());
+        inputs.accelerationX = navX.getWorldLinearAccelX() * 9.81;
+        inputs.accelerationY = navX.getWorldLinearAccelY() * 9.81;
+        inputs.accelerationZ = navX.getWorldLinearAccelZ() * 9.81;
 
         inputs.odometryYawTimestamps =
                 yawTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
@@ -38,14 +50,19 @@ public class GyroIONavX implements GyroIO{
                         .toArray(Rotation2d[]::new);
         yawTimestampQueue.clear();
         yawPositionQueue.clear();
+
+        return inputs;
     }
 
+    /** {@inheritDoc} Implemented by resetting the NavX and applying an angle adjustment, in addition to updating {@code yawOffset}. */
     @Override
     public void resetGyroYaw(Rotation2d yaw) {
-        System.out.print("Gyro: " + navX.getAngle() + " -> ");
+        NinjasLogger.logEvent("[Gyro Reset] " + (inverted ? -1 : 1) * navX.getYaw() + " -> " + yaw.getDegrees());
+
+        if (inverted)
+            yaw = yaw.unaryMinus();
         yawOffset = yawOffset.plus(Rotation2d.fromDegrees(navX.getYaw()).minus(yaw));
         navX.reset();
         navX.setAngleAdjustment(yaw.getDegrees());
-        System.out.println(navX.getAngle());
     }
 }

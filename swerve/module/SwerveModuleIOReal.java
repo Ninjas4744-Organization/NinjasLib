@@ -17,7 +17,12 @@ import frc.lib.NinjasLib.swerve.constants.SwerveModuleConstants;
 
 import java.util.Queue;
 
+/**
+ * {@link SwerveModuleIO} implementation for a real swerve module driven by {@link Controller}-based
+ * drive/steer motors and a CTRE CANCoder absolute encoder.
+ */
 public class SwerveModuleIOReal implements SwerveModuleIO {
+    /** Index of this module within the swerve drive. */
     public final int moduleNumber;
     private final SwerveConstants swerveConstants;
 
@@ -37,6 +42,14 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
     private static final int ABSOLUTE_POSITION_UPDATE_PERIOD = 10;
     private Rotation2d cachedAbsolutePosition = new Rotation2d();
 
+    /**
+     * Constructs the module's drive/steer controllers and CANCoder from the given constants, and
+     * registers their position signals with the {@link OdometryThread} when
+     * {@code swerveConstants.special.enableOdometryThread} is set and both motors are TalonFX-controlled.
+     *
+     * @param constants this module's specific IDs, inversions and CANCoder offset
+     * @param swerveConstants the shared swerve constants (motor types, CAN bus, odometry settings, etc.)
+     */
     public SwerveModuleIOReal(SwerveModuleConstants constants, SwerveConstants swerveConstants) {
         moduleNumber = constants.moduleNumber;
         this.swerveConstants = swerveConstants;
@@ -75,6 +88,7 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
         }
     }
 
+    /** {@inheritDoc} */
     @Override
     public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop, boolean preventJittering) {
         desiredState = SwerveUtils.optimizeModuleState(desiredState, Rotation2d.fromRadians(steerMotor.getPosition()));
@@ -82,7 +96,7 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
 
         //Drive
         if (isOpenLoop)
-            driveMotor.setPercent(desiredState.speedMetersPerSecond / swerveConstants.limits.maxSpeed);
+            driveMotor.setPercent(desiredState.speedMetersPerSecond / swerveConstants.speeds.maxSpeed);
         else
             driveMotor.setVelocity(desiredState.speedMetersPerSecond);
 
@@ -90,7 +104,7 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
         Rotation2d angle = desiredState.angle;
         if (preventJittering) {
             // Prevent rotating module if speed is less than 1%. Prevents jittering.
-            angle = (Math.abs(desiredState.speedMetersPerSecond) <= (swerveConstants.limits.maxSpeed * 0.01)) ? lastAngle : desiredState.angle;
+            angle = (Math.abs(desiredState.speedMetersPerSecond) <= (swerveConstants.speeds.maxSpeed * swerveConstants.modules.jitterPreventionPercent)) ? lastAngle : desiredState.angle;
         }
         //Prevent jumping from -180 to 180
         double errorBound = (Math.PI - -Math.PI) / 2.0;
@@ -101,6 +115,11 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
         lastAngle = angle;
     }
 
+    /**
+     * Re-seeds the steer motor's relative encoder from the CANCoder's absolute position, wrapped to
+     * {@code [-pi, pi)}. Use this to recover a correct steer angle after a brownout or power cycle
+     * without re-homing the module by hand.
+     */
     public void resetToAbsolute() {
         double absolutePosition = ((getCANCoder().getRadians() + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
 
@@ -112,29 +131,39 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
         return Rotation2d.fromRotations(canCoder.getAbsolutePosition().getValueAsDouble());
     }
 
-    @Override
-    public void updateInputs(SwerveModuleIOInputsAutoLogged inputs) {
-        inputs.ModuleNumber = moduleNumber;
-        inputs.State = new SwerveModuleState(driveMotor.getVelocity(), Rotation2d.fromRadians(steerMotor.getPosition()));
-        inputs.DesiredState = desiredState;
-        inputs.Position = new SwerveModulePosition(driveMotor.getPosition(), Rotation2d.fromRadians(steerMotor.getPosition()));
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The absolute CANCoder position is only re-read every {@value #ABSOLUTE_POSITION_UPDATE_PERIOD}
+     * calls (cached otherwise), since CAN reads of it are comparatively expensive.
+     */
+    public SwerveModuleIOInputs update() {
+        SwerveModuleIOInputs inputs = new  SwerveModuleIOInputs();
+
+        inputs.moduleNumber = moduleNumber;
+        inputs.state = new SwerveModuleState(driveMotor.getVelocity(), Rotation2d.fromRadians(steerMotor.getPosition()));
+        inputs.desiredState = desiredState;
+        inputs.position = new SwerveModulePosition(driveMotor.getPosition(), Rotation2d.fromRadians(steerMotor.getPosition()));
         if (absolutePositionUpdateCounter++ >= ABSOLUTE_POSITION_UPDATE_PERIOD) {
             absolutePositionUpdateCounter = 0;
             cachedAbsolutePosition = getCANCoder();
         }
-        inputs.AbsolutePosition = cachedAbsolutePosition;
+        inputs.absolutePosition = cachedAbsolutePosition;
 
         if (swerveConstants.special.enableOdometryThread && isTalonFX) {
-            inputs.Positions = positionQueue.stream().mapToDouble((Double value) -> value).toArray();
-            inputs.Angles = angleQueue.stream().map(Rotation2d::fromRadians).toArray(Rotation2d[]::new);
-            inputs.Timestamps = timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+            inputs.positions = positionQueue.stream().mapToDouble((Double value) -> value).toArray();
+            inputs.angles = angleQueue.stream().map(Rotation2d::fromRadians).toArray(Rotation2d[]::new);
+            inputs.timestamps = timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
 
             positionQueue.clear();
             angleQueue.clear();
             timestampQueue.clear();
         }
+
+        return inputs;
     }
 
+    /** {@inheritDoc} Delegates to the drive and steer {@link Controller}s' own periodic updates. */
     @Override
     public void periodic() {
         driveMotor.periodic();

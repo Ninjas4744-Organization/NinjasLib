@@ -5,7 +5,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DriverStation;
-import frc.lib.NinjasLib.statemachine.RobotStateBase;
+import frc.lib.NinjasLib.localization.RobotPose;
 import frc.lib.NinjasLib.swerve.Swerve;
 
 import java.util.ArrayList;
@@ -13,6 +13,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * {@link VisionCameraIO} implementation for a real Limelight smart camera. Reads MegaTag2 (and
+ * MegaTag1, for comparison) pose estimates over NetworkTables via {@code LimelightHelpers}, and
+ * feeds the current gyro yaw to the Limelight so it can compute MegaTag2 estimates on-device.
+ */
 public class LimelightVisionCameraIO implements VisionCameraIO {
     private final String cameraName;
     private LimelightHelpers.RawFiducial[] targets;
@@ -20,6 +25,14 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
     private final VisionConstants constants;
     private Map<Integer, AprilTag> tags;
 
+    /**
+     * Creates a Limelight camera IO and disables the Limelight's internal IMU fusion mode.
+     *
+     * @param name       the Limelight's configured network table name
+     * @param cameraPose unused - a Limelight computes its own pose estimate on-device, so its
+     *                   mounting transform is configured on the device itself, not here
+     * @param constants  shared vision configuration, used to obtain the AprilTag field layout
+     */
     public LimelightVisionCameraIO(String name, Transform3d cameraPose, VisionConstants constants) {
         this.constants = constants;
         cameraName = name;
@@ -28,30 +41,38 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
         fillTagsMap();
     }
 
-    @Override
-    public void updateInputs(VisionCameraIOInputsAutoLogged inputs) {
-        inputs.outputs = new VisionOutput[0];
+    /**
+     * Reads the latest MegaTag2 (and MegaTag1) pose estimates from the Limelight and packages them
+     * into a single {@link VisionOutput}. Before reading, this pushes the robot's current gyro yaw
+     * (adjusted for alliance, since MegaTag2 needs field-relative heading) to the Limelight, since
+     * MegaTag2 requires external orientation input to resolve pose. This is the method
+     * {@link Vision#periodic()} calls each loop to pull fresh data from this camera.
+     *
+     * @return an array containing a single {@link VisionOutput}, or an empty array if the alliance
+     * is not yet known or no MegaTag2 estimate is available
+     */
+    public VisionOutput[] update() {
         List<VisionOutput> outputs = new ArrayList<>();
 
-        if (RobotStateBase.getAlliance().isEmpty())
-            return;
+        if (RobotPose.getAlliance().isEmpty())
+            return new VisionOutput[0];
 
-        Rotation2d robotYaw = Swerve.getInstance().getGyro().getYaw();
-        if (RobotStateBase.getAlliance().get() == DriverStation.Alliance.Red) {
+        Rotation2d robotYaw = Swerve.get().getGyro().getYaw();
+        if (RobotPose.getAlliance().get() == DriverStation.Alliance.Red) {
             robotYaw = robotYaw.rotateBy(Rotation2d.k180deg);
         }
         LimelightHelpers.SetRobotOrientation(cameraName, robotYaw.getDegrees(), 0, 0, 0, 0, 0);
 
-        LimelightHelpers.PoseEstimate estimate = (RobotStateBase.getAlliance().get() == DriverStation.Alliance.Blue)
+        LimelightHelpers.PoseEstimate estimate = (RobotPose.getAlliance().get() == DriverStation.Alliance.Blue)
             ? LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(cameraName)
             : LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2(cameraName);
 
-        LimelightHelpers.PoseEstimate estimateMegaTag1 = (RobotStateBase.getAlliance().get() == DriverStation.Alliance.Blue)
+        LimelightHelpers.PoseEstimate estimateMegaTag1 = (RobotPose.getAlliance().get() == DriverStation.Alliance.Blue)
                 ? LimelightHelpers.getBotPoseEstimate_wpiBlue(cameraName)
                 : LimelightHelpers.getBotPoseEstimate_wpiRed(cameraName);
 
         if (estimate == null)
-            return;
+            return new VisionOutput[0];
 
         VisionOutput output = new VisionOutput();
         output.latency = estimate.latency / 1000;
@@ -66,7 +87,7 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
             if (this.tags == null)
                 fillTagsMap();
             if (this.tags == null)
-                return;
+                return new VisionOutput[0];
             analyze(output);
 
             output.robotPose = estimate.pose;
@@ -77,7 +98,7 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
         output.hasTargetsMegaTag1 = estimateMegaTag1.tagCount > 0;
 
         outputs.add(output);
-        inputs.outputs = outputs.toArray(new VisionOutput[0]);
+        return outputs.toArray(new VisionOutput[0]);
     }
 
     private void analyze(VisionOutput output) {
@@ -130,12 +151,28 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
     @Override
     public void ignoreTag(int id) {
         ignoredTags.add(id);
+        fillTagsMap();
         // Dynamically update filter list in Limelight
         LimelightHelpers.SetFiducialIDFiltersOverride(
             cameraName,
             tags.keySet().stream().mapToInt(Integer::intValue).toArray()
         );
+    }
+
+    /**
+     * Removes an apriltag from the ignored apriltags list, allowing it to be used again.
+     *
+     * @param id the id of the apriltag to stop ignoring
+     */
+    @Override
+    public void unIgnoreTag(int id) {
+        ignoredTags.remove((Integer) id);
         fillTagsMap();
+        // Dynamically update filter list in Limelight
+        LimelightHelpers.SetFiducialIDFiltersOverride(
+            cameraName,
+            tags.keySet().stream().mapToInt(Integer::intValue).toArray()
+        );
     }
 
     private void fillTagsMap() {
