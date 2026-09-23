@@ -38,7 +38,7 @@ import java.util.function.Supplier;
  * @param <StateEnum> The enum type enumerating every state this state machine can be in.
  */
 public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extends SubsystemBase {
-    protected StateEnum currentState;
+    private StateEnum currentState;
 
     private final Graph<StateEnum, Command> graph;
     private final Class<StateEnum> stateEnumClass;
