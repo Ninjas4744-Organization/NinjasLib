@@ -4,6 +4,8 @@ import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import frc.lib.NinjasLib.controllers.Controller;
 
+import java.util.function.BooleanSupplier;
+
 /**
  * Real-hardware configuration for a {@link Controller}: motor IDs/inversion/current limits
  * ({@link #base}), control-loop gains and gear ratio ({@link #control}), software position limits
@@ -310,6 +312,9 @@ public class RealControllerConstants {
             /** How much current is needed to activate the virtual limit to behave like a real limit switch */
             public double virtualStallThreshold = 58;
 
+            /** When a virtual limit turns on, it stays active until the motor moves to the other direction. This is the minimum velocity to consider the motor as moving. */
+            public double virtualVelocityDeadband = 1;
+
             /** The minimum position of the encoder to apply the limit. If the encoder is under this value the limit will be ignored, so don't change this number for limits that reset the encoder */
             public double minPos = Double.NEGATIVE_INFINITY;
 
@@ -330,15 +335,23 @@ public class RealControllerConstants {
 
             /**
              * Called from {@link Controller#periodic()} when this limit newly becomes active (and
-             * {@link #enableLimitTriggerMethod} is {@code true}). By default it resets the encoder
+             * {@link #enableLimitTriggerMethod} is {@code true}), and again after every user command
+             * while it is active (with {@code preLimit = true}, so the encoder is not reset again).
+             * By default it resets the encoder
              * to {@link #homePosition} and, if the motor is still being driven into the limit,
              * commands a position hold there - see {@link LimitTriggerMethod}.
              */
-            public LimitTriggerMethod limitTriggerMethod = (controller, limitConstants, preLimit) -> {
+            public LimitTriggerMethod limitTriggerMethod = (controller, limitConstants, preLimit, userRequestDirection) -> {
                 if (!preLimit)
                     controller.setEncoder(limitConstants.homePosition); // Reset encoder
 
-                if (Math.signum(controller.getOutput()) == limitConstants.direction)
+                if (controller.getControlState() == Controller.ControlState.POSITION) {
+                    userRequestDirection = (int) Math.signum(controller.getGoal() - controller.getPosition());
+                } else if (controller.getControlState() == Controller.ControlState.VELOCITY) {
+                    userRequestDirection = (int) Math.signum(controller.getGoal());
+                }
+
+                if (userRequestDirection == limitConstants.direction)
                     controller.setPosition(limitConstants.homePosition); // Set control to current position to hold position
             };
 
@@ -350,21 +363,24 @@ public class RealControllerConstants {
 
             /**
              * @param id the digital input ID of the limit switch
+             * @param inverted whether the real limit switch's signal is inverted
              * @return this instance, for chaining
              */
-            public HardLimit withId(int id) {
+            public HardLimit withReal(int id, boolean inverted) {
+                this.isVirtual = false;
                 this.id = id;
+                this.inverted = inverted;
                 return this;
             }
 
             /**
-             * @param isVirtual             whether this limit is inferred from stall current rather than a real switch
              * @param virtualStallThreshold the stall current threshold to activate the virtual limit
              * @return this instance, for chaining
              */
-            public HardLimit withVirtual(boolean isVirtual, double virtualStallThreshold) {
-                this.isVirtual = isVirtual;
+            public HardLimit withVirtual(double virtualStallThreshold, double virtualVelocityDeadband) {
+                this.isVirtual = true;
                 this.virtualStallThreshold = virtualStallThreshold;
+                this.virtualVelocityDeadband = virtualVelocityDeadband;
                 return this;
             }
 
@@ -392,15 +408,6 @@ public class RealControllerConstants {
              */
             public HardLimit withFrames(double frames) {
                 this.frames = frames;
-                return this;
-            }
-
-            /**
-             * @param inverted whether the real limit switch's signal is inverted
-             * @return this instance, for chaining
-             */
-            public HardLimit withInverted(boolean inverted) {
-                this.inverted = inverted;
                 return this;
             }
 
@@ -448,8 +455,9 @@ public class RealControllerConstants {
              * @param controller     the controller whose limit triggered
              * @param limitConstants the configuration of the limit that triggered
              * @param preLimit       whether the limit was already active on the previous {@code periodic()} call
+             * @param userRequestDirection direction of the
              */
-            void trigger(Controller controller, HardLimit limitConstants, boolean preLimit);
+            void trigger(Controller controller, HardLimit limitConstants, boolean preLimit, int userRequestDirection);
         }
     }
 

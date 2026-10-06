@@ -15,12 +15,13 @@ import edu.wpi.first.units.measure.Current;
 import frc.lib.NinjasLib.controllers.constants.RealControllerConstants;
 
 /**
- * {@link Controller} implementation that wraps a CTRE TalonFX (Falcon 500/Kraken X60) motor
- * controller via the Phoenix 6 API. Unlike the other real controller wrappers, closed-loop
+ * {@link ControllerIO} implementation that wraps a CTRE TalonFX (Falcon 500/Kraken X60) motor
+ * controller via the Phoenix 6 API. Unlike the other real motor IO wrappers, closed-loop
  * control (PID, Motion Magic, torque-current FOC) runs entirely onboard the TalonFX firmware, so
- * this class does not override {@link Controller#periodic()}.
+ * this class does not override {@link ControllerIO#periodic(Controller.ControlState, double)}.
  */
-public class TalonFXController extends Controller {
+public class TalonFXIO implements ControllerIO {
+    private final RealControllerConstants constants;
     private final TalonFX main;
     private final TalonFX[] followers;
 
@@ -34,8 +35,8 @@ public class TalonFXController extends Controller {
      *
      * @param constants the controller configuration
      */
-    public TalonFXController(RealControllerConstants constants) {
-        super(constants);
+    public TalonFXIO(RealControllerConstants constants) {
+        this.constants = constants;
 
         main = new TalonFX(constants.base.main.id, constants.base.CANBus);
         main.getConfigurator()
@@ -88,9 +89,7 @@ public class TalonFXController extends Controller {
      * @param percent how much to power the motor, between -1 and 1
      */
     @Override
-    public void setPercent(double percent) {
-        super.setPercent(percent);
-
+    public void applyPercent(double percent) {
         main.setControl(new DutyCycleOut(percent).withEnableFOC(constants.control.enableFOC));
     }
 
@@ -104,9 +103,7 @@ public class TalonFXController extends Controller {
      * @param position the wanted position
      */
     @Override
-    public void setPosition(double position) {
-        super.setPosition(position);
-
+    public void applyPosition(double position) {
         switch (constants.control.controlConstants.type) {
             case PROFILED_PIDF, PROFILE:
                 main.setControl(new MotionMagicVoltage(position).withEnableFOC(constants.control.enableFOC));
@@ -132,9 +129,7 @@ public class TalonFXController extends Controller {
      * @param velocity the wanted velocity
      */
     @Override
-    public void setVelocity(double velocity) {
-        super.setVelocity(velocity);
-
+    public void applyVelocity(double velocity) {
         switch (constants.control.controlConstants.type) {
             case PROFILED_PIDF, PROFILE:
                 main.setControl(new MotionMagicVelocityVoltage(velocity).withEnableFOC(constants.control.enableFOC));
@@ -153,7 +148,6 @@ public class TalonFXController extends Controller {
     /** Stops the main TalonFX (and its followers) via {@link TalonFX#stopMotor()}. */
     @Override
     public void stop() {
-        super.stop();
         main.stopMotor();
     }
 
@@ -188,6 +182,7 @@ public class TalonFXController extends Controller {
     }
 
     /** @return the main TalonFX's stator current signal, in amps */
+    @Override
     public double getStatorCurrent() {
         return main.getStatorCurrent().getValueAsDouble();
     }
@@ -204,7 +199,7 @@ public class TalonFXController extends Controller {
 
     /**
      * Escape hatch for accessing the underlying Phoenix 6 {@link TalonFX} directly for anything
-     * not exposed through the {@link Controller} API.
+     * not exposed through the {@link ControllerIO} API.
      *
      * @return the main TalonFX device
      */

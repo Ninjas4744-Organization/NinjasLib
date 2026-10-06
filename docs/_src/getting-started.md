@@ -18,7 +18,7 @@ git submodule and it compiles alongside your own code.
     - `WPILibNewCommands`
     - `Phoenix6` (CTRE TalonFX/Pigeon2)
     - `Phoenix5` (CTRE TalonSRX/VictorSPX) — only needed if you use those controllers
-    - `REVLib` (REV SparkMax) — only needed if you use `SparkMaxController`
+    - `REVLib` (REV SparkMax) — only needed if you use `SparkMaxIO`
     - `Studica` (NavX) — only needed if you use a NavX gyro
     - `photonlib` (PhotonVision) — only needed if you use vision
     - `PathplannerLib` — only needed if you use `NinjasAutoBuilder` / swerve autonomous

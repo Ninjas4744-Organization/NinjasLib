@@ -5,16 +5,18 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import frc.lib.NinjasLib.controllers.Controller.ControlState;
 import frc.lib.NinjasLib.controllers.constants.ControlConstants.ControlType;
 import frc.lib.NinjasLib.controllers.constants.RealControllerConstants;
 
 /**
- * {@link Controller} implementation that wraps a REV SparkMax brushless motor controller (via the
+ * {@link ControllerIO} implementation that wraps a REV SparkMax brushless motor controller (via the
  * REVLib {@link SparkMax} API). Configures current limiting, soft limits, closed-loop gains, and
  * encoder conversion factors from {@link RealControllerConstants} on construction, and follower
  * SparkMaxes to mirror the main one.
  */
-public class SparkMaxController extends Controller {
+public class SparkMaxIO implements ControllerIO {
+    private final RealControllerConstants constants;
     private final SparkMax main;
     private final SparkMax[] followers;
 
@@ -30,8 +32,8 @@ public class SparkMaxController extends Controller {
      *
      * @param constants the controller configuration
      */
-    public SparkMaxController(RealControllerConstants constants) {
-		super(constants);
+    public SparkMaxIO(RealControllerConstants constants) {
+		this.constants = constants;
 
         main = new SparkMax(constants.base.main.id, SparkMax.MotorType.kBrushless);
 
@@ -76,25 +78,21 @@ public class SparkMaxController extends Controller {
 	 * @param percent how much to power the motor, between -1 and 1
 	 */
 	@Override
-	public void setPercent(double percent) {
-		super.setPercent(percent);
-
+	public void applyPercent(double percent) {
         main.set(percent);
 	}
 
 	/**
 	 * If the control type is plain {@code PIDF}, commands the SparkMax's onboard closed-loop
 	 * controller directly to the position setpoint; for profiled/other control types the software
-	 * profile in {@link #periodic()} drives the motor instead, so this just updates its goal.
+	 * profile in {@link #periodic(ControlState, double)} drives the motor instead, so this just updates its goal.
 	 *
 	 * @param position the wanted position
 	 */
 	@Override
-	public void setPosition(double position) {
-		super.setPosition(position);
-
+	public void applyPosition(double position) {
         if (constants.control.controlConstants.type == ControlType.PIDF)
-            main.getClosedLoopController().setSetpoint(getGoal(), SparkBase.ControlType.kPosition);
+            main.getClosedLoopController().setSetpoint(position, SparkBase.ControlType.kPosition);
 
         profiledPIDController.setGoal(position);
 	}
@@ -102,16 +100,14 @@ public class SparkMaxController extends Controller {
 	/**
 	 * If the control type is plain {@code PIDF}, commands the SparkMax's onboard closed-loop
 	 * controller directly to the velocity setpoint; for profiled/other control types the software
-	 * profile in {@link #periodic()} drives the motor instead, so this just updates its goal.
+	 * profile in {@link #periodic(ControlState, double)} drives the motor instead, so this just updates its goal.
 	 *
 	 * @param velocity the wanted velocity
 	 */
 	@Override
-	public void setVelocity(double velocity) {
-		super.setVelocity(velocity);
-
+	public void applyVelocity(double velocity) {
         if (constants.control.controlConstants.type == ControlType.PIDF)
-            main.getClosedLoopController().setSetpoint(getGoal(), SparkBase.ControlType.kVelocity);
+            main.getClosedLoopController().setSetpoint(velocity, SparkBase.ControlType.kVelocity);
 
         profiledPIDController.setGoal(velocity);
 	}
@@ -119,7 +115,6 @@ public class SparkMaxController extends Controller {
 	/** Stops the main SparkMax (and its followers) via {@link SparkMax#stopMotor()}. */
 	@Override
 	public void stop() {
-		super.stop();
         main.stopMotor();
 	}
 
@@ -181,11 +176,14 @@ public class SparkMaxController extends Controller {
 	 * software trapezoid profile / profiled PID controller each loop and applies the result to
 	 * the motor as a voltage-derived percent output (since the SparkMax has no built-in Motion
 	 * Magic-style profiling); {@code PIDF} control is instead driven directly by the SparkMax's
-	 * onboard closed loop in {@link #setPosition(double)}/{@link #setVelocity(double)}. Call this
-	 * from the owning subsystem's {@code periodic()}.
+	 * onboard closed loop in {@link #applyPosition(double)}/{@link #applyVelocity(double)}. Called
+	 * from {@link Controller#periodic()}.
+	 *
+	 * @param controlState the mode the {@link Controller} is currently commanded in
+	 * @param goal         the {@link Controller}'s current position/velocity goal
 	 */
 	@Override
-	public void periodic() {
+	public void periodic(ControlState controlState, double goal) {
         switch (constants.control.controlConstants.type) {
 			case PROFILED_PIDF:
 				isCurrentlyPiding = true;
@@ -201,13 +199,13 @@ public class SparkMaxController extends Controller {
                     main.set(profile.calculate(
 					0.02,
 					new TrapezoidProfile.State(getPosition(), getVelocity()),
-					new TrapezoidProfile.State(getGoal(), 0))
+					new TrapezoidProfile.State(goal, 0))
 						.velocity / 12);
                 else if (controlState == ControlState.VELOCITY)
                     main.set(profile.calculate(
 					0.02,
 					new TrapezoidProfile.State(getPosition(), getVelocity()),
-					new TrapezoidProfile.State(getPosition(), getGoal()))
+					new TrapezoidProfile.State(getPosition(), goal))
 						.velocity / 12);
 				break;
 		}
@@ -215,7 +213,5 @@ public class SparkMaxController extends Controller {
         if (!isCurrentlyPiding && controlState != ControlState.PERCENT_OUTPUT)
             profiledPIDController.reset(new TrapezoidProfile.State(getPosition(), getVelocity()));
 		isCurrentlyPiding = false;
-
-		super.periodic();
 	}
 }

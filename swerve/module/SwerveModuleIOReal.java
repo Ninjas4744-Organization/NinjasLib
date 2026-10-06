@@ -8,7 +8,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.lib.NinjasLib.controllers.Controller;
-import frc.lib.NinjasLib.controllers.TalonFXController;
+import frc.lib.NinjasLib.controllers.TalonFXIO;
 import frc.lib.NinjasLib.controllers.constants.ControllerConstants;
 import frc.lib.NinjasLib.localization.OdometryThread;
 import frc.lib.NinjasLib.swerve.SwerveUtils;
@@ -82,8 +82,8 @@ public class SwerveModuleIOReal implements SwerveModuleIO {
 
         isTalonFX = swerveConstants.modules.driveControllerType == Controller.ControllerType.TalonFX && swerveConstants.modules.steerControllerType == Controller.ControllerType.TalonFX;
         if (swerveConstants.special.enableOdometryThread && isTalonFX) {
-            positionQueue = OdometryThread.getInstance().registerSignal(((TalonFXController) driveMotor).getPositionSignal(swerveConstants.special.odometryThreadFrequency).clone());
-            angleQueue = OdometryThread.getInstance().registerSignal(((TalonFXController) steerMotor).getPositionSignal(swerveConstants.special.odometryThreadFrequency).clone());
+            positionQueue = OdometryThread.getInstance().registerSignal(((TalonFXIO) driveMotor.getIO()).getPositionSignal(swerveConstants.special.odometryThreadFrequency).clone());
+            angleQueue = OdometryThread.getInstance().registerSignal(((TalonFXIO) steerMotor.getIO()).getPositionSignal(swerveConstants.special.odometryThreadFrequency).clone());
             timestampQueue = OdometryThread.getInstance().makeTimestampQueue();
         }
     }

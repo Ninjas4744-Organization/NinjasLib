@@ -7,8 +7,8 @@
 
 ## יצירת בקר
 
-תמיד להשתמש בשיטת ה-factory במקום לבנות תת-מחלקה ישירות - היא זאת שעוברת בין חומרה אמיתית ל-
-`SimulatedController` בשבילכם:
+תמיד להשתמש בשיטת ה-factory במקום לבנות `Controller` ישירות - היא זאת שעוברת בין חומרה אמיתית ל-
+`SimulatedIO` בשבילכם:
 
 ```java
 Controller elevatorMotor = Controller.createController(
@@ -85,8 +85,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 }
 ```
 
-`setPercent`/`setPosition`/`setVelocity` כל אחת מחליפה את ה-`ControlState` הפנימי של הבקר; תת-המחלקה
-הקונקרטית (למשל `TalonFXController`) מפעילה בפועל את ה-PID/Motion Magic/feedforward לפי הגברים
+`setPercent`/`setPosition`/`setVelocity` כל אחת מחליפה את ה-`ControlState` הפנימי של הבקר; ה-`MotorIO`
+של הבקר (למשל `TalonFXIO`) מפעיל בפועל את ה-PID/Motion Magic/feedforward לפי הגברים
 מ-`RealControllerConstants.Control`. `atGoal()` משווה את המיקום או המהירות הנוכחיים מול הסבילות
 המוגדרת, תלוי באיזה מצב בקרה פעיל כרגע - היא תמיד מחזירה `false` במצב פלט אחוזי.
 

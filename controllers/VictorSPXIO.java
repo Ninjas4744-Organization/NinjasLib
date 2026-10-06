@@ -5,13 +5,13 @@ import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import frc.lib.NinjasLib.controllers.constants.RealControllerConstants;
 
 /**
- * {@link Controller} implementation that wraps a CTRE VictorSPX motor controller via the legacy
+ * {@link ControllerIO} implementation that wraps a CTRE VictorSPX motor controller via the legacy
  * Phoenix 5 API. The VictorSPX has no built-in encoder or current sensing and no onboard
- * closed-loop control, so it only supports open-loop percent output ({@link #setPercent(double)});
+ * closed-loop control, so it only supports open-loop percent output ({@link #applyPercent(double)});
  * every position/velocity/current/PID-related method throws {@link UnsupportedOperationException}.
  * Typically used for simple, unsensored mechanisms like intake or feeder rollers.
  */
-public class VictorSPXController extends Controller {
+public class VictorSPXIO implements ControllerIO {
 	private final VictorSPX main;
 	private final VictorSPX[] followers;
 
@@ -21,9 +21,7 @@ public class VictorSPXController extends Controller {
      *
      * @param constants the controller configuration
      */
-    public VictorSPXController(RealControllerConstants constants) {
-		super(constants);
-
+    public VictorSPXIO(RealControllerConstants constants) {
 		main = new VictorSPX(constants.base.main.id);
 		main.configFactoryDefault();
 		main.setInverted(constants.base.main.inverted);
@@ -44,9 +42,7 @@ public class VictorSPXController extends Controller {
 	 * @param percent how much to power the motor, between -1 and 1
 	 */
 	@Override
-	public void setPercent(double percent) {
-		super.setPercent(percent);
-
+	public void applyPercent(double percent) {
 		main.set(VictorSPXControlMode.PercentOutput, percent);
 	}
 
@@ -55,7 +51,7 @@ public class VictorSPXController extends Controller {
 	 * @throws UnsupportedOperationException always; the VictorSPX has no onboard PID
 	 */
 	@Override
-	public void setPosition(double position) {
+	public void applyPosition(double position) {
 		throw new UnsupportedOperationException("PID not supported on VictorSPX");
 	}
 
@@ -64,14 +60,13 @@ public class VictorSPXController extends Controller {
 	 * @throws UnsupportedOperationException always; the VictorSPX has no onboard PID
 	 */
 	@Override
-	public void setVelocity(double velocity) {
+	public void applyVelocity(double velocity) {
 		throw new UnsupportedOperationException("PID not supported on VictorSPX");
 	}
 
 	/** Stops the main VictorSPX (and its followers) by commanding zero percent output. */
 	@Override
 	public void stop() {
-		super.stop();
 		main.set(VictorSPXControlMode.PercentOutput, 0);
 	}
 
@@ -118,11 +113,5 @@ public class VictorSPXController extends Controller {
 	@Override
 	public void setEncoder(double position) {
 		throw new UnsupportedOperationException("No encoder on VictorSPX");
-	}
-
-	/** @throws UnsupportedOperationException always; the VictorSPX has no onboard PID or encoder to check a goal against */
-	@Override
-	public boolean atGoal() {
-		throw new UnsupportedOperationException("PID not supported on VictorSPX");
 	}
 }

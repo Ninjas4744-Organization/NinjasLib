@@ -13,17 +13,23 @@ import frc.robot.Robot;
 import java.nio.ByteBuffer;
 
 /**
- * Abstract base for a Ninjas motor controller wrapper: a hardware-agnostic API for driving a
- * single motor mechanism (with optional followers) in percent-output, position, or velocity
- * control, and for reading back its encoder position/velocity, current draw, and limit switches.
- * Concrete subclasses wrap a specific vendor API - {@link SparkMaxController} (REV SparkMax),
- * {@link TalonFXController} (CTRE TalonFX), {@link TalonSRXController} (CTRE TalonSRX),
- * {@link VictorSPXController} (CTRE VictorSPX) - or run entirely in software via
- * {@link SimulatedController}. Subsystems should generally obtain an instance through
- * {@link #createController(ControllerType, ControllerConstants)} rather than constructing one
- * directly, so the same subsystem code works both on the real robot and in simulation.
+ * A Ninjas motor controller wrapper: a hardware-agnostic API for driving a single motor
+ * mechanism (with optional followers) in percent-output, position, or velocity control, and for
+ * reading back its encoder position/velocity, current draw, and limit switches. The controller
+ * owns the state and logic shared by every motor - the {@link ControlState}, the goal, limit
+ * debouncing and limit triggers, the CANcoder, and logging - and delegates the actual hardware
+ * access to a {@link ControllerIO}: {@link SparkMaxIO} (REV SparkMax), {@link TalonFXIO} (CTRE
+ * TalonFX), {@link TalonSRXIO} (CTRE TalonSRX), {@link VictorSPXIO} (CTRE VictorSPX), or
+ * {@link SimulatedIO} which runs entirely in software. Subsystems should generally obtain an
+ * instance through {@link #createController(ControllerType, ControllerConstants)} rather than
+ * constructing one directly, so the same subsystem code works both on the real robot and in
+ * simulation.
+ * <p>
+ * After every {@link #setPercent(double)}/{@link #setPosition(double)}/
+ * {@link #setVelocity(double)}/{@link #stop()} the controller re-enforces its limits, so a
+ * command driving into an active limit is overridden by that limit's trigger within the same call.
  */
-public abstract class Controller {
+public class Controller {
     /** The closed/open-loop mode a {@link Controller} is currently commanded in. */
     public enum ControlState {
         PERCENT_OUTPUT,
@@ -43,27 +49,33 @@ public abstract class Controller {
         Simulation
     }
 
-    protected ControlState controlState = ControlState.PERCENT_OUTPUT;
-    protected RealControllerConstants constants;
-    protected double goal = 0;
+    private final ControllerIO io;
+    private final RealControllerConstants constants;
+
+    private ControlState controlState = ControlState.PERCENT_OUTPUT;
+    private double goal = 0;
 
     private DigitalInput[] limitSwitches;
     private boolean[] preLimits;
     private int[] limitFrames;
+    private int limitUserRequestDirection = 0;
+    private boolean inLimitTrigger =  false;
 
     private CANcoder CANCoder;
 
     /**
-     * Sets up the state shared by every {@link Controller} implementation: allocates a
-     * {@link DigitalInput} for each non-virtual hard limit, and, if a CANcoder is configured to
-     * run in {@link RealControllerConstants.CANCoder.CANCoderMode#Normal Normal} mode, constructs
-     * and configures it. Subclasses call this via {@code super(constants)} before setting up
-     * their own hardware.
+     * Sets up the state shared by every motor: allocates a {@link DigitalInput} for each
+     * non-virtual hard limit, and, if a CANcoder is configured to run in
+     * {@link RealControllerConstants.CANCoder.CANCoderMode#Normal Normal} mode, constructs and
+     * configures it. Prefer {@link #createController(ControllerType, ControllerConstants)}, which
+     * also picks the right {@link ControllerIO}.
      *
      * @param constants the controller configuration (base, control, soft/hard limits, CANcoder)
+     * @param io        the hardware (or simulation) this controller drives and reads from
      */
-    public Controller(RealControllerConstants constants) {
+    public Controller(RealControllerConstants constants, ControllerIO io) {
         this.constants = constants;
+        this.io = io;
 
         limitSwitches = new DigitalInput[constants.hardLimits.limits.length];
         preLimits = new boolean[constants.hardLimits.limits.length];
@@ -81,9 +93,9 @@ public abstract class Controller {
     }
 
     /**
-     * Switches to open-loop percent-output control. This base implementation only records the
-     * new {@link ControlState}; every concrete subclass overrides it to also drive the motor
-     * (calling {@code super.setPercent(percent)} first).
+     * Switches to open-loop percent-output control: records the new {@link ControlState} and the
+     * direction of the request, drives the motor, and finally re-enforces the limits (so driving
+     * into an active limit is overridden by its trigger).
      *
      * @param percent how much to power the motor, between -1 and 1
      * @see #setPosition(double)
@@ -92,13 +104,19 @@ public abstract class Controller {
      */
     public void setPercent(double percent) {
         controlState = ControlState.PERCENT_OUTPUT;
+        limitUserRequestDirection = (int) Math.signum(percent);
+
+        io.applyPercent(percent);
+
+        enforceLimits();
     }
 
     /**
      * Commands the controller to closed-loop position control. This is the main way to move a
-     * mechanism to a specific setpoint (e.g. an elevator height or arm angle); the concrete
-     * subclass drives the actual PID/Motion Magic/profile control per its
-     * {@link ControllerConstants} once this base method records the goal.
+     * mechanism to a specific setpoint (e.g. an elevator height or arm angle); the {@link ControllerIO}
+     * drives the actual PID/Motion Magic/profile control per its {@link ControllerConstants} once
+     * the goal is recorded. The limits are re-enforced afterwards, so a goal beyond an active
+     * limit is overridden by that limit's trigger.
      *
      * @param position the wanted position, in the units defined by the controller's gear
      *                  ratio/conversion configuration
@@ -109,12 +127,17 @@ public abstract class Controller {
     public void setPosition(double position) {
         controlState = ControlState.POSITION;
         goal = position;
+
+        io.applyPosition(position);
+
+        enforceLimits();
     }
 
     /**
      * Commands the controller to closed-loop velocity control, e.g. for a flywheel or drivetrain
-     * wheel spun at a target speed. The concrete subclass drives the actual PID/feedforward once
-     * this base method records the goal.
+     * wheel spun at a target speed. The {@link ControllerIO} drives the actual PID/feedforward once
+     * the goal is recorded. The limits are re-enforced afterwards, so a velocity into an active
+     * limit is overridden by that limit's trigger.
      *
      * @param velocity the wanted velocity, in the units defined by the controller's gear
      *                  ratio/conversion configuration, per second
@@ -125,11 +148,15 @@ public abstract class Controller {
     public void setVelocity(double velocity) {
         controlState = ControlState.VELOCITY;
         goal = velocity;
+
+        io.applyVelocity(velocity);
+
+        enforceLimits();
     }
 
     /**
-     * Stops all motor movement by switching back to percent-output control at zero. Concrete
-     * subclasses override this to also command the hardware to stop.
+     * Stops all motor movement by switching back to percent-output control at zero, then
+     * re-enforces the limits.
      *
      * @see #setPercent(double)
      * @see #setPosition(double)
@@ -137,16 +164,23 @@ public abstract class Controller {
      */
     public void stop() {
         controlState = ControlState.PERCENT_OUTPUT;
+        limitUserRequestDirection = 0;
+
+        io.stop();
+
+        enforceLimits();
     }
 
     /**
      * The primary encoder reading every position-based subsystem call relies on. The value is in
-     * the units defined by the concrete implementation's gear ratio/conversion configuration
+     * the units defined by the {@link ControllerIO}'s gear ratio/conversion configuration
      * (typically rotations of the mechanism, not the motor).
      *
      * @return the current position of the mechanism
      */
-    public abstract double getPosition();
+    public double getPosition() {
+        return io.getPosition();
+    }
 
     /**
      * @return the rotational position of the absolute encoder, in rotations. Returns {@code 0} if
@@ -165,27 +199,37 @@ public abstract class Controller {
      *
      * @return the current velocity of the mechanism
      */
-    public abstract double getVelocity();
+    public double getVelocity() {
+        return io.getVelocity();
+    }
 
     /**
      * @return the current acceleration of the mechanism, in {@link #getVelocity()} units per second
      */
-    public abstract double getAcceleration();
+    public double getAcceleration() {
+        return io.getAcceleration();
+    }
 
     /**
      * @return the applied motor output as a percentage, between -1 and 1
      */
-    public abstract double getOutput();
+    public double getOutput() {
+        return io.getOutput();
+    }
 
     /**
      * @return the current drawn from the battery/CAN bus by the motor, in amps
      */
-    public abstract double getSupplyCurrent();
+    public double getSupplyCurrent() {
+        return io.getSupplyCurrent();
+    }
 
     /**
      * @return the current flowing through the motor windings (stator current), in amps
      */
-    public abstract double getStatorCurrent();
+    public double getStatorCurrent() {
+        return io.getStatorCurrent();
+    }
 
     /**
      * Overwrites the encoder's stored position without physically moving the mechanism - used to
@@ -193,7 +237,9 @@ public abstract class Controller {
      *
      * @param position the position to set the encoder to
      */
-    public abstract void setEncoder(double position);
+    public void setEncoder(double position) {
+        io.setEncoder(position);
+    }
 
     /**
      * @return Goal/Setpoint/Reference of the controller, the target of Profiled PID / PID / Motion Magic, etc...
@@ -215,6 +261,25 @@ public abstract class Controller {
     }
 
     /**
+     * @return current control state of controller
+     */
+    public ControlState getControlState() {
+        return controlState;
+    }
+
+    /**
+     * Escape hatch for accessing the underlying {@link ControllerIO} directly for anything not exposed
+     * through the {@link Controller} API, e.g. casting to {@link TalonFXIO} to get its status
+     * signals. Commands sent straight to the IO bypass the controller's state tracking and limit
+     * enforcement.
+     *
+     * @return the hardware (or simulation) this controller drives
+     */
+    public ControllerIO getIO() {
+        return io;
+    }
+
+    /**
      * @param index the index of the limit in {@link RealControllerConstants.HardLimits#limits}
      * @return whether that limit switch of the system is clicked now (including virtual limits)
      */
@@ -222,10 +287,24 @@ public abstract class Controller {
         if (index >= constants.hardLimits.limits.length)
             return false;
 
-        if (Robot.isReal()) return constants.hardLimits.limits[index].isVirtual
-                ? limitFrames[index] >= constants.hardLimits.limits[index].frames || (preLimits[index] && Math.signum(getVelocity()) != -constants.hardLimits.limits[index].direction)
-                : limitFrames[index] >= constants.hardLimits.limits[index].frames;
-        else return constants.hardLimits.limits[index].direction > 0 ? getPosition() >= constants.hardLimits.limits[index].homePosition : getPosition() <= constants.hardLimits.limits[index].homePosition;
+        if (Robot.isReal()) {
+            boolean reachedFrames = limitFrames[index] >= constants.hardLimits.limits[index].frames;
+
+            if (constants.hardLimits.limits[index].isVirtual) {
+                double velocity = Math.abs(getVelocity()) >= constants.hardLimits.limits[index].virtualVelocityDeadband ? getVelocity() : 0;
+                boolean velocityInOtherDirection = Math.signum(velocity) == -constants.hardLimits.limits[index].direction;
+
+                return reachedFrames || (preLimits[index] && !velocityInOtherDirection);
+            } else {
+                return reachedFrames;
+            }
+        }
+        else {
+            if (constants.hardLimits.limits[index].direction > 0)
+                return getPosition() >= constants.hardLimits.limits[index].homePosition;
+            else
+                return getPosition() <= constants.hardLimits.limits[index].homePosition;
+        }
     }
 
     /**
@@ -242,34 +321,73 @@ public abstract class Controller {
 
     /**
      * Runs the controller's periodic bookkeeping - call this from the owning subsystem's
-     * {@code periodic()} every loop. On a real robot this debounces each configured limit (real
+     * {@code periodic()} every loop. First gives the {@link ControllerIO} its own per-loop update
+     * (software closed-loop/simulation, where the hardware has none onboard). On a real robot this
+     * then debounces each configured limit (real
      * switches by reading the {@link DigitalInput}, virtual limits by watching stator current
      * against {@link RealControllerConstants.HardLimits.HardLimit#virtualStallThreshold} while
      * within its position window) and, once a limit becomes newly active, invokes its
      * {@link RealControllerConstants.HardLimits.HardLimit#limitTriggerMethod} if enabled.
      */
     public void periodic() {
+        io.periodic(controlState, goal);
+
         for (int i = 0; i < constants.hardLimits.limits.length; i++) {
+            boolean inRange = getPosition() >= constants.hardLimits.limits[i].minPos && getPosition() <= constants.hardLimits.limits[i].maxPos;
+
             if (Robot.isReal()) {
                 if (constants.hardLimits.limits[i].isVirtual) {
-                    if ((Math.abs(getStatorCurrent()) > constants.hardLimits.limits[i].virtualStallThreshold && Math.signum(getOutput()) == constants.hardLimits.limits[i].direction) && getPosition() >= constants.hardLimits.limits[i].minPos && getPosition() <= constants.hardLimits.limits[i].maxPos)
+                    boolean isStallCurrent = Math.abs(getStatorCurrent()) > constants.hardLimits.limits[i].virtualStallThreshold;
+                    boolean inDirection = Math.signum(getOutput()) == constants.hardLimits.limits[i].direction;
+
+                    if (isStallCurrent && inDirection && inRange)
                         limitFrames[i]++;
                     else
                         limitFrames[i] = 0;
                 } else {
-                    if (constants.hardLimits.limits[i].inverted != limitSwitches[i].get())
+                    if (limitSwitches[i].get() != constants.hardLimits.limits[i].inverted && inRange)
                         limitFrames[i]++;
                     else
                         limitFrames[i] = 0;
                 }
             }
 
-            if (constants.hardLimits.limits[i].enableLimitTriggerMethod) {
-                constants.hardLimits.limits[i].limitTriggerMethod.trigger(this, constants.hardLimits.limits[i], preLimits[i]);
+            if (constants.hardLimits.limits[i].enableLimitTriggerMethod && getLimit(i)) {
+                runTrigger(constants.hardLimits.limits[i], preLimits[i]);
             }
 
             preLimits[i] = getLimit(i);
         }
+    }
+
+    /**
+     * Re-runs the trigger of every active limit, as the last step of every user command, so a
+     * command that drives into an active limit is overridden by the trigger's hold within the same
+     * call instead of waiting for the next {@link #periodic()}. Triggers run with
+     * {@code preLimit = true}, so the encoder is not reset again. Does nothing while a trigger is
+     * already running, since the trigger's own hold is a command too.
+     */
+    private void enforceLimits() {
+        if (inLimitTrigger)
+            return;
+
+        for (int i = 0; i < constants.hardLimits.limits.length; i++) {
+            if (constants.hardLimits.limits[i].enableLimitTriggerMethod && getLimit(i))
+                runTrigger(constants.hardLimits.limits[i], true);
+        }
+    }
+
+    /**
+     * Invokes a limit's trigger method with, so the commands the
+     * trigger issues (e.g. the position hold) don't recursively re-run {@link #enforceLimits()}.
+     *
+     * @param limit    the limit whose trigger to run
+     * @param preLimit whether the limit was already active before this call
+     */
+    private void runTrigger(RealControllerConstants.HardLimits.HardLimit limit, boolean preLimit) {
+        inLimitTrigger = true;
+        limit.limitTriggerMethod.trigger(this, limit, preLimit, limitUserRequestDirection);
+        inLimitTrigger = false;
     }
 
     /**
@@ -279,38 +397,43 @@ public abstract class Controller {
      * @param index the index of the limit in {@link RealControllerConstants.HardLimits#limits}
      */
     public void resetVirtualLimit(int index) {
-        preLimits[index] = false;
+        if (constants.hardLimits.limits[index].isVirtual)
+            preLimits[index] = false;
     }
 
     /** Clears the "was previously at limit" flag for every configured limit. */
     public void resetVirtualLimits() {
         for (int i = 0; i < constants.hardLimits.limits.length; i++) {
-            preLimits[i] = false;
+            if (constants.hardLimits.limits[i].isVirtual)
+                preLimits[i] = false;
         }
     }
 
     /**
-     * Factory method that builds the right {@link Controller} implementation for the given
-     * {@link ControllerType}: a real hardware wrapper when running on the robot
-     * ({@link Robot#isReal()}), or a {@link SimulatedController} when running in simulation.
-     * This is the preferred way to construct a controller so subsystem code doesn't need to
-     * branch on real-vs-simulated itself.
+     * Factory method that builds a {@link Controller} around the right {@link ControllerIO} for the
+     * given {@link ControllerType}: a real hardware wrapper when running on the robot
+     * ({@link Robot#isReal()}), or a {@link SimulatedIO} when running in simulation. This is the
+     * preferred way to construct a controller so subsystem code doesn't need to branch on
+     * real-vs-simulated itself.
      *
      * @param type      which hardware (or simulation) to create
      * @param constants the controller configuration
      * @return a new controller instance appropriate for the current robot mode
      */
     public static Controller createController(ControllerType type, ControllerConstants constants) {
+        ControllerIO io;
         if (Robot.isReal()) {
-            return switch (type) {
-                case SparkMax -> new SparkMaxController(constants.real);
-                case TalonSRX -> new TalonSRXController(constants.real);
-                case VictorSPX -> new VictorSPXController(constants.real);
-                default -> new TalonFXController(constants.real);
+            io = switch (type) {
+                case SparkMax -> new SparkMaxIO(constants.real);
+                case TalonSRX -> new TalonSRXIO(constants.real);
+                case VictorSPX -> new VictorSPXIO(constants.real);
+                default -> new TalonFXIO(constants.real);
             };
+        } else {
+            io = new SimulatedIO(constants);
         }
 
-        return new SimulatedController(constants);
+        return new Controller(constants.real, io);
     }
 
     /**

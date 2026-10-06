@@ -10,19 +10,21 @@ import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import frc.lib.NinjasLib.util.NinjasLogger;
 import frc.lib.NinjasLib.util.DerivativeCalculator;
+import frc.lib.NinjasLib.controllers.Controller.ControlState;
 import frc.lib.NinjasLib.controllers.constants.ControllerConstants;
+import frc.lib.NinjasLib.controllers.constants.RealControllerConstants;
 
 /**
- * A {@link Controller} implementation for simulation: instead of talking to real motor hardware,
+ * A {@link ControllerIO} implementation for simulation: instead of talking to real motor hardware,
  * it drives a WPILib {@link LinearSystemSim} (an {@link ElevatorSim}, {@link SingleJointedArmSim},
  * {@link DCMotorSim}, {@link FlywheelSim}, or a custom subclass, supplied via
  * {@link ControllerConstants#simSystem}) and runs its own {@link PIDController}/
  * {@link ProfiledPIDController}/{@link TrapezoidProfile} in software to emulate the closed-loop
  * behavior real motor controller firmware would otherwise provide. Created automatically by
- * {@link Controller#createController(ControllerType, ControllerConstants)} when not running on a
+ * {@link Controller#createController(Controller.ControllerType, ControllerConstants)} when not running on a
  * real robot.
  */
-public class SimulatedController extends Controller {
+public class SimulatedIO implements ControllerIO {
     private enum SimType {
         ELEVATOR,
         ARM,
@@ -41,7 +43,8 @@ public class SimulatedController extends Controller {
     private final LinearSystemSim<?, ?, ?> sim;
     private final SimType simType;
 
-    private DerivativeCalculator accelerationCalculator;
+    private final RealControllerConstants constants;
+    private final DerivativeCalculator accelerationCalculator;
 
     private final TrapezoidProfile profile;
     private final ProfiledPIDController profiledPIDController;
@@ -56,8 +59,8 @@ public class SimulatedController extends Controller {
      *
      * @param constants the controller configuration, including the simulated mechanism supplier
      */
-    public SimulatedController(ControllerConstants constants) {
-        super(constants.real);
+    public SimulatedIO(ControllerConstants constants) {
+        this.constants = constants.real;
 
         sim = constants.simSystem.get();
 
@@ -71,7 +74,7 @@ public class SimulatedController extends Controller {
             simType = SimType.FLYWHEEL;
         else {
             simType = SimType.UNKNOWN;
-            NinjasLogger.logEventImportant("[SimulatedController] Unknown LinearSystemSim subclass, position/velocity/current/encoder will read as 0: " + sim.getClass().getSimpleName());
+            NinjasLogger.logEventImportant("[SimulatedIO] Unknown LinearSystemSim subclass, position/velocity/current/encoder will read as 0: " + sim.getClass().getSimpleName());
         }
 
         profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(
@@ -107,38 +110,32 @@ public class SimulatedController extends Controller {
      * @param percent how much to power the motor, between -1 and 1
      */
     @Override
-    public void setPercent(double percent) {
-        super.setPercent(percent);
-
+    public void applyPercent(double percent) {
         setInputVoltage(percent * 12);
     }
 
     /**
      * Sets the goal for both the software profiled and unprofiled PID controllers; which one
-     * actually drives the sim is chosen in {@link #periodic()} based on the configured
+     * actually drives the sim is chosen in {@link #periodic(ControlState, double)} based on the configured
      * {@link frc.lib.NinjasLib.controllers.constants.ControlConstants.ControlType ControlType}.
      *
      * @param position the wanted position
      */
     @Override
-    public void setPosition(double position) {
-        super.setPosition(position);
-
+    public void applyPosition(double position) {
         profiledPIDController.setGoal(position);
         PIDController.setSetpoint(position);
     }
 
     /**
      * Sets the goal for both the software profiled and unprofiled PID controllers; which one
-     * actually drives the sim is chosen in {@link #periodic()} based on the configured
+     * actually drives the sim is chosen in {@link #periodic(ControlState, double)} based on the configured
      * {@link frc.lib.NinjasLib.controllers.constants.ControlConstants.ControlType ControlType}.
      *
      * @param velocity the wanted velocity
      */
     @Override
-    public void setVelocity(double velocity) {
-        super.setVelocity(velocity);
-
+    public void applyVelocity(double velocity) {
         profiledPIDController.setGoal(velocity);
         PIDController.setSetpoint(velocity);
     }
@@ -146,7 +143,6 @@ public class SimulatedController extends Controller {
     /** Stops the mechanism by driving the simulated input voltage to zero. */
     @Override
     public void stop() {
-        super.stop();
         setInputVoltage(0);
     }
 
@@ -238,10 +234,13 @@ public class SimulatedController extends Controller {
      * {@link frc.lib.NinjasLib.controllers.constants.ControlConstants.ControlType ControlType},
      * applying it, clamping the mechanism to its configured soft limits, updating the
      * acceleration estimate, and stepping the underlying {@link LinearSystemSim}. Call this from
-     * the owning subsystem's {@code simulationPeriodic()}.
+     * the owning subsystem's {@code simulationPeriodic()} (via {@link Controller#periodic()}).
+     *
+     * @param controlState the mode the {@link Controller} is currently commanded in
+     * @param goal         the {@link Controller}'s current position/velocity goal
      */
     @Override
-    public void periodic() {
+    public void periodic(ControlState controlState, double goal) {
         switch (constants.control.controlConstants.type) {
             case PROFILED_PIDF:
                 isCurrentlyProfiling = true;
@@ -249,14 +248,14 @@ public class SimulatedController extends Controller {
                 if (controlState == ControlState.POSITION)
                     setInputVoltage(profiledPIDController.calculate(getPosition()));
                 else if (controlState == ControlState.VELOCITY)
-                    setInputVoltage(constants.control.controlConstants.V * getGoal() + profiledPIDController.calculate(getVelocity()));
+                    setInputVoltage(constants.control.controlConstants.V * goal + profiledPIDController.calculate(getVelocity()));
                 break;
 
             case PIDF, TORQUE_CURRENT:
                 if (controlState == ControlState.POSITION)
                     setInputVoltage(PIDController.calculate(getPosition()));
                 else if (controlState == ControlState.VELOCITY)
-                    setInputVoltage(constants.control.controlConstants.V * getGoal() + PIDController.calculate(getVelocity()));
+                    setInputVoltage(constants.control.controlConstants.V * goal + PIDController.calculate(getVelocity()));
                 break;
 
             case PROFILE:
@@ -264,13 +263,13 @@ public class SimulatedController extends Controller {
                     setInputVoltage(profile.calculate(
                         0.02,
                         new TrapezoidProfile.State(getPosition(), getVelocity()),
-                        new TrapezoidProfile.State(getGoal(), 0))
+                        new TrapezoidProfile.State(goal, 0))
                         .velocity * constants.control.controlConstants.V);
                 else if (controlState == ControlState.VELOCITY)
                     setInputVoltage(profile.calculate(
                         0.02,
                         new TrapezoidProfile.State(getPosition(), getVelocity()),
-                        new TrapezoidProfile.State(getPosition(), getGoal()))
+                        new TrapezoidProfile.State(getPosition(), goal))
                         .velocity * constants.control.controlConstants.V);
                 break;
         }
@@ -291,6 +290,5 @@ public class SimulatedController extends Controller {
 
         accelerationCalculator.calculate(getVelocity());
         sim.update(0.02);
-        super.periodic();
     }
 }

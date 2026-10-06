@@ -5,13 +5,14 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import frc.lib.NinjasLib.controllers.constants.RealControllerConstants;
 
 /**
- * {@link Controller} implementation that wraps a CTRE TalonSRX motor controller via the legacy
+ * {@link ControllerIO} implementation that wraps a CTRE TalonSRX motor controller via the legacy
  * Phoenix 5 API. Closed-loop control (PID/Motion Magic) runs onboard the TalonSRX firmware, in
  * raw sensor units; the 10 in the Motion Magic conversions below accounts for Phoenix 5 expressing
  * cruise velocity/acceleration per 100ms rather than per second. Velocity profile ({@code PROFILE})
  * control is not supported by this hardware.
  */
-public class TalonSRXController extends Controller {
+public class TalonSRXIO implements ControllerIO {
+    private final RealControllerConstants constants;
     private final TalonSRX main;
     private final TalonSRX[] followers;
     private double lastVelocity;
@@ -23,8 +24,8 @@ public class TalonSRXController extends Controller {
      *
      * @param constants the controller configuration
      */
-    public TalonSRXController(RealControllerConstants constants) {
-		super(constants);
+    public TalonSRXIO(RealControllerConstants constants) {
+		this.constants = constants;
 
         main = new TalonSRX(constants.base.main.id);
         main.configFactoryDefault();
@@ -57,9 +58,7 @@ public class TalonSRXController extends Controller {
 	 * @param percent how much to power the motor, between -1 and 1
 	 */
 	@Override
-	public void setPercent(double percent) {
-		super.setPercent(percent);
-
+	public void applyPercent(double percent) {
         main.set(TalonSRXControlMode.PercentOutput, percent);
 	}
 
@@ -71,9 +70,7 @@ public class TalonSRXController extends Controller {
 	 * @param position the wanted position
 	 */
 	@Override
-	public void setPosition(double position) {
-		super.setPosition(position);
-
+	public void applyPosition(double position) {
         switch (constants.control.controlConstants.type) {
 			case PROFILE, PROFILED_PIDF:
                 main.set(TalonSRXControlMode.MotionMagic, position / constants.control.conversionFactor);
@@ -95,9 +92,7 @@ public class TalonSRXController extends Controller {
 	 *                                        has no onboard velocity-profile mode
 	 */
 	@Override
-	public void setVelocity(double velocity) {
-		super.setVelocity(velocity);
-
+	public void applyVelocity(double velocity) {
         switch (constants.control.controlConstants.type) {
 			case PROFILED_PIDF:
                 main.set(TalonSRXControlMode.MotionMagic, velocity / constants.control.conversionFactor);
@@ -115,7 +110,6 @@ public class TalonSRXController extends Controller {
 	/** Stops the main TalonSRX (and its followers) by commanding zero percent output. */
 	@Override
 	public void stop() {
-		super.stop();
         main.set(TalonSRXControlMode.PercentOutput, 0);
 	}
 

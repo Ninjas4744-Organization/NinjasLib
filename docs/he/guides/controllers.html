@@ -921,8 +921,8 @@
 <code>Controller</code> פעם אחת, וקוד זהה מפעיל TalonFX, SparkMax, TalonSRX, VictorSPX אמיתיים, או סימולציית
 תוכנה טהורה - תלוי רק באיזה <code>ControllerType</code> בוחרים ובאם <code>Robot.isReal()</code>.</p>
 <h2 id="_2">יצירת בקר<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
-<p>תמיד להשתמש בשיטת ה-factory במקום לבנות תת-מחלקה ישירות - היא זאת שעוברת בין חומרה אמיתית ל-
-<code>SimulatedController</code> בשבילכם:</p>
+<p>תמיד להשתמש בשיטת ה-factory במקום לבנות <code>Controller</code> ישירות - היא זאת שעוברת בין חומרה אמיתית ל-
+<code>SimulatedIO</code> בשבילכם:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">Controller</span><span class="w"> </span><span class="n">elevatorMotor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Controller</span><span class="p">.</span><span class="na">createController</span><span class="p">(</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="n">Controller</span><span class="p">.</span><span class="na">ControllerType</span><span class="p">.</span><span class="na">TalonFX</span><span class="p">,</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="n">SubsystemConstants</span><span class="p">.</span><span class="na">kElevatorMotor</span>
@@ -989,8 +989,8 @@
 <a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">    </span><span class="p">}</span>
 <a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="p">}</span>
 </code></pre></div>
-<p><code>setPercent</code>/<code>setPosition</code>/<code>setVelocity</code> כל אחת מחליפה את ה-<code>ControlState</code> הפנימי של הבקר; תת-המחלקה
-הקונקרטית (למשל <code>TalonFXController</code>) מפעילה בפועל את ה-PID/Motion Magic/feedforward לפי הגברים
+<p><code>setPercent</code>/<code>setPosition</code>/<code>setVelocity</code> כל אחת מחליפה את ה-<code>ControlState</code> הפנימי של הבקר; ה-<code>MotorIO</code>
+של הבקר (למשל <code>TalonFXIO</code>) מפעיל בפועל את ה-PID/Motion Magic/feedforward לפי הגברים
 מ-<code>RealControllerConstants.Control</code>. <code>atGoal()</code> משווה את המיקום או המהירות הנוכחיים מול הסבילות
 המוגדרת, תלוי באיזה מצב בקרה פעיל כרגע - היא תמיד מחזירה <code>false</code> במצב פלט אחוזי.</p>
 <h2 id="_4">קריאת מצב בחזרה<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>

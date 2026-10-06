@@ -18,7 +18,7 @@ NinjasLib מופצת כקוד מקור, לא כחבילת Maven - מוסיפים
     - `WPILibNewCommands`
     - `Phoenix6` (CTRE TalonFX/Pigeon2)
     - `Phoenix5` (CTRE TalonSRX/VictorSPX) - רק אם משתמשים בבקרים האלה
-    - `REVLib` (REV SparkMax) - רק אם משתמשים ב-`SparkMaxController`
+    - `REVLib` (REV SparkMax) - רק אם משתמשים ב-`SparkMaxIO`
     - `Studica` (NavX) - רק אם משתמשים בגירוסקופ NavX
     - `photonlib` (PhotonVision) - רק אם משתמשים בראייה ממוחשבת
     - `PathplannerLib` - רק אם משתמשים ב-`NinjasAutoBuilder` / אוטונומי לסוורב

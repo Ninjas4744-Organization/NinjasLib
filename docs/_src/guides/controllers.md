@@ -8,8 +8,8 @@ TalonFX, SparkMax, TalonSRX, VictorSPX, or a pure-software simulation, depending
 
 ## Creating a controller
 
-Always go through the factory method rather than constructing a subclass directly — it's what
-switches between real hardware and `SimulatedController` for you:
+Always go through the factory method rather than constructing a `Controller` directly — it's what
+switches between real hardware and `SimulatedIO` for you:
 
 ```java
 Controller elevatorMotor = Controller.createController(
@@ -90,8 +90,10 @@ public class ElevatorSubsystem extends SubsystemBase {
 ```
 
 `setPercent`/`setPosition`/`setVelocity` each switch the controller's internal `ControlState`; the
-concrete subclass (e.g. `TalonFXController`) drives the actual PID/Motion Magic/feedforward using the
-gains from `RealControllerConstants.Control`. `atGoal()` compares the current position or velocity
+controller's `MotorIO` (e.g. `TalonFXIO`) drives the actual PID/Motion Magic/feedforward using the
+gains from `RealControllerConstants.Control`. After every command (including `stop()`) the controller
+re-enforces its limits, so a command driving into an active limit is overridden by that limit's
+trigger right away. `atGoal()` compares the current position or velocity
 against the configured tolerance depending on which control mode is active — it always returns
 `false` while in percent-output mode.
 

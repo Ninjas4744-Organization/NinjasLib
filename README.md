@@ -28,9 +28,10 @@ Full swerve drivetrain implementation.
 
 ### `controllers/`
 Thin, unified wrappers around common FRC motor controllers so subsystem code doesn't care which motor/controller it's driving.
-- `Controller.java` – base abstraction.
-- `SparkMaxController.java`, `TalonFXController.java`, `TalonSRXController.java`, `VictorSPXController.java` – concrete wrappers for REV and CTRE hardware.
-- `SimulatedController.java` – a simulation-only controller implementation.
+- `Controller.java` – the concrete controller: owns control state, goal, limit handling, and a `MotorIO`.
+- `MotorIO.java` – the hardware-only interface a `Controller` drives.
+- `SparkMaxIO.java`, `TalonFXIO.java`, `TalonSRXIO.java`, `VictorSPXIO.java` – `MotorIO` wrappers for REV and CTRE hardware.
+- `SimulatedIO.java` – a simulation-only `MotorIO` implementation.
 - `constants/` – `ControlConstants`, `ControllerConstants`, `RealControllerConstants`: PID/feedforward and hardware configuration for controllers.
 
 ### `localization/`
