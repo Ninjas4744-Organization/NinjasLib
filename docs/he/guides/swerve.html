@@ -521,6 +521,28 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        איפה כל חלק בקוד נמצא
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-drive-steer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        הגדרת מנועי ה-drive וה-steer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#swerveconstants" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -543,7 +565,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         נהיגה
@@ -566,7 +588,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
         שיתוף בטוח של השילדה בין פקודות
@@ -582,7 +604,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
         קריאת מצב בחזרה
@@ -858,6 +880,28 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        איפה כל חלק בקוד נמצא
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-drive-steer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        הגדרת מנועי ה-drive וה-steer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#swerveconstants" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -880,7 +924,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         נהיגה
@@ -903,7 +947,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
         שיתוף בטוח של השילדה בין פקודות
@@ -919,7 +963,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
         קריאת מצב בחזרה
@@ -960,32 +1004,137 @@
 </ul>
 <p>שתיהן סינגלטונים: בונים אותן פעם אחת, רושמים עם <code>setInstance</code>, וניגשים אליהן מכל מקום אחר דרך
 <code>Swerve.get()</code> / <code>SwerveController.get()</code>.</p>
+<h2 id="_2">איפה כל חלק בקוד נמצא<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>כל קטע קוד בעמוד הזה שייך לאחד משני מקומות. הקבועים נמצאים בקובץ הקבועים של הרובוט, וכל מה שקורא
+ל-<code>Swerve</code>/<code>SwerveController</code> נמצא בסאבסיסטם השילדה:</p>
+<table>
+<thead>
+<tr>
+<th>קטע קוד</th>
+<th>איפה הוא נמצא</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>kDriveMotorConstants</code>, <code>kSteerMotorConstants</code>, <code>kSwerve</code>, <code>kSwerveController</code></td>
+<td>קובץ הקבועים שלכם, למשל <code>frc/robot/constants/SubsystemConstants.java</code>. מוגדרים כשדות <code>public static final</code>, בסדר הזה.</td>
+</tr>
+<tr>
+<td><code>Swerve.setInstance(...)</code>, <code>SwerveController.setInstance(...)</code></td>
+<td>ה<strong>בנאי</strong> של סאבסיסטם השילדה (למשל <code>SwerveSubsystem</code>), קודם <code>Swerve</code>. הסאבסיסטם עצמו נבנה פעם אחת ב-<code>RobotContainer</code>.</td>
+</tr>
+<tr>
+<td><code>Swerve.get().drive(...)</code>, <code>SwerveController.get().setControl(...)</code>, <code>lookAt</code>/<code>pidTo</code></td>
+<td>ה-<code>periodic()</code> של סאבסיסטם השילדה, או פקודה / פקודת מצב שהוא מחזיק - כל מקום שרץ בכל לולאה <strong>אחרי</strong> שהבנאי רץ.</td>
+</tr>
+<tr>
+<td><code>Swerve.get().periodic()</code> / <code>SwerveController.get().periodic()</code></td>
+<td>ה-<code>periodic()</code> של סאבסיסטם השילדה. אף אחד אחר לא קורא לזה בשבילכם.</td>
+</tr>
+<tr>
+<td>קריאת מצב (<code>getGyro()</code>, <code>getSpeeds()</code>, ...)</td>
+<td>כל מקום, אחרי שהאינסטנסים קיימים.</td>
+</tr>
+</tbody>
+</table>
+<p><a href="../getting-started.html">איך מתחילים</a> מראה סאבסיסטם שילדה שלם
+עם כל החלקים האלה במקומם.</p>
+<h2 id="-drive-steer">הגדרת מנועי ה-drive וה-steer<a class="headerlink" href="#-drive-steer" title="Permanent link">&para;</a></h2>
+<p>לכל מודול יש מנוע drive אחד (מסובב את הגלגל) ומנוע steer אחד (מסובב את המודול). כל ארבעת מנועי
+ה-drive חולקים אובייקט <code>ControllerConstants</code> אחד, וכל מנועי ה-steer חולקים אחר - כאן
+<code>kDriveMotorConstants</code> ו-<code>kSteerMotorConstants</code>. אלה <a href="controllers.html">קבועי בקר מנוע</a> רגילים, אז כל
+מה שכתוב שם תקף גם כאן; החלק הזה מכסה את מה שספציפי לסוורב.</p>
+<p><strong>לא מגדירים כאן מזהי מנועים או היפוכים.</strong> הם שונים בכל מודול, ולכן באים מ-<code>SwerveModuleConstants</code>
+(ראו בהמשך); הספרייה משכפלת את הקבועים המשותפים לכל מודול ומשלימה את המזהים וההיפוך של אותו
+מודול. ה-CAN bus מגיע מ-<code>special.CANBus</code>, וגם ה-CANcoder של המודול מוגדר מקבועי המודול, אז אל
+תיגעו ב-<code>canCoder</code>, ב-followers ובהגבלות רכות/קשות.</p>
+<p>מה כן מגדירים:</p>
+<ul>
+<li><strong><code>control.gearRatio</code> ו-<code>control.conversionFactor</code></strong> קובעים באילו יחידות הספרייה עובדת, והן חייבות
+  להתאים למה ש-<code>Swerve</code> מצפה:<ul>
+<li><strong>Drive:</strong> מטרים ומטרים לשנייה. <code>gearRatio</code> הוא יחס ההעברה של ה-drive במודול (למשל <code>6.75</code>
+  ב-SDS MK4i L2) ו-<code>conversionFactor</code> הוא היקף הגלגל, <code>2 * Math.PI * wheelRadiusMeters</code>.</li>
+<li><strong>Steer:</strong> רדיאנים. <code>gearRatio</code> הוא יחס ההעברה של ה-steer במודול (למשל <code>150.0 / 7</code> ב-MK4i)
+  ו-<code>conversionFactor</code> הוא <code>2 * Math.PI</code>.</li>
+</ul>
+</li>
+<li><strong><code>control.controlConstants</code></strong> הם הגברים. מנוע ה-drive פועל בבקרת <em>מהירות</em> בלולאה סגורה, לכן
+  משתמשים ב-<code>ControlConstants.createPIDF(...)</code> עם feed-forward למהירות <code>V</code> בערך <code>12 / maxSpeed</code> (וולט
+  למ'/ש') ו-<code>S</code> קטן לחיכוך סטטי; <code>A</code> ו-<code>G</code> הם <code>0</code>, וארגומנט <code>GravityTypeValue</code> חובה אבל אין לו השפעה
+  על שילדת הינע. מנוע ה-steer פועל בבקרת <em>מיקום</em> בלולאה סגורה, אז מספיק
+  <code>ControlConstants.createPID(P, I, D, IZone)</code> רגיל. הספרייה מטפלת בעצמה במעבר ±180°, אז לא מגדירים
+  קלט רציף.</li>
+<li><strong>מגבלות הזרם ב-<code>base</code></strong> - מנוע ה-drive צריך מגבלת סטטור גבוהה יותר (הוא מספק את המומנט
+  להאצת הרובוט) ממנוע ה-steer.</li>
+<li><strong>סוג הבקר</strong> - <code>Controller.ControllerType.TalonFX</code> וכו' - <em>אינו</em> חלק מהקבועים; מעבירים אותו לצידם
+  ב-<code>withDriveMotor(...)</code>/<code>withSteerMotor(...)</code>. מנועי ה-drive וה-steer יכולים להיות מסוגים שונים,
+  אבל ת'רד האודומטריה בתדירות גבוהה (<code>special.enableOdometryThread</code>) דורש ששניהם יהיו TalonFX.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">SubsystemConstants</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">kWheelRadius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.049</span><span class="p">;</span><span class="w"> </span><span class="c1">// מטרים</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="c1">// להגדיר את אלה *מעל* kSwerve: שדות סטטיים מאותחלים מלמעלה למטה, ולכן שדה שמוגדר</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="c1">// למטה עדיין יהיה null כש-kSwerve קורא אותו.</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">ControllerConstants</span><span class="w"> </span><span class="n">kDriveMotorConstants</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ControllerConstants</span><span class="p">();</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">ControllerConstants</span><span class="w"> </span><span class="n">kSteerMotorConstants</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ControllerConstants</span><span class="p">();</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="kd">static</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">        </span><span class="c1">// Drive: בקרת מהירות, במטרים ומטרים לשנייה</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">        </span><span class="n">kDriveMotorConstants</span><span class="p">.</span><span class="na">real</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">            </span><span class="p">.</span><span class="na">withBase</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">RealControllerConstants</span><span class="p">.</span><span class="na">Base</span><span class="p">()</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">                </span><span class="p">.</span><span class="na">withStatorCurrentLimit</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">                </span><span class="p">.</span><span class="na">withSupplyCurrentLimit</span><span class="p">(</span><span class="mi">60</span><span class="p">))</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">            </span><span class="p">.</span><span class="na">withControl</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">RealControllerConstants</span><span class="p">.</span><span class="na">Control</span><span class="p">()</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">                </span><span class="p">.</span><span class="na">withConversion</span><span class="p">(</span><span class="mf">6.75</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">Math</span><span class="p">.</span><span class="na">PI</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">kWheelRadius</span><span class="p">)</span><span class="w">     </span><span class="c1">// יחס העברה, היקף</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">                </span><span class="p">.</span><span class="na">withControlConstants</span><span class="p">(</span><span class="n">ControlConstants</span><span class="p">.</span><span class="na">createPIDF</span><span class="p">(</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">                    </span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">                                     </span><span class="c1">// P, I, D, IZone</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">                    </span><span class="mf">2.35</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.3</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">GravityTypeValue</span><span class="p">.</span><span class="na">Elevator_Static</span><span class="p">)));</span><span class="w"> </span><span class="c1">// V, A, S, G, סוג כוח המשיכה</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">        </span><span class="c1">// Steer: בקרת מיקום, ברדיאנים</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">        </span><span class="n">kSteerMotorConstants</span><span class="p">.</span><span class="na">real</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">            </span><span class="p">.</span><span class="na">withBase</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">RealControllerConstants</span><span class="p">.</span><span class="na">Base</span><span class="p">()</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">                </span><span class="p">.</span><span class="na">withStatorCurrentLimit</span><span class="p">(</span><span class="mi">40</span><span class="p">)</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">                </span><span class="p">.</span><span class="na">withSupplyCurrentLimit</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">            </span><span class="p">.</span><span class="na">withControl</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">RealControllerConstants</span><span class="p">.</span><span class="na">Control</span><span class="p">()</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">                </span><span class="p">.</span><span class="na">withConversion</span><span class="p">(</span><span class="mf">150.0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">Math</span><span class="p">.</span><span class="na">PI</span><span class="p">)</span><span class="w">               </span><span class="c1">// יחס העברה, רדיאנים לסיבוב</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">                </span><span class="p">.</span><span class="na">withControlConstants</span><span class="p">(</span><span class="n">ControlConstants</span><span class="p">.</span><span class="na">createPID</span><span class="p">(</span><span class="mi">25</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.25</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)));</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">    </span><span class="c1">// public static final SwerveConstants kSwerve = ... (בחלק הבא)</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="p">}</span>
+</code></pre></div>
+<p>בסימולציה נקראים מהאובייקטים האלה רק הגברים <code>P</code>, <code>I</code>, <code>D</code> ו-<code>IZone</code>. המודל הפיזי מגיע מ-
+<code>SwerveConstants.simulation</code>, ולכן יחס ההעברה ופקטור ההמרה למעלה מתעלמים בסימולציה - מגדירים אותם
+בשביל הרובוט האמיתי, ומכוונים את הגברים בנפרד אם הסימולציה נוסעת אחרת.</p>
 <h2 id="swerveconstants">הגדרת <code>SwerveConstants</code><a class="headerlink" href="#swerveconstants" title="Permanent link">&para;</a></h2>
 <p><code>SwerveConstants</code> מקבצת הגדרות לתוך אובייקטים מקוננים, כל אחד עם setterים שרשורים בשם <code>withX(...)</code>.
-צריך לדרוס רק את מה שונה מברירת המחדל:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">SubsystemConstants</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">SwerveConstants</span><span class="w"> </span><span class="n">kSwerve</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">SwerveConstants</span><span class="p">()</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">        </span><span class="p">.</span><span class="na">withChassis</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">SwerveConstants</span><span class="p">.</span><span class="na">Chassis</span><span class="p">()</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">            </span><span class="p">.</span><span class="na">withDimensions</span><span class="p">(</span><span class="mf">0.6</span><span class="p">,</span><span class="w"> </span><span class="mf">0.6</span><span class="p">)</span><span class="w">      </span><span class="c1">// מרווח בין המודולים, מרחק בין הגלגלים (מטרים)</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">            </span><span class="p">.</span><span class="na">withBumper</span><span class="p">(</span><span class="mf">0.9</span><span class="p">,</span><span class="w"> </span><span class="mf">0.9</span><span class="p">))</span><span class="w">         </span><span class="c1">// רוחב הפגוש, אורך הפגוש (מטרים)</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">        </span><span class="p">.</span><span class="na">withSpeeds</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">SwerveConstants</span><span class="p">.</span><span class="na">Speeds</span><span class="p">()</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">            </span><span class="p">.</span><span class="na">withMaxSpeeds</span><span class="p">(</span><span class="mf">5.0</span><span class="p">,</span><span class="w"> </span><span class="mf">9.0</span><span class="p">)</span><span class="w">                       </span><span class="c1">// מקסימום פיזי: מ'/ש', רד'/ש'</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">            </span><span class="p">.</span><span class="na">withSpeedLimits</span><span class="p">(</span><span class="mf">4.0</span><span class="p">,</span><span class="w"> </span><span class="mf">7.0</span><span class="p">)</span><span class="w">                     </span><span class="c1">// הגבלות נהיגה רכות: מ'/ש', רד'/ש'</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">            </span><span class="p">.</span><span class="na">withAccelerationLimits</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span><span class="w"> </span><span class="mi">15</span><span class="p">))</span><span class="w">           </span><span class="c1">// תאוצת סקיד, קדימה, סיבוב</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">        </span><span class="p">.</span><span class="na">withModules</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">SwerveConstants</span><span class="p">.</span><span class="na">Modules</span><span class="p">()</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">            </span><span class="p">.</span><span class="na">withModuleConstants</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">SwerveModuleConstants</span><span class="o">[]</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">                </span><span class="k">new</span><span class="w"> </span><span class="n">SwerveModuleConstants</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="mf">0.421</span><span class="p">),</span><span class="w">  </span><span class="c1">// קדמי שמאל</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">                </span><span class="k">new</span><span class="w"> </span><span class="n">SwerveModuleConstants</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="mf">0.128</span><span class="p">),</span><span class="w">  </span><span class="c1">// קדמי ימין</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">                </span><span class="k">new</span><span class="w"> </span><span class="n">SwerveModuleConstants</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="mi">9</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="mf">0.355</span><span class="p">),</span><span class="w">  </span><span class="c1">// אחורי שמאל</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">                </span><span class="k">new</span><span class="w"> </span><span class="n">SwerveModuleConstants</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="mi">11</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="mf">0.009</span><span class="p">)</span><span class="w"> </span><span class="c1">// אחורי ימין</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">            </span><span class="p">})</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">            </span><span class="p">.</span><span class="na">withDriveMotor</span><span class="p">(</span><span class="n">kDriveMotorConstants</span><span class="p">,</span><span class="w"> </span><span class="n">Controller</span><span class="p">.</span><span class="na">ControllerType</span><span class="p">.</span><span class="na">TalonFX</span><span class="p">)</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">            </span><span class="p">.</span><span class="na">withSteerMotor</span><span class="p">(</span><span class="n">kSteerMotorConstants</span><span class="p">,</span><span class="w"> </span><span class="n">Controller</span><span class="p">.</span><span class="na">ControllerType</span><span class="p">.</span><span class="na">TalonFX</span><span class="p">))</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">        </span><span class="p">.</span><span class="na">withGyro</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">SwerveConstants</span><span class="p">.</span><span class="na">Gyro</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="n">SwerveConstants</span><span class="p">.</span><span class="na">Gyro</span><span class="p">.</span><span class="na">GyroType</span><span class="p">.</span><span class="na">Pigeon2</span><span class="p">))</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">        </span><span class="p">.</span><span class="na">withSpecial</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">SwerveConstants</span><span class="p">.</span><span class="na">Special</span><span class="p">()</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">            </span><span class="p">.</span><span class="na">withRobotConfig</span><span class="p">(</span><span class="n">RobotConfig</span><span class="p">.</span><span class="na">fromGUISettings</span><span class="p">())</span>
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">            </span><span class="p">.</span><span class="na">withRobotStartPose</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Pose2d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">Rotation2d</span><span class="p">.</span><span class="na">kZero</span><span class="p">)));</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="p">}</span>
+צריך לדרוס רק את מה שונה מברירת המחדל. זה נכתב באותו קובץ קבועים, מתחת לקבועי המנועים שהוא מפנה
+אליהם:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">SubsystemConstants</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="c1">// kDriveMotorConstants ו-kSteerMotorConstants מלמעלה</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">SwerveConstants</span><span class="w"> </span><span class="n">kSwerve</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">SwerveConstants</span><span class="p">()</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">        </span><span class="p">.</span><span class="na">withChassis</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">SwerveConstants</span><span class="p">.</span><span class="na">Chassis</span><span class="p">()</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">            </span><span class="p">.</span><span class="na">withDimensions</span><span class="p">(</span><span class="mf">0.6</span><span class="p">,</span><span class="w"> </span><span class="mf">0.6</span><span class="p">)</span><span class="w">      </span><span class="c1">// מרווח בין המודולים, מרחק בין הגלגלים (מטרים)</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">            </span><span class="p">.</span><span class="na">withBumper</span><span class="p">(</span><span class="mf">0.9</span><span class="p">,</span><span class="w"> </span><span class="mf">0.9</span><span class="p">))</span><span class="w">         </span><span class="c1">// רוחב הפגוש, אורך הפגוש (מטרים)</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">        </span><span class="p">.</span><span class="na">withSpeeds</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">SwerveConstants</span><span class="p">.</span><span class="na">Speeds</span><span class="p">()</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">            </span><span class="p">.</span><span class="na">withMaxSpeeds</span><span class="p">(</span><span class="mf">5.0</span><span class="p">,</span><span class="w"> </span><span class="mf">9.0</span><span class="p">)</span><span class="w">                       </span><span class="c1">// מקסימום פיזי: מ'/ש', רד'/ש'</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">            </span><span class="p">.</span><span class="na">withSpeedLimits</span><span class="p">(</span><span class="mf">4.0</span><span class="p">,</span><span class="w"> </span><span class="mf">7.0</span><span class="p">)</span><span class="w">                     </span><span class="c1">// הגבלות נהיגה רכות: מ'/ש', רד'/ש'</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">            </span><span class="p">.</span><span class="na">withAccelerationLimits</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span><span class="w"> </span><span class="mi">15</span><span class="p">))</span><span class="w">           </span><span class="c1">// תאוצת סקיד, קדימה, סיבוב</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">        </span><span class="p">.</span><span class="na">withModules</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">SwerveConstants</span><span class="p">.</span><span class="na">Modules</span><span class="p">()</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">            </span><span class="p">.</span><span class="na">withModuleConstants</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">SwerveModuleConstants</span><span class="o">[]</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">                </span><span class="k">new</span><span class="w"> </span><span class="n">SwerveModuleConstants</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="mf">0.421</span><span class="p">),</span><span class="w">  </span><span class="c1">// קדמי שמאל</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">                </span><span class="k">new</span><span class="w"> </span><span class="n">SwerveModuleConstants</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="mf">0.128</span><span class="p">),</span><span class="w">  </span><span class="c1">// קדמי ימין</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">                </span><span class="k">new</span><span class="w"> </span><span class="n">SwerveModuleConstants</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="mi">9</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="mf">0.355</span><span class="p">),</span><span class="w">  </span><span class="c1">// אחורי שמאל</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">                </span><span class="k">new</span><span class="w"> </span><span class="n">SwerveModuleConstants</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="mi">11</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="mf">0.009</span><span class="p">)</span><span class="w"> </span><span class="c1">// אחורי ימין</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">            </span><span class="p">})</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">            </span><span class="p">.</span><span class="na">withDriveMotor</span><span class="p">(</span><span class="n">kDriveMotorConstants</span><span class="p">,</span><span class="w"> </span><span class="n">Controller</span><span class="p">.</span><span class="na">ControllerType</span><span class="p">.</span><span class="na">TalonFX</span><span class="p">)</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">            </span><span class="p">.</span><span class="na">withSteerMotor</span><span class="p">(</span><span class="n">kSteerMotorConstants</span><span class="p">,</span><span class="w"> </span><span class="n">Controller</span><span class="p">.</span><span class="na">ControllerType</span><span class="p">.</span><span class="na">TalonFX</span><span class="p">))</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">        </span><span class="p">.</span><span class="na">withGyro</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">SwerveConstants</span><span class="p">.</span><span class="na">Gyro</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="n">SwerveConstants</span><span class="p">.</span><span class="na">Gyro</span><span class="p">.</span><span class="na">GyroType</span><span class="p">.</span><span class="na">Pigeon2</span><span class="p">))</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">        </span><span class="p">.</span><span class="na">withSpecial</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">SwerveConstants</span><span class="p">.</span><span class="na">Special</span><span class="p">()</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">            </span><span class="p">.</span><span class="na">withRobotConfig</span><span class="p">(</span><span class="n">RobotConfig</span><span class="p">.</span><span class="na">fromGUISettings</span><span class="p">())</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">            </span><span class="p">.</span><span class="na">withRobotStartPose</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Pose2d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">Rotation2d</span><span class="p">.</span><span class="na">kZero</span><span class="p">)));</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="p">}</span>
 </code></pre></div>
 <p>כמה שדות ששווה להתעכב עליהם:</p>
 <ul>
@@ -997,8 +1146,14 @@
   היא אינסוף (בלי הגבלה). מגדירים אותם אחרי שאיפיינתם את הרובוט, או משאירים כברירת מחדל אם לא צריך
   הגבלת תאוצה.</li>
 <li><strong><code>SwerveModuleConstants</code></strong> מקבל <code>(moduleNumber, driveMotorID, steerMotorID, driveInverted,
-  steerInverted, canCoderID, canCoderInverted, canCoderOffset)</code>. סדר המודולים (אינדקסים 0–3) חייב
-  להתאים לסדר הפינות שבו משתמש <code>chassis.kinematics</code>.</li>
+  steerInverted, canCoderID, canCoderInverted, canCoderOffset)</code>. המזהים וההיפוכים כאן הם אלה שבהם
+  מנועי כל מודול משתמשים בפועל (הם דורסים את הערכים הזמניים בקבועי המנועים המשותפים), וההיסט הוא
+  magnet offset של ה-CANcoder ברוטציות, מכויל כך שהמודול קורא אפס כשהגלגל מצביע קדימה. סדר
+  המודולים (אינדקסים 0–3) חייב להתאים לסדר הפינות שבו משתמש <code>chassis.kinematics</code>: קדמי שמאל, קדמי
+  ימין, אחורי שמאל, אחורי ימין.</li>
+<li><strong><code>withSimulation(...)</code></strong> (לא מופיע למעלה) מגדיר את סוג המודול המדומה, למשל
+  <code>new SwerveConstants.Simulation().withSwerveType(SwerveConstants.Simulation.SwerveType.Mark4i, 2)</code>;
+  משמש רק בסימולציה, וברירות המחדל טובות עד שרוצים שהסימולציה תתאים למודולים האמיתיים שלכם.</li>
 <li><strong><code>special.enableOdometryThread</code></strong> (דרך <code>.withOdometryThread(frequency)</code>) מריץ דגימת אודומטריה
   בת'רד ייעודי בתדירות גבוהה במקום בלולאה הראשית של 50 הרץ - שימושי אם צריך עדכוני מיקום מדויקים
   יותר לחישוב כמו ירי תוך כדי תנועה. השאירו כבוי אלא אם יש סיבה ספציפית להפעיל.</li>
@@ -1007,83 +1162,100 @@
   כברירת מחדל.</li>
 </ul>
 <h2 id="swerve">בנייה ורישום של <code>Swerve</code><a class="headerlink" href="#swerve" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">Swerve</span><span class="p">.</span><span class="na">setInstance</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Swerve</span><span class="p">(</span><span class="n">SubsystemConstants</span><span class="p">.</span><span class="na">kSwerve</span><span class="p">));</span>
+<p>עושים את זה פעם אחת, בבנאי של סאבסיסטם השילדה, לפני שמשהו קורא ל-<code>Swerve.get()</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">SwerveSubsystem</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">SubsystemBase</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="nf">SwerveSubsystem</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">        </span><span class="n">Swerve</span><span class="p">.</span><span class="na">setInstance</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Swerve</span><span class="p">(</span><span class="n">SubsystemConstants</span><span class="p">.</span><span class="na">kSwerve</span><span class="p">));</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">        </span><span class="c1">// SwerveController.setInstance(...) מגיע מיד אחרי, ראו בהמשך</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="p">}</span>
 </code></pre></div>
 <p>הבנאי בודק את <code>Robot.isReal()</code> ובונה או מודולי <code>SwerveModuleIOReal</code> אמיתיים עם <code>GyroIONavX</code>/
 <code>GyroIOPigeon2</code>, או <code>SwerveDriveSimulation</code> של MapleSim עם מודולים וגירוסקופ מדומים - הקוד שלכם
 אף פעם לא צריך להבחין בעצמו בין אמיתי לסימולציה.</p>
-<h2 id="_2">נהיגה<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<h2 id="_3">נהיגה<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <p>בכל לולאה, מזינים את התנועה הרצויה ל-<code>drive()</code> בתור <code>SwerveSpeeds</code> - תת-מחלקה של <code>ChassisSpeeds</code>
-של הספרייה, שנושאת גם דגל <code>fieldRelative</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">SwerveSubsystem</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">SubsystemBase</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="nd">@Override</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">periodic</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">        </span><span class="n">SwerveSpeeds</span><span class="w"> </span><span class="n">driverInput</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">SwerveSpeeds</span><span class="p">(</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">            </span><span class="n">forwardMetersPerSecond</span><span class="p">,</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">            </span><span class="n">strafeMetersPerSecond</span><span class="p">,</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">            </span><span class="n">rotationRadiansPerSecond</span><span class="p">,</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">            </span><span class="cm">/* fieldRelative = */</span><span class="w"> </span><span class="kc">true</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">        </span><span class="p">);</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">        </span><span class="n">Swerve</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">drive</span><span class="p">(</span><span class="n">driverInput</span><span class="p">);</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">        </span><span class="n">Swerve</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">periodic</span><span class="p">();</span><span class="w"> </span><span class="c1">// חייבים לקרוא בכל לולאה</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="p">}</span>
+של הספרייה, שנושאת גם דגל <code>fieldRelative</code>. זה נכתב ב-<code>periodic()</code> של סאבסיסטם השילדה (זו הצורה
+הפשוטה ביותר; גרסת ה-state machine ב-<a href="../getting-started.html">איך מתחילים</a> קוראת במקום זה
+ל-<code>SwerveController.get().setControl(...)</code> מתוך פקודת מצב):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">SwerveSubsystem</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">SubsystemBase</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="c1">// ...הבנאי מלמעלה...</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nd">@Override</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">periodic</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">        </span><span class="n">SwerveSpeeds</span><span class="w"> </span><span class="n">driverInput</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">SwerveSpeeds</span><span class="p">(</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">            </span><span class="n">forwardMetersPerSecond</span><span class="p">,</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">            </span><span class="n">strafeMetersPerSecond</span><span class="p">,</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">            </span><span class="n">rotationRadiansPerSecond</span><span class="p">,</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">            </span><span class="cm">/* fieldRelative = */</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">        </span><span class="p">);</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">        </span><span class="n">Swerve</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">drive</span><span class="p">(</span><span class="n">driverInput</span><span class="p">);</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">        </span><span class="n">Swerve</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">periodic</span><span class="p">();</span><span class="w"> </span><span class="c1">// חייבים לקרוא בכל לולאה</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="p">}</span>
 </code></pre></div>
 <p><code>drive()</code> לא מפעיל את המהירויות המבוקשות ישירות - הוא מתייחס אליהן כ<em>יעד</em> שמצב פנימי מאיץ אליו,
 כשהוא כפוף להגבלות התאוצה והמהירות מ-<code>SwerveConstants</code>. זה מה שגורם לשילדה להרגיש חלקה גם עם קלט
 ג'ויסטיק עצבני. ברובוט אמיתי, מהירויות השילדה הסופיות גם עוברות דיסקרטיזציה (<code>ChassisSpeeds.discretize</code>)
 כדי לתקן את לולאת הפקודות בת 20 מ"ש.</p>
-<p>נקודות כניסה שימושיות נוספות:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">Swerve</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">stop</span><span class="p">();</span><span class="w">              </span><span class="c1">// בקשת נהיגה ריקה</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">Swerve</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">lockWheelsToX</span><span class="p">();</span><span class="w">     </span><span class="c1">// נעילת גלגלים בצורת X, למשל כדי לעמוד מול דחיפה</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">Swerve</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">getSpeeds</span><span class="p">();</span><span class="w">         </span><span class="c1">// מהירות נוכחית לפי אודומטריה</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">Swerve</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">getModuleStates</span><span class="p">();</span><span class="w">   </span><span class="c1">// מצב כל מודול, לאבחון/תיעוד</span>
+<p>נקודות כניסה שימושיות נוספות, שאפשר לקרוא להן מכל פקודה או שיטה של הסאבסיסטם:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">Swerve</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">stop</span><span class="p">();</span><span class="w">              </span><span class="c1">// בקשת נהיגה ריקה</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">Swerve</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">lockWheelsToX</span><span class="p">();</span><span class="w">     </span><span class="c1">// נעילת גלגלים בצורת X, למשל כדי לעמוד מול דחיפה</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">Swerve</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">getSpeeds</span><span class="p">();</span><span class="w">         </span><span class="c1">// מהירות נוכחית לפי אודומטריה</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">Swerve</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">getModuleStates</span><span class="p">();</span><span class="w">   </span><span class="c1">// מצב כל מודול, לאבחון/תיעוד</span>
 </code></pre></div>
 <h2 id="swervecontroller">כיוון ונהיגה לנקודה עם <code>SwerveController</code><a class="headerlink" href="#swervecontroller" title="Permanent link">&para;</a></h2>
 <p><code>SwerveController</code> עוטף PID לסיבוב (רגיל או עם פרופיל תנועה, תלוי אם מגדירים cruise
 velocity/acceleration) ו-PID לתזוזה, כדי שפקודות לא יצטרכו לממש כל אחת בעצמה "תסתובב מול X" או
-"סע לכיוון X":</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">SwerveControllerConstants</span><span class="w"> </span><span class="n">kSwerveController</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">SwerveControllerConstants</span><span class="p">()</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="p">.</span><span class="na">withSwerveConstants</span><span class="p">(</span><span class="n">kSwerve</span><span class="p">)</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="p">.</span><span class="na">withRotationPID</span><span class="p">(</span><span class="n">ControlConstants</span><span class="p">.</span><span class="na">createPID</span><span class="p">(</span><span class="mf">4.0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">))</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="p">.</span><span class="na">withDrivePID</span><span class="p">(</span><span class="n">ControlConstants</span><span class="p">.</span><span class="na">createPID</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">));</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">SwerveController</span><span class="p">.</span><span class="na">setInstance</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">SwerveController</span><span class="p">(</span><span class="n">kSwerveController</span><span class="p">));</span>
+"סע לכיוון X". הקבועים שלו נכתבים בקובץ הקבועים, <em>מתחת</em> ל-<code>kSwerve</code>, והוא נרשם בבנאי של סאבסיסטם
+השילדה מיד אחרי <code>Swerve</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1">// SubsystemConstants.java</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">SwerveControllerConstants</span><span class="w"> </span><span class="n">kSwerveController</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">SwerveControllerConstants</span><span class="p">()</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="p">.</span><span class="na">withSwerveConstants</span><span class="p">(</span><span class="n">kSwerve</span><span class="p">)</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="p">.</span><span class="na">withRotationPID</span><span class="p">(</span><span class="n">ControlConstants</span><span class="p">.</span><span class="na">createPID</span><span class="p">(</span><span class="mf">4.0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">))</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="p">.</span><span class="na">withDrivePID</span><span class="p">(</span><span class="n">ControlConstants</span><span class="p">.</span><span class="na">createPID</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">));</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1">// SwerveSubsystem.java, בבנאי</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="n">Swerve</span><span class="p">.</span><span class="na">setInstance</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Swerve</span><span class="p">(</span><span class="n">SubsystemConstants</span><span class="p">.</span><span class="na">kSwerve</span><span class="p">));</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="n">SwerveController</span><span class="p">.</span><span class="na">setInstance</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">SwerveController</span><span class="p">(</span><span class="n">SubsystemConstants</span><span class="p">.</span><span class="na">kSwerveController</span><span class="p">));</span>
 </code></pre></div>
 <p><code>rotationPIDConstants</code> הופך אוטומטית ל-PID עם פרופיל תנועה אם גם מגדירים
 <code>cruiseVelocity</code>/<code>acceleration</code> (למשל דרך <code>ControlConstants.createProfiledPIDF(...)</code>) - אחרת זה
 <code>PIDController</code> רגיל עם קלט רציף (continuous input).</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1">// להסתכל לזווית קבועה יחסית למגרש:</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kt">double</span><span class="w"> </span><span class="n">omega</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SwerveController</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">lookAt</span><span class="p">(</span><span class="n">Rotation2d</span><span class="p">.</span><span class="na">fromDegrees</span><span class="p">(</span><span class="mi">90</span><span class="p">));</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1">// להסתכל למיקום יעד יחסי למגרש (למשל, הספיקר), עם היסט אם המנגנון שצריך לכוון</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1">// הוא לא החזית של הרובוט:</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="kt">double</span><span class="w"> </span><span class="n">omegaAtTarget</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SwerveController</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">lookAt</span><span class="p">(</span><span class="n">targetPose</span><span class="p">,</span><span class="w"> </span><span class="n">Rotation2d</span><span class="p">.</span><span class="na">kZero</span><span class="p">);</span>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="c1">// לנסוע ישר לכיוון נקודה:</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="n">Translation2d</span><span class="w"> </span><span class="n">velocityToTarget</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SwerveController</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">pidTo</span><span class="p">(</span><span class="n">targetTranslation</span><span class="p">);</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="n">Swerve</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">drive</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">SwerveSpeeds</span><span class="p">(</span><span class="n">velocityToTarget</span><span class="p">,</span><span class="w"> </span><span class="n">omegaAtTarget</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">));</span>
+<p>ואז משתמשים בו מה-<code>periodic()</code> של סאבסיסטם השילדה, או מפקודה/פקודת מצב שרצה בכל לולאה:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">// להסתכל לזווית קבועה יחסית למגרש:</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kt">double</span><span class="w"> </span><span class="n">omega</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SwerveController</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">lookAt</span><span class="p">(</span><span class="n">Rotation2d</span><span class="p">.</span><span class="na">fromDegrees</span><span class="p">(</span><span class="mi">90</span><span class="p">));</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1">// להסתכל למיקום יעד יחסי למגרש (למשל, הספיקר), עם היסט אם המנגנון שצריך לכוון</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="c1">// הוא לא החזית של הרובוט:</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="kt">double</span><span class="w"> </span><span class="n">omegaAtTarget</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SwerveController</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">lookAt</span><span class="p">(</span><span class="n">targetPose</span><span class="p">,</span><span class="w"> </span><span class="n">Rotation2d</span><span class="p">.</span><span class="na">kZero</span><span class="p">);</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="c1">// לנסוע ישר לכיוון נקודה:</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="n">Translation2d</span><span class="w"> </span><span class="n">velocityToTarget</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SwerveController</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">pidTo</span><span class="p">(</span><span class="n">targetTranslation</span><span class="p">);</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="n">Swerve</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">drive</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">SwerveSpeeds</span><span class="p">(</span><span class="n">velocityToTarget</span><span class="p">,</span><span class="w"> </span><span class="n">omegaAtTarget</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">));</span>
 </code></pre></div>
 <p><code>lookAt</code>/<code>pidTo</code> רק <em>מחשבים</em> מהירות - הם לא קוראים בעצמם ל-<code>Swerve.get().drive()</code>, כך שאפשר לשלב
 פלט של PID סיבוב עם תזוזה שנשלטת על ידי הנהג, או להפך, באותו <code>SwerveSpeeds</code>.</p>
-<h3 id="_3">שיתוף בטוח של השילדה בין פקודות<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<h3 id="_4">שיתוף בטוח של השילדה בין פקודות<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
 <p>כשכמה פקודות עלולות לרצות לנהוג בסוורב (שליטת נהג, כיוון אוטומטי, רצף ניקוד), <code>setControl</code>/<code>setChannel</code>
-מתפקד כמנגנון בעלות פשוט במקום להסתמך רק על מערכת ה-requirements של WPILib:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">// מי שאמור כרגע להיות רשאי לנהוג תופס את הערוץ:</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">SwerveController</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">setChannel</span><span class="p">(</span><span class="s">"AutoAim"</span><span class="p">);</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1">// כל נתיב קוד יכול לנסות לנהוג - רק הקריאה של בעל הערוץ הנוכחי משפיעה בפועל:</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">SwerveController</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">setControl</span><span class="p">(</span><span class="n">speeds</span><span class="p">,</span><span class="w"> </span><span class="s">"AutoAim"</span><span class="p">);</span><span class="w"> </span><span class="c1">// מתבצע</span>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="n">SwerveController</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">setControl</span><span class="p">(</span><span class="n">speeds</span><span class="p">,</span><span class="w"> </span><span class="s">"Teleop"</span><span class="p">);</span><span class="w">  </span><span class="c1">// מתעלם בשקט</span>
+מתפקד כמנגנון בעלות פשוט במקום להסתמך רק על מערכת ה-requirements של WPILib. קוראים לאלה מהפקודות שרוצות לנהוג - <code>setChannel</code> פעם אחת כשפקודה מתחילה (למשל ב-
+<code>initialize()</code>, או ב-omni-edge אל מצב), <code>setControl</code> בכל לולאה כל עוד היא רצה:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1">// מי שאמור כרגע להיות רשאי לנהוג תופס את הערוץ:</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">SwerveController</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">setChannel</span><span class="p">(</span><span class="s">"AutoAim"</span><span class="p">);</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1">// כל נתיב קוד יכול לנסות לנהוג - רק הקריאה של בעל הערוץ הנוכחי משפיעה בפועל:</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="n">SwerveController</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">setControl</span><span class="p">(</span><span class="n">speeds</span><span class="p">,</span><span class="w"> </span><span class="s">"AutoAim"</span><span class="p">);</span><span class="w"> </span><span class="c1">// מתבצע</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="n">SwerveController</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">setControl</span><span class="p">(</span><span class="n">speeds</span><span class="p">,</span><span class="w"> </span><span class="s">"Teleop"</span><span class="p">);</span><span class="w">  </span><span class="c1">// מתעלם בשקט</span>
 </code></pre></div>
 <p>זה שימושי במיוחד כשפקודה שבבעלות state machine/רקע צריכה <em>לפעמים</em> להשתלט על הנהיגה בלי לבטל
 את הפקודת ברירת המחדל של הנהג.</p>
-<h2 id="_4">קריאת מצב בחזרה<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">Swerve</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">getGyro</span><span class="p">().</span><span class="na">getYaw</span><span class="p">();</span><span class="w">      </span><span class="c1">// כיוון גירוסקופ נוכחי</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">Swerve</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">getOdometryTwist</span><span class="p">();</span><span class="w">      </span><span class="c1">// תזוזה מאז הקריאה האחרונה לשיטה הזאת</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">RobotPose</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">getRobotPose</span><span class="p">();</span><span class="w">       </span><span class="c1">// מיקום מלא במגרש (ראו מיקום וראייה ממוחשבת)</span>
+<h2 id="_5">קריאת מצב בחזרה<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<p>מכל מקום בקוד, אחרי שסאבסיסטם השילדה נבנה:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">Swerve</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">getGyro</span><span class="p">().</span><span class="na">getYaw</span><span class="p">();</span><span class="w">      </span><span class="c1">// כיוון גירוסקופ נוכחי</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">Swerve</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">getOdometryTwist</span><span class="p">();</span><span class="w">      </span><span class="c1">// תזוזה מאז הקריאה האחרונה לשיטה הזאת</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">RobotPose</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">getRobotPose</span><span class="p">();</span><span class="w">       </span><span class="c1">// מיקום מלא במגרש (ראו מיקום וראייה ממוחשבת)</span>
 </code></pre></div>
 <p>ראו <a href="localization.html">מיקום וראייה ממוחשבת</a> כדי להבין איך פלט האודומטריה של <code>Swerve</code> הופך למיקום
 במגרש, ואיך ראייה ממוחשבת מתקנת אותו.</p>
