@@ -330,30 +330,8 @@ public class RealControllerConstants {
             /** the direction of movement in which the limit will be clicked, for example if an elevator goes down when given minus as output and the limit switch is at the bottom then this value should be -1. */
             public int direction = -1;
 
-            /** Whether {@link #limitTriggerMethod} should be invoked when this limit newly becomes active. */
+            /** Whether {@link Controller#runHardLimitTrigger(HardLimit, int, boolean)} should be invoked when this limit newly becomes active. */
             public boolean enableLimitTriggerMethod = true;
-
-            /**
-             * Called from {@link Controller#periodic()} when this limit newly becomes active (and
-             * {@link #enableLimitTriggerMethod} is {@code true}), and again after every user command
-             * while it is active (with {@code preLimit = true}, so the encoder is not reset again).
-             * By default it resets the encoder
-             * to {@link #homePosition} and, if the motor is still being driven into the limit,
-             * commands a position hold there - see {@link LimitTriggerMethod}.
-             */
-            public LimitTriggerMethod limitTriggerMethod = (controller, limitConstants, preLimit, userRequestDirection) -> {
-                if (!preLimit)
-                    controller.setEncoder(limitConstants.homePosition); // Reset encoder
-
-                if (controller.getControlState() == Controller.ControlState.POSITION) {
-                    userRequestDirection = (int) Math.signum(controller.getGoal() - controller.getPosition());
-                } else if (controller.getControlState() == Controller.ControlState.VELOCITY) {
-                    userRequestDirection = (int) Math.signum(controller.getGoal());
-                }
-
-                if (userRequestDirection == limitConstants.direction)
-                    controller.setPosition(limitConstants.homePosition); // Set control to current position to hold position
-            };
 
             /**
              * The home position of the subsystem where the limit switch is and is usually 0. when the limit
@@ -421,20 +399,11 @@ public class RealControllerConstants {
             }
 
             /**
-             * @param enableLimitTriggerMethod whether to invoke {@link #limitTriggerMethod} when this limit triggers
+             * @param enableLimitTriggerMethod whether to invoke {@link Controller#runHardLimitTrigger(HardLimit, int, boolean)} when this limit triggers
              * @return this instance, for chaining
              */
             public HardLimit withEnableLimitTriggerMethod(boolean enableLimitTriggerMethod) {
                 this.enableLimitTriggerMethod = enableLimitTriggerMethod;
-                return this;
-            }
-
-            /**
-             * @param limitTriggerMethod the callback to run when this limit newly becomes active
-             * @return this instance, for chaining
-             */
-            public HardLimit withLimitTriggerMethod(LimitTriggerMethod limitTriggerMethod) {
-                this.limitTriggerMethod = limitTriggerMethod;
                 return this;
             }
 
@@ -446,18 +415,6 @@ public class RealControllerConstants {
                 this.homePosition = homePosition;
                 return this;
             }
-        }
-
-        /** Callback invoked by {@link Controller#periodic()} when a {@link HardLimit} newly becomes active. */
-        @FunctionalInterface
-        public interface LimitTriggerMethod {
-            /**
-             * @param controller     the controller whose limit triggered
-             * @param limitConstants the configuration of the limit that triggered
-             * @param preLimit       whether the limit was already active on the previous {@code periodic()} call
-             * @param userRequestDirection direction of the
-             */
-            void trigger(Controller controller, HardLimit limitConstants, boolean preLimit, int userRequestDirection);
         }
     }
 

@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import frc.lib.NinjasLib.controllers.constants.ControlConstants.ControlType;
 import frc.lib.NinjasLib.controllers.constants.ControllerConstants;
 import frc.lib.NinjasLib.controllers.constants.RealControllerConstants;
+import frc.lib.NinjasLib.util.NinjasLogger;
 import frc.robot.Robot;
 
 import java.nio.ByteBuffer;
@@ -58,8 +59,9 @@ public class Controller {
     private DigitalInput[] limitSwitches;
     private boolean[] preLimits;
     private int[] limitFrames;
-    private int limitUserRequestDirection = 0;
+    private int hardLimitRequestDirection = 0;
     private boolean inLimitTrigger =  false;
+    private boolean[] limitHolds;
 
     private CANcoder CANCoder;
 
@@ -80,6 +82,7 @@ public class Controller {
         limitSwitches = new DigitalInput[constants.hardLimits.limits.length];
         preLimits = new boolean[constants.hardLimits.limits.length];
         limitFrames = new int[constants.hardLimits.limits.length];
+        limitHolds = new boolean[constants.hardLimits.limits.length];
 
         for (int i = 0; i < constants.hardLimits.limits.length; i++){
             if (!constants.hardLimits.limits[i].isVirtual)
@@ -104,11 +107,14 @@ public class Controller {
      */
     public void setPercent(double percent) {
         controlState = ControlState.PERCENT_OUTPUT;
-        limitUserRequestDirection = (int) Math.signum(percent);
+
+        hardLimitRequestDirection = (int) Math.signum(percent);
+        for  (int i = 0; i < constants.hardLimits.limits.length; i++)
+            limitHolds[i] = false;
 
         io.applyPercent(percent);
 
-        enforceLimits();
+        enforceHardLimits();
     }
 
     /**
@@ -128,9 +134,12 @@ public class Controller {
         controlState = ControlState.POSITION;
         goal = position;
 
+        for  (int i = 0; i < constants.hardLimits.limits.length; i++)
+            limitHolds[i] = false;
+
         io.applyPosition(position);
 
-        enforceLimits();
+        enforceHardLimits();
     }
 
     /**
@@ -149,9 +158,12 @@ public class Controller {
         controlState = ControlState.VELOCITY;
         goal = velocity;
 
+        for  (int i = 0; i < constants.hardLimits.limits.length; i++)
+            limitHolds[i] = false;
+
         io.applyVelocity(velocity);
 
-        enforceLimits();
+        enforceHardLimits();
     }
 
     /**
@@ -164,11 +176,14 @@ public class Controller {
      */
     public void stop() {
         controlState = ControlState.PERCENT_OUTPUT;
-        limitUserRequestDirection = 0;
+        hardLimitRequestDirection = 0;
+
+        for  (int i = 0; i < constants.hardLimits.limits.length; i++)
+            limitHolds[i] = false;
 
         io.stop();
 
-        enforceLimits();
+        enforceHardLimits();
     }
 
     /**
@@ -249,19 +264,21 @@ public class Controller {
     }
 
     /**
-     * @return Whether the controller is at its goal, the target of Profiled PID / PID / Motion Magic, etc... Will return false if not in position or velocity control
+     * @return Whether the controller is at its position goal, which is the target from {@link Controller#setPosition(double)}
      */
-    public boolean atGoal() {
-        if (controlState == ControlState.POSITION)
-            return Math.abs(getGoal() - getPosition()) < constants.control.positionGoalTolerance;
-        else if (controlState == ControlState.VELOCITY)
-            return Math.abs(getGoal() - getVelocity()) < constants.control.velocityGoalTolerance;
-
-        return false;
+    public boolean atPositionGoal() {
+        return Math.abs(getGoal() - getPosition()) < constants.control.positionGoalTolerance;
     }
 
     /**
-     * @return current control state of controller
+     * @return Whether the controller is at its velocity goal, which is the target from {@link Controller#setVelocity(double)}
+     */
+    public boolean atVelocityGoal() {
+        return Math.abs(getGoal() - getVelocity()) < constants.control.velocityGoalTolerance;
+    }
+
+    /**
+     * @return Current control state of controller
      */
     public ControlState getControlState() {
         return controlState;
@@ -327,7 +344,7 @@ public class Controller {
      * switches by reading the {@link DigitalInput}, virtual limits by watching stator current
      * against {@link RealControllerConstants.HardLimits.HardLimit#virtualStallThreshold} while
      * within its position window) and, once a limit becomes newly active, invokes its
-     * {@link RealControllerConstants.HardLimits.HardLimit#limitTriggerMethod} if enabled.
+     * {@link Controller#runHardLimitTrigger(RealControllerConstants.HardLimits.HardLimit, int, boolean)} if enabled.
      */
     public void periodic() {
         io.periodic(controlState, goal);
@@ -353,7 +370,7 @@ public class Controller {
             }
 
             if (constants.hardLimits.limits[i].enableLimitTriggerMethod && getLimit(i)) {
-                runTrigger(constants.hardLimits.limits[i], preLimits[i]);
+                runHardLimitTrigger(constants.hardLimits.limits[i], i, preLimits[i]);
             }
 
             preLimits[i] = getLimit(i);
@@ -367,26 +384,42 @@ public class Controller {
      * {@code preLimit = true}, so the encoder is not reset again. Does nothing while a trigger is
      * already running, since the trigger's own hold is a command too.
      */
-    private void enforceLimits() {
+    private void enforceHardLimits() {
         if (inLimitTrigger)
             return;
 
         for (int i = 0; i < constants.hardLimits.limits.length; i++) {
             if (constants.hardLimits.limits[i].enableLimitTriggerMethod && getLimit(i))
-                runTrigger(constants.hardLimits.limits[i], true);
+                runHardLimitTrigger(constants.hardLimits.limits[i], i, true);
         }
     }
 
     /**
      * Invokes a limit's trigger method with, so the commands the
-     * trigger issues (e.g. the position hold) don't recursively re-run {@link #enforceLimits()}.
+     * trigger issues (e.g. the position hold) don't recursively re-run {@link #enforceHardLimits()}.
      *
      * @param limit    the limit whose trigger to run
      * @param preLimit whether the limit was already active before this call
      */
-    private void runTrigger(RealControllerConstants.HardLimits.HardLimit limit, boolean preLimit) {
+    private void runHardLimitTrigger(RealControllerConstants.HardLimits.HardLimit limit, int index, boolean preLimit) {
         inLimitTrigger = true;
-        limit.limitTriggerMethod.trigger(this, limit, preLimit, limitUserRequestDirection);
+
+        if (!preLimit)
+            setEncoder(limit.homePosition); // Reset encoder
+
+        // Find updated request direction if control state is position or velocity
+        if (controlState == Controller.ControlState.POSITION) {
+            hardLimitRequestDirection = (int) Math.signum(getGoal() - getPosition());
+        } else if (controlState == Controller.ControlState.VELOCITY) {
+            hardLimitRequestDirection = (int) Math.signum(getGoal());
+        }
+
+        if (hardLimitRequestDirection == limit.direction) {
+            NinjasLogger.logEvent("[Controller] Hard limit #" + index + ": triggered setPosition to stop motor from moving");
+            limitHolds[index] = true;
+            setPosition(limit.homePosition); // Set control to current position to hold position
+        }
+
         inLimitTrigger = false;
     }
 
@@ -454,12 +487,17 @@ public class Controller {
         logs.SupplyCurrent = getSupplyCurrent();
         logs.StatorCurrent = getStatorCurrent();
         logs.Goal = getGoal();
-        logs.AtGoal = atGoal();
+        logs.AtPositionGoal = atPositionGoal();
+        logs.AtVelocityGoal = atVelocityGoal();
         logs.LimitSwitch = getLimit();
 
         logs.LimitSwitches = new boolean[constants.hardLimits.limits.length];
         for (int i = 0; i < constants.hardLimits.limits.length; i++) {
             logs.LimitSwitches[i] = getLimit(i);
+        }
+        logs.LimitSwitchHolds = new boolean[constants.hardLimits.limits.length];
+        for (int i = 0; i < constants.hardLimits.limits.length; i++) {
+            logs.LimitSwitchHolds[i] = limitHolds[i];
         }
 
         logs.AbsolutePosition = getAbsolutePosition();
@@ -488,12 +526,16 @@ public class Controller {
         public double StatorCurrent;
         /** The controller's control goal at the time of the snapshot; see {@link Controller#getGoal()}. */
         public double Goal;
-        /** Whether the controller was at its goal; see {@link Controller#atGoal()}. */
-        public boolean AtGoal;
+        /** Whether the controller was at its goal; see {@link Controller#atPositionGoal()}. */
+        public boolean AtPositionGoal;
+        /** Whether the controller was at its goal; see {@link Controller#atVelocityGoal()}. */
+        public boolean AtVelocityGoal;
         /** Whether any limit switch was clicked; see {@link Controller#getLimit()}. */
         public boolean LimitSwitch;
         /** Per-index limit switch state (fixed size of 5); see {@link Controller#getLimit(int)}. */
         public boolean[] LimitSwitches = new boolean[5];
+        /** Per-index limit switch hold state (fixed size of 5); see {@link Controller#runHardLimitTrigger(RealControllerConstants.HardLimits.HardLimit, int, boolean)}. */
+        public boolean[] LimitSwitchHolds = new boolean[5];
         /** The CANcoder absolute position, in rotations; see {@link Controller#getAbsolutePosition()}. */
         public double AbsolutePosition;
         /** The {@link Controller.ControlState} the controller was in, as a string. */
@@ -512,16 +554,18 @@ public class Controller {
          * @param supplyCurrent   see {@link #SupplyCurrent}
          * @param statorCurrent   see {@link #StatorCurrent}
          * @param goal            see {@link #Goal}
-         * @param atGoal          see {@link #AtGoal}
+         * @param atPositionGoal  see {@link #AtPositionGoal}
+         * @param atVelocityGoal  see {@link #AtVelocityGoal}
          * @param limitSwitch     see {@link #LimitSwitch}
          * @param limitSwitches   see {@link #LimitSwitches}; {@code null} is replaced with a zeroed array of length 5
+         * @param limitSwitchHolds see {@link #LimitSwitchHolds}; {@code null} is replaced with a zeroed array of length 5
          * @param absolutePosition see {@link #AbsolutePosition}
          * @param controlState    see {@link #ControlState}
          * @param controlType     see {@link #ControlType}
          */
         public ControllerLogs(double position, double velocity, double acceleration, double output,
-                              double supplyCurrent, double statorCurrent, double goal, boolean atGoal,
-                              boolean limitSwitch, boolean[] limitSwitches, double absolutePosition,
+                              double supplyCurrent, double statorCurrent, double goal, boolean atPositionGoal, boolean atVelocityGoal,
+                              boolean limitSwitch, boolean[] limitSwitches, boolean[] limitSwitchHolds, double absolutePosition,
                               String controlState, String controlType) {
             this.Position = position;
             this.Velocity = velocity;
@@ -530,9 +574,11 @@ public class Controller {
             this.SupplyCurrent = supplyCurrent;
             this.StatorCurrent = statorCurrent;
             this.Goal = goal;
-            this.AtGoal = atGoal;
+            this.AtPositionGoal = atPositionGoal;
+            this.AtVelocityGoal = atVelocityGoal;
             this.LimitSwitch = limitSwitch;
             this.LimitSwitches = limitSwitches != null ? limitSwitches : new boolean[5];
+            this.LimitSwitchHolds = limitSwitchHolds != null ? limitSwitchHolds : new boolean[5];
             this.AbsolutePosition = absolutePosition;
             this.ControlState = controlState;
             this.ControlType = controlType;
@@ -540,7 +586,7 @@ public class Controller {
 
         /** Constructs a zeroed/empty log snapshot. */
         public ControllerLogs() {
-            this(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, false, false, new boolean[5], 0.0, "", "");
+            this(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, false, false, false, new boolean[5], new boolean[5], 0.0, "", "");
         }
 
         /** The shared {@link Struct} implementation used to serialize/deserialize {@link ControllerLogs}, e.g. for NetworkTables/log replay. */
@@ -572,9 +618,11 @@ public class Controller {
                 size += kSizeDouble; // SupplyCurrent
                 size += kSizeDouble; // StatorCurrent
                 size += kSizeDouble; // Goal
-                size += kSizeBool; // AtGoal
+                size += kSizeBool; // AtPositionGoal
+                size += kSizeBool; // AtVelocityGoal
                 size += kSizeBool; // LimitSwitch
                 size += 5 * kSizeBool; // LimitSwitches (Only 5)
+                size += 5 * kSizeBool; // LimitSwitchHolds (Only 5)
                 size += kSizeDouble; // AbsolutePosition
                 size += 30; // ControlState (30 chars)
                 size += 30; // ControlType (30 chars)
@@ -592,8 +640,8 @@ public class Controller {
             @Override
             public String getSchema() {
                 return "double Position;double Velocity;double Acceleration;double Output;" +
-                        "double SupplyCurrent;double StatorCurrent;double Goal;bool AtGoal;" +
-                        "bool LimitSwitch;bool LimitSwitches[5];double AbsolutePosition;" +
+                        "double SupplyCurrent;double StatorCurrent;double Goal;bool AtPositionGoal;bool AtVelocityGoal;" +
+                        "bool LimitSwitch;bool LimitSwitches[5];bool LimitSwitchHolds[5];double AbsolutePosition;" +
                         "char ControlState[30];char ControlType[30]";
             }
 
@@ -616,12 +664,17 @@ public class Controller {
                 logs.SupplyCurrent = bb.getDouble();
                 logs.StatorCurrent = bb.getDouble();
                 logs.Goal = bb.getDouble();
-                logs.AtGoal = bb.get() != 0;
+                logs.AtPositionGoal = bb.get() != 0;
+                logs.AtVelocityGoal = bb.get() != 0;
                 logs.LimitSwitch = bb.get() != 0;
 
                 logs.LimitSwitches = new boolean[5];
                 for (int i = 0; i < 5; i++) {
                     logs.LimitSwitches[i] = bb.get() != 0;
+                }
+                logs.LimitSwitchHolds = new boolean[5];
+                for (int i = 0; i < 5; i++) {
+                    logs.LimitSwitchHolds[i] = bb.get() != 0;
                 }
 
                 logs.AbsolutePosition = bb.getDouble();
@@ -657,13 +710,19 @@ public class Controller {
                 bb.putDouble(value.SupplyCurrent);
                 bb.putDouble(value.StatorCurrent);
                 bb.putDouble(value.Goal);
-                bb.put((byte) (value.AtGoal ? 1 : 0));
+                bb.put((byte) (value.AtPositionGoal ? 1 : 0));
+                bb.put((byte) (value.AtVelocityGoal ? 1 : 0));
                 bb.put((byte) (value.LimitSwitch ? 1 : 0));
 
                 // Pack boolean array safely up to 5 elements
                 for (int i = 0; i < 5; i++) {
                     boolean val = (value.LimitSwitches != null && i < value.LimitSwitches.length)
                             ? value.LimitSwitches[i] : false;
+                    bb.put((byte) (val ? 1 : 0));
+                }
+                for (int i = 0; i < 5; i++) {
+                    boolean val = (value.LimitSwitchHolds != null && i < value.LimitSwitchHolds.length)
+                        ? value.LimitSwitchHolds[i] : false;
                     bb.put((byte) (val ? 1 : 0));
                 }
 
