@@ -124,13 +124,13 @@ public class ControllerConstants implements Cloneable {
 			clone.real.hardLimits.limits[i].id = this.real.hardLimits.limits[i].id;
 			clone.real.hardLimits.limits[i].isVirtual = this.real.hardLimits.limits[i].isVirtual;
 			clone.real.hardLimits.limits[i].virtualStallThreshold = this.real.hardLimits.limits[i].virtualStallThreshold;
+			clone.real.hardLimits.limits[i].virtualVelocityDeadband = this.real.hardLimits.limits[i].virtualVelocityDeadband;
 			clone.real.hardLimits.limits[i].minPos = this.real.hardLimits.limits[i].minPos;
 			clone.real.hardLimits.limits[i].maxPos = this.real.hardLimits.limits[i].maxPos;
 			clone.real.hardLimits.limits[i].frames = this.real.hardLimits.limits[i].frames;
 			clone.real.hardLimits.limits[i].inverted = this.real.hardLimits.limits[i].inverted;
 			clone.real.hardLimits.limits[i].direction = this.real.hardLimits.limits[i].direction;
 			clone.real.hardLimits.limits[i].enableLimitTriggerMethod = this.real.hardLimits.limits[i].enableLimitTriggerMethod;
-			clone.real.hardLimits.limits[i].limitTriggerMethod = this.real.hardLimits.limits[i].limitTriggerMethod;
 			clone.real.hardLimits.limits[i].homePosition = this.real.hardLimits.limits[i].homePosition;
 		}
 
