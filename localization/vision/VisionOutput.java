@@ -173,8 +173,8 @@ public class VisionOutput implements StructSerializable {
 			output.closestTargetId = (int) bb.getDouble();
 			output.closestTargetPose = Pose3d.struct.unpack(bb);
 
-			int target2 = (int) bb.getDouble();
 			int target1 = (int) bb.getDouble();
+			int target2 = (int) bb.getDouble();
 			int target3 = (int) bb.getDouble();
 			int targetsLength = (target1 != -1 ? 1 : 0) + (target2 != -1 ? 1 : 0) + (target3 != -1 ? 1 : 0);
 			output.targetsIds = new int[targetsLength];

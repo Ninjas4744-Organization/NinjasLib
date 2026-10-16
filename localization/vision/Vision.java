@@ -112,8 +112,12 @@ public class Vision {
 			return;
 
 		for (String name : cameras.keySet()) {
-			outputs.put(name, cameras.get(name).update());
-			NinjasLogger.log("Vision/" + name + "/Outputs", outputs.get(name));
+			VisionOutput[] cameraOutputs = cameras.get(name).update();
+			outputs.put(name, cameraOutputs);
+			// Not logged as an array: WPILib's StructArrayLogEntry leaves a stale buffer limit when the length grows, which kills DogLog's thread
+			NinjasLogger.log("Vision/" + name + "/Outputs Count", cameraOutputs.length);
+			for (int i = 0; i < cameraOutputs.length; i++)
+				NinjasLogger.log("Vision/" + name + "/Output " + i, cameraOutputs[i]);
 		}
 
 		if (Robot.isSimulation())
@@ -138,13 +142,19 @@ public class Vision {
 		return outputsArr.toArray(new VisionOutput[0]);
 	}
 
+	/** @return whether {@code camera} is unknown or produced no outputs on the last {@link #periodic()} call */
+	private boolean noOutputs(String camera) {
+		VisionOutput[] cameraOutputs = outputs.get(camera);
+		return cameraOutputs == null || cameraOutputs.length == 0;
+	}
+
 	/**
 	 * @param camera the name of the camera to get info from
 	 * @return distance from the closest tag to this camera on its last output, or {@code 1} if
 	 * vision is disabled
 	 */
 	public double getClosestTargetDistance(String camera) {
-		if (disabled)
+		if (disabled || noOutputs(camera))
 			return 1;
 
 		return outputs.get(camera)[outputs.get(camera).length - 1].closestTargetDist;
@@ -156,7 +166,7 @@ public class Vision {
 	 * disabled
 	 */
 	public int getClosestTarget(String camera) {
-		if (disabled)
+		if (disabled || noOutputs(camera))
 			return 10;
 
 		return outputs.get(camera)[outputs.get(camera).length - 1].closestTargetId;
@@ -168,7 +178,7 @@ public class Vision {
 	 * vision is disabled
 	 */
 	public double getFarthestTargetDistance(String camera) {
-		if (disabled)
+		if (disabled || noOutputs(camera))
 			return 1;
 
 		return outputs.get(camera)[outputs.get(camera).length - 1].farthestTargetDist;
@@ -180,7 +190,7 @@ public class Vision {
 	 * vision is disabled
 	 */
 	public double getMaxAmbiguity(String camera) {
-		if (disabled)
+		if (disabled || noOutputs(camera))
 			return 0;
 
 		return outputs.get(camera)[outputs.get(camera).length - 1].ambiguity;
@@ -192,7 +202,7 @@ public class Vision {
 	 * identity transform if vision is disabled
 	 */
 	public Transform3d getCameraToClosestTargetTransform(String camera) {
-		if (disabled)
+		if (disabled || noOutputs(camera))
 			return new Transform3d();
 
 		return outputs.get(camera)[outputs.get(camera).length - 1].cameraToClosestTargetTransform;
@@ -204,7 +214,7 @@ public class Vision {
 	 * output, or an empty array if vision is disabled
 	 */
 	public Transform3d[] getCameraToTargetsTransforms(String camera) {
-		if (disabled)
+		if (disabled || noOutputs(camera))
 			return new Transform3d[0];
 
 		return outputs.get(camera)[outputs.get(camera).length - 1].cameraToTargetsTransforms;

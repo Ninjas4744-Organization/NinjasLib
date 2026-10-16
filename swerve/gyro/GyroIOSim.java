@@ -1,8 +1,8 @@
 package frc.lib.NinjasLib.swerve.gyro;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import frc.lib.NinjasLib.util.NinjasLogger;
 import frc.lib.NinjasLib.localization.OdometryThread;
+import frc.lib.NinjasLib.util.NinjasLogger;
 import org.ironmaple.simulation.drivesims.GyroSimulation;
 
 import java.util.Queue;
@@ -15,18 +15,21 @@ import java.util.Queue;
 public class GyroIOSim implements GyroIO {
     GyroSimulation gyro;
     private boolean inverted;
-    private final Queue<Double> yawPositionQueue;
-    private final Queue<Double> yawTimestampQueue;
+    private Queue<Double> yawPositionQueue;
+    private Queue<Double> yawTimestampQueue;
 
     /**
      * @param gyro the underlying simulated gyro to read from
      * @param inverted whether to negate the simulated yaw reading
      */
-    public GyroIOSim(GyroSimulation gyro, boolean inverted) {
+    public GyroIOSim(GyroSimulation gyro, int frequency, boolean inverted) {
         this.gyro = gyro;
         this.inverted = inverted;
-        yawTimestampQueue = OdometryThread.getInstance().makeTimestampQueue();
-        yawPositionQueue = OdometryThread.getInstance().registerSignal(() -> gyro.getGyroReading().getDegrees());
+
+        if (frequency > 50) {
+            yawTimestampQueue = OdometryThread.getInstance().makeTimestampQueue();
+            yawPositionQueue = OdometryThread.getInstance().registerSignal(() -> gyro.getGyroReading().getDegrees());
+        }
     }
 
     /** {@inheritDoc} Note that pitch, roll and acceleration are not simulated and stay at their default values. */
@@ -36,14 +39,16 @@ public class GyroIOSim implements GyroIO {
 
         inputs.yaw = !inverted ? gyro.getGyroReading() : gyro.getGyroReading().unaryMinus();
 
-        inputs.odometryYawTimestamps =
-                yawTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
-        inputs.odometryYawPositions =
-                yawPositionQueue.stream()
-                        .map(x -> Rotation2d.fromDegrees((inverted ? -1 : 1) * x))
-                        .toArray(Rotation2d[]::new);
-        yawTimestampQueue.clear();
-        yawPositionQueue.clear();
+        if (yawTimestampQueue != null) {
+            inputs.odometryYawTimestamps =
+                    yawTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+            inputs.odometryYawPositions =
+                    yawPositionQueue.stream()
+                            .map(x -> Rotation2d.fromDegrees((inverted ? -1 : 1) * x))
+                            .toArray(Rotation2d[]::new);
+            yawTimestampQueue.clear();
+            yawPositionQueue.clear();
+        }
 
         return inputs;
     }

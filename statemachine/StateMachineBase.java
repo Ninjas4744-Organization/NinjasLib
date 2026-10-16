@@ -5,9 +5,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.lib.NinjasLib.util.NinjasLogger;
 import frc.lib.NinjasLib.commands.BackgroundCommand;
 import frc.lib.NinjasLib.commands.StateEndCommand;
+import frc.lib.NinjasLib.util.NinjasLogger;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.BFSShortestPath;
@@ -38,10 +38,9 @@ import java.util.function.Supplier;
  * @param <StateEnum> The enum type enumerating every state this state machine can be in.
  */
 public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extends SubsystemBase {
-    private StateEnum currentState;
-
     private final Graph<StateEnum, Command> graph;
     private final Class<StateEnum> stateEnumClass;
+    private StateEnum currentState;
     private Command currentEdge;
 
     private final Map<StateEnum, Map<Command, StateEnum>> stateEnds;
@@ -51,14 +50,18 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
     private List<StateEnum> currentPath;
     private final BFSShortestPath<StateEnum, Command> bfs;
 
+    private final String logPrefix;
+
     /**
      * Creates a new StateMachineBase, initializes the graph with all enum states as vertices, and calls {@link #define()}.
      *
      * @param states The enum class representing all possible states of this state machine.
      */
-    public StateMachineBase(Class<StateEnum> states) {
+    public StateMachineBase(Class<StateEnum> states, StateEnum startingState, String logPrefix) {
         graph = new SimpleDirectedGraph<>(Command.class);
+        this.logPrefix = logPrefix;
 
+        currentState = startingState;
         stateEnds = new HashMap<>();
         stateEnumClass = states;
         for (StateEnum state : states.getEnumConstants()) {
@@ -125,10 +128,10 @@ public abstract class StateMachineBase<StateEnum extends Enum<StateEnum>> extend
             }
         }
 
-        NinjasLogger.log(getName() + "/State Machine/Is Transitioning", isTransitioning());
-        NinjasLogger.log(getName() + "/State Machine/Current State", getCurrentState().name());
-        NinjasLogger.log(getName() + "/State Machine/Target State", getTargetState() == null ? "N/A" : getTargetState().name());
-        NinjasLogger.log(getName() + "/State Machine/Path States", currentPath == null ? new String[0] : currentPath.stream().map(Enum::name).toArray(String[]::new));
+        NinjasLogger.log(logPrefix + "/" + getName() + "/State Machine/Is Transitioning", isTransitioning());
+        NinjasLogger.log(logPrefix + "/" + getName() + "/State Machine/Current State", getCurrentState().name());
+        NinjasLogger.log(logPrefix + "/" + getName() + "/State Machine/Target State", getTargetState() == null ? "N/A" : getTargetState().name());
+        NinjasLogger.log(logPrefix + "/" + getName() + "/State Machine/Path States", currentPath == null ? new String[0] : currentPath.stream().map(Enum::name).toArray(String[]::new));
     }
 
     /**

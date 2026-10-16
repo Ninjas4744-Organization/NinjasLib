@@ -93,9 +93,11 @@ public class LimelightVisionCameraIO implements VisionCameraIO {
             output.robotPose = estimate.pose;
         }
 
-        output.robotPoseMegaTag1 = estimateMegaTag1.pose;
-        output.closestTargetDistMegaTag1 = estimateMegaTag1.avgTagDist;
-        output.hasTargetsMegaTag1 = estimateMegaTag1.tagCount > 0;
+        if (estimateMegaTag1 != null) {
+            output.robotPoseMegaTag1 = estimateMegaTag1.pose;
+            output.closestTargetDistMegaTag1 = estimateMegaTag1.avgTagDist;
+            output.hasTargetsMegaTag1 = estimateMegaTag1.tagCount > 0;
+        }
 
         outputs.add(output);
         return outputs.toArray(new VisionOutput[0]);

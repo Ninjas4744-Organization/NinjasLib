@@ -10,15 +10,18 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.lib.NinjasLib.util.NinjasLogger;
 import frc.lib.NinjasLib.localization.OdometryThread;
 import frc.lib.NinjasLib.localization.RobotPose;
 import frc.lib.NinjasLib.swerve.constants.SwerveConstants;
-import frc.lib.NinjasLib.swerve.gyro.*;
+import frc.lib.NinjasLib.swerve.gyro.Gyro;
+import frc.lib.NinjasLib.swerve.gyro.GyroIONavX;
+import frc.lib.NinjasLib.swerve.gyro.GyroIOPigeon2;
+import frc.lib.NinjasLib.swerve.gyro.GyroIOSim;
 import frc.lib.NinjasLib.swerve.module.SwerveModuleIO;
 import frc.lib.NinjasLib.swerve.module.SwerveModuleIO.SwerveModuleIOInputs;
 import frc.lib.NinjasLib.swerve.module.SwerveModuleIOReal;
 import frc.lib.NinjasLib.swerve.module.SwerveModuleIOSim;
+import frc.lib.NinjasLib.util.NinjasLogger;
 import frc.robot.Robot;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.COTS;
@@ -102,7 +105,7 @@ public class Swerve {
         };
 
         if (Robot.isReal()) {
-            modules = new SwerveModuleIO[]{
+            modules = new SwerveModuleIO[] {
                 new SwerveModuleIOReal(constants.modules.moduleConstants[0], constants),
                 new SwerveModuleIOReal(constants.modules.moduleConstants[1], constants),
                 new SwerveModuleIOReal(constants.modules.moduleConstants[2], constants),
@@ -131,14 +134,14 @@ public class Swerve {
 
             SimulatedArena.getInstance().addDriveTrainSimulation(simulation);
 
-            modules = new SwerveModuleIO[]{
+            modules = new SwerveModuleIO[] {
                 new SwerveModuleIOSim(constants, constants.modules.moduleConstants[0], simulation.getModules()[0]),
                 new SwerveModuleIOSim(constants, constants.modules.moduleConstants[1], simulation.getModules()[1]),
                 new SwerveModuleIOSim(constants, constants.modules.moduleConstants[2], simulation.getModules()[2]),
                 new SwerveModuleIOSim(constants, constants.modules.moduleConstants[3], simulation.getModules()[3])
             };
 
-            gyro = new Gyro(new GyroIOSim(simulation.getGyroSimulation(), constants.gyro.gyroInverted));
+            gyro = new Gyro(new GyroIOSim(simulation.getGyroSimulation(), constants.special.odometryThreadFrequency, constants.gyro.gyroInverted));
         }
 
         if(constants.special.enableOdometryThread)
